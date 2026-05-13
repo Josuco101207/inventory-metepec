@@ -384,18 +384,35 @@
 
   .fly-search-wrapper {
     height: 48px !important;
+    width: 100% !important;
+    max-width: 100% !important;
     border-radius: var(--m-radius-pill) !important;
     padding: 0 18px !important;
     background: var(--m-bg-elev-2) !important;
     border: 1px solid var(--m-border) !important;
     gap: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .fly-search-wrapper:focus-within {
+    border-color: var(--m-accent) !important;
+    background: var(--m-bg-elev-3) !important;
+    box-shadow: none !important;
   }
 
   .fly-search-input {
     font-size: 0.9rem !important;
     color: var(--m-text) !important;
-    flex: 1;
+    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .fly-search-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   .fly-action-buttons {
