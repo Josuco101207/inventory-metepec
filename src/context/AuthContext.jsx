@@ -10,7 +10,9 @@ export const useAuth = () => useContext(AuthContext);
 const fetchProfile = async (userId, accessToken) => {
   const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  // Shorter timeout on mobile (3s) vs desktop (5s)
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const timeout = setTimeout(() => controller.abort(), isTouch ? 3000 : 5000);
   try {
     const res = await fetch(url, {
       headers: {
@@ -40,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Helper to build userData from session + profile
-  const buildUserData = (sessionUser, profile) => {
+  const buildUserData = useCallback((sessionUser, profile) => {
     if (profile) {
       return {
         id: sessionUser.id,
@@ -58,7 +60,18 @@ export const AuthProvider = ({ children }) => {
       name: sessionUser.user_metadata?.name || '',
       role: 'user',
     };
-  };
+  }, []);
+
+  // Load user profile with short timeout
+  const loadProfile = useCallback(async (sessionUser, accessToken) => {
+    try {
+      const profile = await fetchProfile(sessionUser.id, accessToken);
+      setUserData(buildUserData(sessionUser, profile));
+    } catch (err) {
+      console.error('Profile fetch error:', err);
+      setUserData(buildUserData(sessionUser, null));
+    }
+  }, [buildUserData]);
 
   // Listen to Supabase auth state changes
   useEffect(() => {
@@ -66,24 +79,16 @@ export const AuthProvider = ({ children }) => {
     let loadingTimeout = null;
     let initialDone = false;
 
-    // Safety timeout — never stay loading more than 8s
+    // Safety timeout — never stay loading more than 5s on mobile
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    const timeoutMs = isTouch ? 5000 : 8000;
     loadingTimeout = setTimeout(() => {
       if (!initialDone) {
         console.warn('Auth loading timeout — forcing load');
         initialDone = true;
         setLoading(false);
       }
-    }, 8000);
-
-    const loadProfile = async (sessionUser, accessToken) => {
-      try {
-        const profile = await fetchProfile(sessionUser.id, accessToken);
-        setUserData(buildUserData(sessionUser, profile));
-      } catch (err) {
-        console.error('Profile fetch error:', err);
-        setUserData(buildUserData(sessionUser, null));
-      }
-    };
+    }, timeoutMs);
 
     // Init: use getSession which properly sets internal auth headers
     const initAuth = async () => {
@@ -130,14 +135,20 @@ export const AuthProvider = ({ children }) => {
       if (subscription) subscription.unsubscribe();
       if (loadingTimeout) clearTimeout(loadingTimeout);
     };
-  }, []);
+  }, [loadProfile]);
 
   const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       return { success: false, error: error.message };
     }
-    return { success: true, user: data.user };
+    // Immediately set user and load profile for instant UI response
+    if (data.user && data.session) {
+      setUser(data.user);
+      // Fire and forget profile load — don't block UI
+      loadProfile(data.user, data.session.access_token);
+    }
+    return { success: true, user: data.user, session: data.session };
   };
   
   const signup = async (email, password, name) => {

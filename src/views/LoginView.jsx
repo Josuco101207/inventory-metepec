@@ -22,18 +22,19 @@ const LoginView = () => {
     try {
       const result = await login(email, password);
       if (result?.success) {
-        toast.success('ACCESO CONCEDIDO');
+        // Non-blocking toast — UI transitions immediately
+        setTimeout(() => toast.success('ACCESO CONCEDIDO'), 100);
       } else {
-        const message = 'Credenciales incorrectas';
+        const message = result?.error || 'Credenciales incorrectas';
         setErrorMsg(message);
         toast.error(message);
+        setIsAuthLoading(false);
       }
     } catch (error) {
       console.error(error);
       const message = 'Error al iniciar sesión';
       setErrorMsg(message);
       toast.error(message);
-    } finally {
       setIsAuthLoading(false);
     }
   };
