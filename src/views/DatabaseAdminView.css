@@ -558,6 +558,22 @@
     padding: 0.5rem 0.7rem;
   }
 
+  /* Compact selects for icon and zone */
+  .db-select-wrapper {
+    min-height: 36px;
+    padding: 0 0.4rem 0 0.6rem;
+  }
+
+  .db-select-wrapper .db-select {
+    padding: 0.4rem 0.2rem;
+    font-size: 0.8rem;
+  }
+
+  .db-select-wrapper svg,
+  .db-select-wrapper .db-col-dot {
+    flex-shrink: 0;
+  }
+
   /* Column rows - compact cards */
   .db-column-row {
     flex-direction: row;
@@ -692,5 +708,13 @@
 
   .db-column-row {
     padding: 6px 8px;
+  }
+
+  .db-select-wrapper {
+    min-height: 32px;
+  }
+
+  .db-select-wrapper .db-select {
+    font-size: 0.75rem;
   }
 }
