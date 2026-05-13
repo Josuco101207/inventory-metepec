@@ -523,67 +523,111 @@
     font-size: 0.7rem;
   }
 
-  /* Create form mobile */
+  /* Create form mobile - compact */
   .db-create-form {
-    padding: 16px;
-    border-radius: 20px;
+    padding: 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
   }
 
   .db-form-title {
-    font-size: 0.95rem;
-    margin-bottom: 16px;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid hsl(var(--border));
   }
 
-  /* Force single column on mobile */
+  /* Force single column on mobile - tight gaps */
   .db-create-form > div[style*="gridTemplateColumns"] {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    gap: 8px !important;
   }
 
   .db-form-group {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+  }
+
+  .db-label {
+    font-size: 0.65rem;
+    margin-bottom: 4px;
   }
 
   .db-input, .db-select-wrapper {
-    min-height: 44px;
-    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 40px;
+    font-size: 16px;
+    padding: 0.5rem 0.7rem;
   }
 
-  /* Column rows stack */
+  /* Column rows - compact cards */
   .db-column-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
     background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    margin-bottom: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
   }
 
-  .db-col-name {
-    min-width: 100%;
-    width: 100%;
+  .db-column-row .db-input {
+    flex: 2;
+    min-width: 120px;
   }
 
-  .db-select-wrapper {
-    min-width: 100%;
-    width: 100%;
+  .db-column-row .db-select-wrapper {
+    flex: 1;
+    min-width: 100px;
   }
 
   .db-checkbox-label {
-    padding: 8px 0;
+    padding: 4px 0;
+    font-size: 0.65rem;
   }
 
-  /* Create button */
+  .db-checkbox-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Default cols compact */
+  .db-default-cols {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+
+  .db-default-cols-label {
+    font-size: 0.6rem;
+    margin-bottom: 4px;
+  }
+
+  .db-default-col {
+    font-size: 0.7rem;
+  }
+
+  /* Columns section header compact */
+  .db-columns-section {
+    margin-top: 10px;
+  }
+
+  .db-columns-header {
+    margin-bottom: 8px;
+  }
+
+  .db-columns-header h3 {
+    font-size: 0.75rem;
+  }
+
+  /* Create button - compact */
   .db-btn-create {
-    min-height: 52px;
-    font-size: 0.9rem;
-    margin-top: 16px;
+    min-height: 44px;
+    font-size: 0.8rem;
+    margin-top: 10px;
   }
 
-  /* Tables section */
+  /* Tables section - compact */
   .db-tables-section {
-    margin-top: 24px;
+    margin-top: 16px;
   }
 
   .db-section-title {
@@ -626,17 +670,27 @@
   }
 }
 
-/* Small phones */
+/* Small phones - extra compact */
 @media (max-width: 400px) and (pointer: coarse) {
   .db-admin-view {
     padding: 0 12px 100px;
   }
 
   .db-create-form {
-    padding: 14px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .db-form-title {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
   }
 
   .db-admin-title {
     font-size: 1.1rem;
+  }
+
+  .db-column-row {
+    padding: 6px 8px;
   }
 }
