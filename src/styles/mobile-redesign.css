@@ -392,12 +392,23 @@
     border: 1px solid var(--m-border) !important;
     gap: 12px !important;
     box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
   }
 
   .fly-search-wrapper:focus-within {
     border-color: var(--m-accent) !important;
     background: var(--m-bg-elev-3) !important;
     box-shadow: none !important;
+  }
+
+  .fly-search-icon {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+    color: var(--m-text-3) !important;
+    margin: 0 !important;
   }
 
   .fly-search-input {
@@ -408,11 +419,19 @@
     min-width: 0;
     outline: none !important;
     box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
   }
 
   .fly-search-input:focus {
     outline: none !important;
     box-shadow: none !important;
+  }
+
+  .fly-search-input::placeholder {
+    color: var(--m-text-3) !important;
+    font-weight: 400 !important;
   }
 
   .fly-action-buttons {
