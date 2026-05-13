@@ -459,18 +459,33 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [addMovement, getTableName]);
 
-  const bulkAddItems = useCallback((itemsArray) => {
-    const createdItems = itemsArray.map(item => addLocalStorageItem({
-      ...item,
-      qty: parseInt(item.qty) || 0,
-      threshold: parseInt(item.threshold) || 1,
-      status: null,
-      timestamp: new Date().toISOString()
-    }));
-    
-    setItemsState(prev => [...prev, ...createdItems]);
-    toast.success(`Importación exitosa: ${itemsArray.length} artículos añadidos`);
-  }, []);
+  const bulkAddItems = useCallback(async (itemsArray) => {
+    try {
+      toast.loading(`Importando ${itemsArray.length} artículos...`, { id: 'bulk-add' });
+      const results = await Promise.all(
+        itemsArray.map(async (item) => {
+          const tableName = getTableName(item.category);
+          if (!tableName) return null;
+          const { category: _cat, _tableName, id, createdAt, created_at, ...dbFields } = item;
+          const dbItem = {
+            ...dbFields,
+            qty: parseInt(item.qty) || 0,
+            threshold: parseInt(item.threshold) || 1,
+            status: null,
+          };
+          const created = await sbInsertItem(tableName, dbItem);
+          if (created) return { ...created, category: item.category, _tableName: tableName };
+          return null;
+        })
+      );
+      const validItems = results.filter(Boolean);
+      setItemsState(prev => [...prev, ...validItems]);
+      toast.success(`Importación exitosa: ${validItems.length} artículos añadidos`, { id: 'bulk-add' });
+    } catch (err) {
+      console.error('bulkAddItems error:', err);
+      toast.error(`Error en importación: ${err.message}`, { id: 'bulk-add' });
+    }
+  }, [getTableName]);
 
   const bulkAddPersonnel = useCallback((personnelArray) => {
     const createdPersons = personnelArray.map(person => addLocalStoragePerson({
@@ -560,7 +575,7 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [isAutoWiping]);
 
-  const deleteItemsByCategory = useCallback((category, userName = 'Jonathan') => {
+  const deleteItemsByCategory = useCallback(async (category, userName = 'Jonathan') => {
     try {
       const categoryItems = itemsRef.current.filter(i => i.category === category);
       if (categoryItems.length === 0) {
@@ -569,15 +584,17 @@ export const InventoryProvider = ({ children }) => {
       }
 
       toast.loading(`ELIMINANDO ${categoryItems.length} ARTÍCULOS...`, { id: 'category-delete' });
-      
-      categoryItems.forEach(item => deleteLocalStorageItem(item.id));
+
+      await Promise.all(categoryItems.map(item => {
+        const tableName = item._tableName || getTableName(item.category);
+        return tableName ? sbDeleteItem(tableName, item.id) : Promise.resolve();
+      }));
+
       setItemsState(prev => prev.filter(i => i.category !== category));
-      
       addMovement(
-        'Eliminación Masiva', `Todo ${category}`, categoryItems.length, 
+        'Eliminación Masiva', `Todo ${category}`, categoryItems.length,
         userName, `Se eliminaron todos los elementos del apartado ${category}`, category
       );
-
       toast.success(`Se eliminaron ${categoryItems.length} artículos de ${category}`, { id: 'category-delete' });
       return true;
     } catch (e) {
@@ -585,28 +602,21 @@ export const InventoryProvider = ({ children }) => {
       toast.error(`Error al eliminar categoría: ${e.message}`, { id: 'category-delete' });
       return false;
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const clearDatabaseCategories = useCallback((categories, userName = 'Jonathan') => {
+  const clearDatabaseCategories = useCallback(async (categories, userName = 'Jonathan') => {
     try {
       toast.loading("LIMPIANDO ÁREAS SELECCIONADAS...", { id: 'clear-db' });
 
-      for (const category of categories) {
-        const categoryItems = itemsRef.current.filter(i => i.category === category);
-        categoryItems.forEach(item => deleteLocalStorageItem(item.id));
-
-        const categoryMovements = movements.filter(m => m.category === category);
-        categoryMovements.forEach(m => {
-          // In localStorage we don't have a delete function for movements by ID,
-          // so we'll need to filter and set
-          const updated = movements.filter(mov => mov.id !== m.id);
-          setMovementsState(updated);
-          setMovements(updated);
-        });
-      }
+      const itemsToDelete = itemsRef.current.filter(i => categories.includes(i.category));
+      await Promise.all(itemsToDelete.map(item => {
+        const tableName = item._tableName || getTableName(item.category);
+        return tableName ? sbDeleteItem(tableName, item.id) : Promise.resolve();
+      }));
 
       setItemsState(prev => prev.filter(i => !categories.includes(i.category)));
-      setGlobalStats(getStats());
+      // Filter movements from state too
+      setMovementsState(prev => prev.filter(m => !categories.includes(m.category)));
 
       toast.success("Mantenimiento completado exitosamente", { id: 'clear-db' });
       return true;
@@ -615,9 +625,9 @@ export const InventoryProvider = ({ children }) => {
       toast.error(`Error en mantenimiento: ${e.message}`, { id: 'clear-db' });
       return false;
     }
-  }, [movements, addMovement]);
+  }, [getTableName]);
 
-  const deleteItemsWithInvalidCategories = useCallback((validCategories, userName = 'Jonathan') => {
+  const deleteItemsWithInvalidCategories = useCallback(async (validCategories, userName = 'Jonathan') => {
     try {
       const invalidItems = itemsRef.current.filter(i => !validCategories.includes(i.category));
       if (invalidItems.length === 0) {
@@ -625,15 +635,18 @@ export const InventoryProvider = ({ children }) => {
         return false;
       }
 
-      if (!window.confirm(`¿Eliminar ${invalidItems.length} artículos que no pertenecen a las 10 categorías nuevas? Esta acción es irreversible.`)) {
+      if (!window.confirm(`¿Eliminar ${invalidItems.length} artículos que no pertenecen a las categorías válidas? Esta acción es irreversible.`)) {
         return false;
       }
 
       toast.loading(`ELIMINANDO ${invalidItems.length} ARTÍCULOS INVÁLIDOS...`, { id: 'invalid-delete' });
 
-      invalidItems.forEach(item => deleteLocalStorageItem(item.id));
+      await Promise.all(invalidItems.map(item => {
+        const tableName = item._tableName || getTableName(item.category);
+        return tableName ? sbDeleteItem(tableName, item.id) : Promise.resolve();
+      }));
+
       setItemsState(prev => prev.filter(i => validCategories.includes(i.category)));
-      setGlobalStats(getStats());
 
       addMovement(
         'Eliminación Masiva', 'Categorías Inválidas', invalidItems.length,
