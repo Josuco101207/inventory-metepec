@@ -259,16 +259,12 @@ const DatabaseAdminView = () => {
 
   const getTypeInfo = (type) => COLUMN_TYPES.find(t => t.value === type) || COLUMN_TYPES[0];
 
-  // Debug: log auth state
-  console.log('[DB Admin] authLoading:', authLoading, 'userData:', userData, 'isAdmin:', isAdmin);
-
   // Wait for auth to load before showing restricted message
   if (authLoading) {
     return (
       <div className="db-admin-restricted">
         <Loader2 size={48} className="animate-spin" style={{ color: 'var(--fly-yellow, #E2FF00)' }} />
         <h2>Validando sesión...</h2>
-        <p style={{ fontSize: '12px', opacity: 0.5 }}>Debug: authLoading=true</p>
       </div>
     );
   }
@@ -317,16 +313,8 @@ const DatabaseAdminView = () => {
             </button>
             <button
               type="button"
-              className="db-btn db-btn-primary"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowCreateForm(!showCreateForm);
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                setShowCreateForm(!showCreateForm);
-              }}
+              className="db-btn db-btn-primary db-btn-new-cat"
+              onClick={() => setShowCreateForm(v => !v)}
             >
               {showCreateForm ? <X size={16} /> : <Plus size={16} />}
               {showCreateForm ? 'Cancelar' : 'Nueva Categoría'}
