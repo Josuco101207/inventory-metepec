@@ -475,27 +475,158 @@
   opacity: 0.5;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive Mobile */
+@media (max-width: 768px) and (pointer: coarse) {
   .db-admin-view {
-    padding: 0 1rem 2rem;
+    padding: 0 16px 100px;
+  }
+
+  .db-admin-container {
+    max-width: 100%;
   }
 
   .db-admin-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
   }
 
+  .db-admin-header-left {
+    gap: 10px;
+  }
+
+  .db-admin-title {
+    font-size: 1.25rem;
+  }
+
+  .db-admin-header-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .db-admin-header-actions .db-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px;
+    font-size: 0.7rem;
+  }
+
+  /* Create form mobile */
+  .db-create-form {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .db-form-title {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  /* Force single column on mobile */
+  .db-create-form > div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .db-form-group {
+    margin-bottom: 12px;
+  }
+
+  .db-input, .db-select-wrapper {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  /* Column rows stack */
   .db-column-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    margin-bottom: 12px;
   }
 
   .db-col-name {
     min-width: 100%;
+    width: 100%;
   }
 
   .db-select-wrapper {
     min-width: 100%;
+    width: 100%;
+  }
+
+  .db-checkbox-label {
+    padding: 8px 0;
+  }
+
+  /* Create button */
+  .db-btn-create {
+    min-height: 52px;
+    font-size: 0.9rem;
+    margin-top: 16px;
+  }
+
+  /* Tables section */
+  .db-tables-section {
+    margin-top: 24px;
+  }
+
+  .db-section-title {
+    font-size: 0.9rem;
+  }
+
+  .db-table-header {
+    padding: 14px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .db-table-name {
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .db-table-rows {
+    margin-left: 0;
+    width: 100%;
+    order: 3;
+    font-size: 0.65rem;
+  }
+
+  .db-table-columns {
+    padding: 12px;
+  }
+
+  .db-table-col {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .db-col-type {
+    width: 100%;
+    order: 3;
+  }
+}
+
+/* Small phones */
+@media (max-width: 400px) and (pointer: coarse) {
+  .db-admin-view {
+    padding: 0 12px 100px;
+  }
+
+  .db-create-form {
+    padding: 14px;
+  }
+
+  .db-admin-title {
+    font-size: 1.1rem;
   }
 }
