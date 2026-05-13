@@ -404,23 +404,40 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.75rem 1rem;
-  background: rgba(218, 0, 163, 0.12);
-  border: 1.5px solid var(--fly-magenta);
+  padding: 0.9rem 1rem;
+  background: rgba(218, 0, 163, 0.2);
+  border: 2px solid var(--fly-magenta);
   border-radius: var(--radius-button);
   color: var(--fly-magenta);
   font-family: var(--font-heading);
   font-weight: 900;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  animation: flyShake 400ms var(--ease-fly);
+  animation: flyShake 500ms var(--ease-fly);
+  text-align: center;
+  justify-content: center;
+}
+
+/* Shake animation for password field on error */
+.fly-field-shake {
+  animation: flyFieldShake 400ms ease-in-out;
 }
 
 @keyframes flyShake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
+  10% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  50% { transform: translateX(-6px); }
+  70% { transform: translateX(6px); }
+}
+
+@keyframes flyFieldShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
 }
 
 /* ─── SUBMIT BUTTON ─── */

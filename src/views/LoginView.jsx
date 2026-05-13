@@ -25,7 +25,9 @@ const LoginView = () => {
         // Non-blocking toast — UI transitions immediately
         setTimeout(() => toast.success('ACCESO CONCEDIDO'), 100);
       } else {
-        const message = result?.error || 'Credenciales incorrectas';
+        const message = result?.error?.includes('Invalid login') 
+          ? 'Contraseña incorrecta' 
+          : (result?.error || 'Credenciales incorrectas');
         setErrorMsg(message);
         toast.error(message);
         setIsAuthLoading(false);
@@ -116,12 +118,13 @@ const LoginView = () => {
               </div>
             </div>
 
-            <div className="fly-field">
+            <div className={`fly-field ${errorMsg ? 'fly-field-shake' : ''}`}>
               <label htmlFor="password">CONTRASENA</label>
               <div className="fly-field-wrap">
                 <Lock size={16} className="fly-field-icon" />
                 <input
                   id="password"
+                  ref={(el) => { if (errorMsg && el) el.focus(); }}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   required
