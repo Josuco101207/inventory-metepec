@@ -55,13 +55,14 @@ import { InventoryProvider, useInventory } from './context/InventoryContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Toaster, toast } from 'sonner';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState as useStateR } from 'react';
 import { CategoriesProvider, useCategories } from './context/CategoriesContext';
 
 const RootApp = () => {
   const { user, loading, userData, isAdmin } = useAuth();
   const { categories, loading: catsLoading } = useCategories();
+  const { loadError, loading: invLoading, syncInventory } = useInventory();
   const [sidebarOpen, setSidebarOpen] = useStateR(false);
 
   if (loading || catsLoading) {
@@ -126,6 +127,20 @@ const RootApp = () => {
       <div className="app-container" style={{ position: 'relative', zIndex: 1 }}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="main-content">
+          {loadError && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              background: 'rgba(255, 59, 48, 0.12)', border: '1px solid rgba(255, 59, 48, 0.3)',
+              borderRadius: '12px', padding: '12px 16px', margin: '12px 16px 0',
+              color: '#ff6b6b', fontSize: '0.8rem', fontWeight: 600
+            }}>
+              <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+              <span style={{ flex: 1 }}>Error al conectar con la base de datos: {loadError}</span>
+              <button onClick={syncInventory} style={{
+                background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', padding: 4
+              }}><RefreshCw size={15} /></button>
+            </div>
+          )}
           <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}><Loader2 className="animate-spin" style={{ color: 'hsl(var(--primary))' }} size={40} /></div>}>
             <Routes>
               <Route path="/" element={<ViewProtectedRoute viewId="dashboard"><Dashboard /></ViewProtectedRoute>} />

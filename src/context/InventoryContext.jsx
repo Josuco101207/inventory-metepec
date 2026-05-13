@@ -15,6 +15,9 @@ import {
   insertItem as sbInsertItem,
   updateItem as sbUpdateItem,
   deleteItem as sbDeleteItem,
+  fetchMovements as sbFetchMovements,
+  insertMovement as sbInsertMovement,
+  updateMovement as sbUpdateMovement,
 } from '../storage/supabaseStorage';
 
 const InventoryContext = createContext();
@@ -33,6 +36,7 @@ export const InventoryProvider = ({ children }) => {
   const [brands, setBrandsState] = useState([]);
   const [locations, setLocationsState] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [isAutoWiping, setIsAutoWiping] = useState(false);
   const [lastSync, setLastSync] = useState(new Date());
   const [connectionStatus, setConnectionStatus] = useState('supabase');
@@ -105,18 +109,36 @@ export const InventoryProvider = ({ children }) => {
     }
 
     const init = async () => {
-      // Load from localStorage (movements, personnel, brands, locations)
-      setMovementsState(getMovements());
-      setPersonnelState(getPersonnel());
-      setBrandsState(getBrands());
-      setLocationsState(getLocations());
+      setLoadError(null);
+      try {
+        // Load personnel, brands, locations from localStorage
+        setPersonnelState(getPersonnel());
+        setBrandsState(getBrands());
+        setLocationsState(getLocations());
 
-      // Load items from Supabase
-      await loadAllItems();
+        // Load items and movements from Supabase in parallel
+        const [, sbMovements] = await Promise.all([
+          loadAllItems(),
+          sbFetchMovements(500),
+        ]);
 
-      setGlobalStats(getStats());
-      setLastSync(new Date());
-      setLoading(false);
+        if (sbMovements.length > 0) {
+          setMovementsState(sbMovements);
+        } else {
+          // Fallback: show localStorage movements if Supabase table not yet created
+          setMovementsState(getMovements());
+        }
+
+        setGlobalStats(getStats());
+        setLastSync(new Date());
+      } catch (err) {
+        console.error('[Inventory] Init error:', err);
+        setLoadError(err.message);
+        // Fallback to localStorage on error
+        setMovementsState(getMovements());
+      } finally {
+        setLoading(false);
+      }
     };
 
     init();
@@ -137,22 +159,31 @@ export const InventoryProvider = ({ children }) => {
   }, [user, items, movements]);
 
   // ─── Helpers ───
-  const addMovement = useCallback((action, itemName, qty, userName = 'Jonathan', details = '', category = 'General') => {
+  const addMovement = useCallback(async (action, itemName, qty, userName = 'Jonathan', details = '', category = 'General') => {
     try {
       const relatedItem = itemsRef.current.find(i => i.name === itemName);
       const subcategory = relatedItem?.subcategory || '';
 
-      const newMovement = addLocalStorageMovement({
+      const movementData = {
         action,
         item: itemName,
         user: userName,
         details,
         category,
         subcategory,
-        qty: Math.abs(qty)
-      });
-      
-      setMovementsState(prev => [newMovement, ...prev]);
+        qty: Math.abs(qty),
+        timestamp: new Date().toISOString(),
+        time: new Date().toLocaleString(),
+      };
+
+      // Save to Supabase (fire-and-forget, fallback to localStorage on error)
+      const saved = await sbInsertMovement(movementData);
+      const finalMovement = saved || { ...movementData, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) };
+
+      // Always keep localStorage in sync as local cache
+      addLocalStorageMovement(movementData);
+
+      setMovementsState(prev => [finalMovement, ...prev]);
       setGlobalStats(getStats());
     } catch (e) {
       console.error("Error adding movement:", e);
@@ -603,7 +634,7 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [addMovement]);
 
-  const annulMovement = useCallback((movementId, adminName) => {
+  const annulMovement = useCallback(async (movementId, adminName) => {
     const mov = movements.find(m => m.id === movementId);
     if (!mov || mov.annulled) return;
 
@@ -638,15 +669,19 @@ export const InventoryProvider = ({ children }) => {
         }
       }
 
-      const updatedMovement = updateLocalStorageMovement(movementId, {
+      const annulFields = {
         annulled: true,
         annulledBy: adminName,
         annulledAt: new Date().toISOString()
-      });
-      
-      if (updatedMovement) {
-        setMovementsState(prev => prev.map(m => m.id === movementId ? updatedMovement : m));
-      }
+      };
+
+      // Update in Supabase
+      const sbUpdated = await sbUpdateMovement(movementId, annulFields);
+      // Also update localStorage cache
+      updateLocalStorageMovement(movementId, annulFields);
+
+      const updatedMovement = sbUpdated || { ...mov, ...annulFields };
+      setMovementsState(prev => prev.map(m => m.id === movementId ? updatedMovement : m));
 
       addMovement(
         'Anulación', mov.item, mov.qty, adminName,
@@ -675,22 +710,79 @@ export const InventoryProvider = ({ children }) => {
 
   // ─── Context Value (memoized) ───
   const contextValue = useMemo(() => ({
-    items, movements, personnel, brands, locations, loading, globalStats,
-    updateStock, addItem, deleteItem, editItem,
-    loanItem, bulkLoanItems, returnItem, bulkAddItems, bulkAddPersonnel,
-    addWorker, deleteWorker, reportMaintenance, completeMaintenance, auditStock,
-    addBrand, deleteBrand, addLocation, deleteLocation,
-    wipeAllData, deleteItemsByCategory, clearDatabaseCategories, deleteItemsWithInvalidCategories, isAutoWiping,
-    lastSync, connectionStatus, annulMovement, syncInventory,
-    fetchMoreItems: () => {}, hasMore: false
+    items,
+    movements,
+    personnel,
+    brands,
+    locations,
+    loading,
+    loadError,
+    globalStats,
+    updateStock,
+    addItem,
+    deleteItem,
+    editItem,
+    loanItem,
+    bulkLoanItems,
+    returnItem,
+    bulkAddItems,
+    bulkAddPersonnel,
+    addWorker,
+    deleteWorker,
+    reportMaintenance,
+    completeMaintenance,
+    auditStock,
+    addBrand,
+    deleteBrand,
+    addLocation,
+    deleteLocation,
+    wipeAllData,
+    deleteItemsByCategory,
+    clearDatabaseCategories,
+    deleteItemsWithInvalidCategories,
+    isAutoWiping,
+    lastSync,
+    connectionStatus,
+    annulMovement,
+    syncInventory,
+    fetchMoreItems: () => {},
+    hasMore: false,
   }), [
-    items, movements, personnel, brands, locations, loading, globalStats,
-    updateStock, addItem, deleteItem, editItem,
-    loanItem, bulkLoanItems, returnItem, bulkAddItems, bulkAddPersonnel,
-    addWorker, deleteWorker, reportMaintenance, completeMaintenance, auditStock,
-    addBrand, deleteBrand, addLocation, deleteLocation,
-    wipeAllData, deleteItemsByCategory, clearDatabaseCategories, deleteItemsWithInvalidCategories,
-    isAutoWiping, lastSync, connectionStatus, annulMovement, syncInventory
+    items,
+    movements,
+    personnel,
+    brands,
+    locations,
+    loading,
+    loadError,
+    globalStats,
+    updateStock,
+    addItem,
+    deleteItem,
+    editItem,
+    loanItem,
+    bulkLoanItems,
+    returnItem,
+    bulkAddItems,
+    bulkAddPersonnel,
+    addWorker,
+    deleteWorker,
+    reportMaintenance,
+    completeMaintenance,
+    auditStock,
+    addBrand,
+    deleteBrand,
+    addLocation,
+    deleteLocation,
+    wipeAllData,
+    deleteItemsByCategory,
+    clearDatabaseCategories,
+    deleteItemsWithInvalidCategories,
+    isAutoWiping,
+    lastSync,
+    connectionStatus,
+    annulMovement,
+    syncInventory,
   ]);
 
   return (

@@ -1,7 +1,7 @@
 /**
- * Supabase storage layer for inventory items.
+ * Supabase storage layer for inventory items and movements.
  * Each category has its own table in Supabase (e.g. cat_herramientas).
- * The table name comes from the category's `tableName` field.
+ * Movements are stored in a shared `movements` table.
  */
 import { supabase } from '../lib/supabase';
 
@@ -34,9 +34,8 @@ const restFetch = async (path, options = {}) => {
   return text ? JSON.parse(text) : null;
 };
 
-/**
- * Fetch all items from a category table
- */
+// ─── ITEMS ───
+
 export const fetchItems = async (tableName) => {
   if (!tableName) return [];
   try {
@@ -48,12 +47,8 @@ export const fetchItems = async (tableName) => {
   }
 };
 
-/**
- * Insert a new item into a category table
- */
 export const insertItem = async (tableName, item) => {
   if (!tableName) throw new Error('No table name');
-  // Remove fields that don't belong in the DB (id and created_at are auto-generated)
   const { id, createdAt, created_at, ...rest } = item;
   const data = await restFetch(tableName, {
     method: 'POST',
@@ -62,9 +57,6 @@ export const insertItem = async (tableName, item) => {
   return data?.[0] || data;
 };
 
-/**
- * Update an item in a category table
- */
 export const updateItem = async (tableName, itemId, updates) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
   const { id, createdAt, created_at, ...rest } = updates;
@@ -75,9 +67,6 @@ export const updateItem = async (tableName, itemId, updates) => {
   return data?.[0] || data;
 };
 
-/**
- * Delete an item from a category table
- */
 export const deleteItem = async (tableName, itemId) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
   await restFetch(`${tableName}?id=eq.${itemId}`, {
@@ -85,4 +74,43 @@ export const deleteItem = async (tableName, itemId) => {
     prefer: 'return=minimal',
   });
   return true;
+};
+
+// ─── MOVEMENTS ───
+
+export const fetchMovements = async (limit = 500) => {
+  try {
+    const data = await restFetch(`movements?select=*&order=timestamp.desc&limit=${limit}`);
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchMovements:', err.message);
+    return [];
+  }
+};
+
+export const insertMovement = async (movement) => {
+  try {
+    const { id, ...rest } = movement;
+    const data = await restFetch('movements', {
+      method: 'POST',
+      body: JSON.stringify(rest),
+    });
+    return data?.[0] || data;
+  } catch (err) {
+    console.error('[SupabaseStorage] insertMovement:', err.message);
+    return null;
+  }
+};
+
+export const updateMovement = async (movementId, updates) => {
+  try {
+    const data = await restFetch(`movements?id=eq.${movementId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    return data?.[0] || data;
+  } catch (err) {
+    console.error('[SupabaseStorage] updateMovement:', err.message);
+    return null;
+  }
 };
