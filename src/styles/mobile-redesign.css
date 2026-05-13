@@ -829,8 +829,9 @@
 
   /* ═══════════════════════════════════════════════════════════════
      12. INPUTS — Material You meets One UI
+     Exclude inputs that are already inside styled wrappers
      ═══════════════════════════════════════════════════════════════ */
-  input:not([type="checkbox"]):not([type="radio"]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="date"]):not(.search-input):not(.fly-search-input),
   select,
   textarea {
     border-radius: var(--m-radius-sm) !important;
@@ -842,12 +843,21 @@
     transition: border-color 0.18s ease, background 0.18s ease;
   }
 
-  input:focus,
+  input:not(.search-input):not(.fly-search-input):focus,
   select:focus,
   textarea:focus {
     border-color: var(--m-accent) !important;
     background: var(--m-bg-elev-3) !important;
     outline: none !important;
+  }
+
+  /* Search inputs inside wrappers must be transparent */
+  .search-input,
+  .fly-search-input {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
   }
 
   /* ═══════════════════════════════════════════════════════════════
