@@ -142,12 +142,13 @@ export const AuthProvider = ({ children }) => {
     if (error) {
       return { success: false, error: error.message };
     }
-    // Immediately set user and load profile for instant UI response
     if (data.user && data.session) {
       setUser(data.user);
-      setLoading(false); // Stop loading immediately for responsive UI
-      // Fire and forget profile load — don't block UI
-      loadProfile(data.user, data.session.access_token);
+      // Wait for profile with short timeout — ensures userData is ready
+      const profilePromise = loadProfile(data.user, data.session.access_token);
+      const timeoutPromise = new Promise(r => setTimeout(r, 1500));
+      await Promise.race([profilePromise, timeoutPromise]);
+      setLoading(false);
     }
     return { success: true, user: data.user, session: data.session };
   };

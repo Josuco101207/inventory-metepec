@@ -260,12 +260,24 @@ const DatabaseAdminView = () => {
   const getTypeInfo = (type) => COLUMN_TYPES.find(t => t.value === type) || COLUMN_TYPES[0];
 
   // Wait for auth to load before showing restricted message
-  if (authLoading || !userData) {
+  if (authLoading) {
     return (
       <div className="db-admin-restricted">
         <Loader2 size={48} className="animate-spin" style={{ color: 'var(--fly-yellow, #E2FF00)' }} />
-        <h2>Cargando perfil...</h2>
-        <p>Espere un momento</p>
+        <h2>Validando sesión...</h2>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="db-admin-restricted">
+        <AlertTriangle size={48} />
+        <h2>Error al cargar perfil</h2>
+        <p>No se pudo obtener la información del usuario.</p>
+        <button className="db-btn db-btn-primary" style={{ marginTop: '1rem' }} onClick={() => window.location.reload()}>
+          Reintentar
+        </button>
       </div>
     );
   }
