@@ -145,6 +145,7 @@ export const AuthProvider = ({ children }) => {
     // Immediately set user and load profile for instant UI response
     if (data.user && data.session) {
       setUser(data.user);
+      setLoading(false); // Stop loading immediately for responsive UI
       // Fire and forget profile load — don't block UI
       loadProfile(data.user, data.session.access_token);
     }
