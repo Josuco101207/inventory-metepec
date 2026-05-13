@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   FLY EXTREME — iOS NATIVE-FEEL RESPONSIVE
-   Full iOS app experience: tab bar, blur, rounded cards, 
-   SF-like spacing, bottom sheets, haptic-feel transitions
+   FLY EXTREME — ONE UI 8.5 STYLE RESPONSIVE
+   Bold typography, pill indicators, squish animations,
+   rounded cards, vibrant accents, frosted glass
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Touch & Input Optimizations (all touch devices) ─── */
@@ -23,62 +23,57 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PHONE (≤ 768px) — iOS Native App Experience
-   Only on real touch devices (pointer: coarse), desktop stays untouched.
+   PHONE (≤ 768px) — One UI 8.5 Style
+   Only on real touch devices (pointer: coarse), desktop untouched.
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) and (pointer: coarse) {
 
   /* ─── Core layout ─── */
-  .app-container {
-    height: 100dvh;
-  }
+  .app-container { height: 100dvh; }
 
   .main-content {
     padding: 0;
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 8px));
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 8px));
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
   }
 
-  /* Hide hamburger FAB — replaced by iOS tab bar */
-  .hamburger-btn {
-    display: none !important;
-  }
+  .hamburger-btn { display: none !important; }
 
-  /* ─── iOS-style page padding ─── */
+  /* ─── Page padding — One UI generous spacing ─── */
   .fly-inventory-view,
   .fly-dashboard,
   .db-admin-view {
-    padding: 0 16px 24px !important;
+    padding: 0 20px 24px !important;
   }
 
-  /* ─── Header — compact, iOS status-bar feel ─── */
+  /* ─── Header — minimal, clean ─── */
   .header {
-    padding: 8px 0;
-    margin-bottom: 12px;
-    gap: 8px;
+    padding: 10px 0;
+    margin-bottom: 8px;
+    gap: 10px;
   }
 
   .search-bar {
-    border-radius: 12px;
-    padding: 8px 12px;
-    height: 40px;
+    border-radius: 20px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.09);
   }
 
-  .search-input {
-    font-size: 0.85rem;
-  }
+  .search-input { font-size: 0.88rem; }
 
-  /* ─── Hero — large title like iOS Settings ─── */
+  /* ─── Hero — One UI large bold title ─── */
   .fly-inventory-hero,
   .fly-hero-section {
-    padding: 8px 0 12px;
-    margin-bottom: 12px;
+    padding: 12px 0 16px;
+    margin-bottom: 16px;
   }
 
   .fly-hero-top {
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 6px;
     flex-wrap: wrap;
   }
 
@@ -86,97 +81,104 @@
     font-size: 0.55rem;
     padding: 4px 10px;
     border-radius: 20px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
   }
 
   .fly-hero-title {
-    font-size: 1.85rem;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
     margin-bottom: 4px;
   }
 
   .fly-hero-kicker {
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
     margin-bottom: 2px;
-    opacity: 0.5;
+    opacity: 0.45;
+    text-transform: uppercase;
+    font-weight: 700;
   }
 
-  .fly-hero-name {
-    line-height: 1.1;
-  }
+  .fly-hero-name { line-height: 1.05; }
 
   .fly-hero-sub {
-    font-size: 0.72rem;
-    line-height: 1.4;
-    opacity: 0.65;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    opacity: 0.6;
+    font-weight: 500;
   }
 
-  /* ─── Metrics — iOS horizontal scroll cards ─── */
+  /* ─── Metrics — horizontal snap scroll ─── */
   .fly-inventory-metrics,
   .fly-metrics-row {
     display: flex !important;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 10px;
-    padding: 0 0 8px;
-    margin: 0 -16px 16px;
-    padding-left: 16px;
-    padding-right: 16px;
+    margin: 0 -20px 18px;
+    padding: 4px 20px 10px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
   .fly-inventory-metrics::-webkit-scrollbar,
-  .fly-metrics-row::-webkit-scrollbar {
-    display: none;
-  }
+  .fly-metrics-row::-webkit-scrollbar { display: none; }
 
   .fly-metric-card {
-    min-width: 180px;
+    min-width: 168px;
     flex-shrink: 0;
     scroll-snap-align: start;
-    padding: 14px 16px;
-    border-radius: 16px;
-    gap: 12px;
+    padding: 16px;
+    border-radius: 20px;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .fly-metric-value {
-    font-size: 1.6rem;
+    font-size: 1.75rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
   }
 
   .fly-metric-icon-wrap {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .fly-metric-label {
     font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
     margin-bottom: 2px;
   }
 
-  .fly-metric-foot {
-    font-size: 0.6rem;
-  }
+  .fly-metric-foot { font-size: 0.6rem; opacity: 0.5; }
 
-  /* ─── Search & Actions — iOS grouped style ─── */
+  /* ─── Search & Actions ─── */
   .fly-inventory-actions {
     display: flex !important;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
   .fly-search-wrapper {
-    height: 40px;
-    border-radius: 12px;
-    padding: 0 12px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 44px;
+    border-radius: 22px;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.09);
   }
 
   .fly-search-input {
-    font-size: 0.85rem;
-    padding: 8px 0 8px 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
   }
 
   .fly-action-buttons {
@@ -188,120 +190,136 @@
     padding-bottom: 2px;
   }
 
-  .fly-action-buttons::-webkit-scrollbar {
-    display: none;
-  }
+  .fly-action-buttons::-webkit-scrollbar { display: none; }
 
   .fly-action-buttons .fly-btn {
     flex-shrink: 0;
-    height: 36px;
-    font-size: 0.62rem;
-    padding: 0 12px;
-    border-radius: 18px !important;
+    height: 38px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0 16px;
+    border-radius: 19px !important;
     gap: 5px;
+    letter-spacing: 0.02em;
   }
 
   .fly-action-buttons .fly-btn span {
     display: inline !important;
-    font-size: 0.62rem;
+    font-size: 0.65rem;
   }
 
-  /* ─── Inventory grid — iOS list-style cards ─── */
+  /* ─── Inventory grid — One UI list cards ─── */
   .fly-inventory-grid {
     grid-template-columns: 1fr !important;
     gap: 10px;
   }
 
   .fly-inventory-item {
-    padding: 14px;
-    gap: 10px;
-    border-radius: 16px;
-    border-width: 1px;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.04);
+    transition: background 0.15s ease;
+  }
+
+  .fly-inventory-item:active {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(0.99);
+    transition: all 0.08s ease;
   }
 
   .fly-item-header {
     flex-direction: row !important;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
 
   .fly-item-avatar {
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    font-size: 1.05rem;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    font-size: 1.1rem;
+    border-radius: 14px;
   }
 
   .fly-item-name {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
+    font-weight: 700;
     margin-bottom: 4px;
+    letter-spacing: -0.01em;
   }
 
   .fly-item-tags { gap: 4px; }
 
   .fly-tag {
     font-size: 0.58rem;
-    padding: 3px 7px;
-    border-radius: 6px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
   }
 
   .fly-item-stock {
-    padding: 10px 12px;
-    border-radius: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
   }
 
-  .fly-stock-num { font-size: 1.4rem; }
-  .fly-stock-unit { font-size: 0.65rem; }
+  .fly-stock-num {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+
+  .fly-stock-unit { font-size: 0.65rem; font-weight: 700; opacity: 0.5; }
 
   .fly-item-ref {
-    padding: 8px 10px;
-    border-radius: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
     font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .fly-item-actions {
-    gap: 6px;
-    padding-top: 10px;
+    gap: 8px;
+    padding-top: 12px;
   }
 
   .fly-action-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
   }
 
-  /* ─── Subcategory pills — iOS segmented ─── */
+  /* ─── Subcategory pills — One UI segmented control ─── */
   .fly-inventory-subcats {
     padding: 4px;
-    gap: 6px;
-    border-radius: 14px;
-    margin-bottom: 12px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 4px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .fly-subcat-pill {
-    padding: 6px 12px;
+    padding: 7px 14px;
     font-size: 0.62rem;
-    border-radius: 10px;
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
   }
 
-  .fly-subcat-nav {
-    width: 28px;
-    height: 28px;
-  }
+  .fly-subcat-nav { width: 28px; height: 28px; }
 
-  /* ─── Transactions — iOS grouped list ─── */
+  /* ─── Transactions — One UI grouped list ─── */
   .invt-container {
-    border-radius: 16px;
+    border-radius: 20px;
     margin-top: 8px;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.07);
   }
 
-  .invt-header-row {
-    display: none !important;
-  }
+  .invt-header-row { display: none !important; }
 
   .invt-grid-row {
     display: flex !important;
@@ -311,13 +329,18 @@
   }
 
   .invt-data-row {
-    padding: 12px 16px;
-    gap: 8px;
+    padding: 14px 16px;
+    gap: 10px;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.1s ease;
   }
 
   .invt-data-row:last-child { border-bottom: none; }
-  .invt-data-row:active { background: rgba(255, 255, 255, 0.04); }
+
+  .invt-data-row:active {
+    background: rgba(255, 255, 255, 0.05);
+    transition: none;
+  }
 
   .invt-cell-art { padding-right: 0; }
   .invt-cell-details { padding: 0; }
@@ -328,66 +351,74 @@
     align-items: center;
   }
 
-  .invt-time-date { font-size: 0.75rem; }
-  .invt-time-hour { font-size: 0.7rem; }
-
+  .invt-time-date { font-size: 0.75rem; font-weight: 600; }
+  .invt-time-hour { font-size: 0.68rem; opacity: 0.5; }
   .invt-cell-act { justify-content: flex-start; }
 
   .invt-avatar {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 12px;
   }
 
-  .invt-item-name { font-size: 0.85rem; }
-  .invt-item-cat { font-size: 9px; }
-  .invt-action-label { font-size: 0.65rem; }
+  .invt-item-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .invt-item-cat { font-size: 9px; font-weight: 700; opacity: 0.5; letter-spacing: 0.06em; }
+  .invt-action-label { font-size: 0.65rem; font-weight: 700; }
   .invt-detail-text { font-size: 0.78rem; }
 
   .invt-user-tag {
-    padding: 2px 6px;
-    border-radius: 6px;
+    padding: 3px 8px;
+    border-radius: 8px;
     font-size: 10px;
+    font-weight: 700;
   }
 
   .invt-qty-badge {
     font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 6px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 8px;
   }
 
   /* ─── Dashboard ─── */
   .fly-main-grid {
     grid-template-columns: 1fr !important;
-    gap: 12px;
+    gap: 14px;
   }
 
   .fly-zones-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px;
+    gap: 10px;
   }
 
   .fly-zone-tile {
-    padding: 12px;
-    border-radius: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .fly-zone-title {
     font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.7;
   }
 
-  .fly-zone-icon svg {
-    width: 24px;
-    height: 24px;
-  }
+  .fly-zone-icon svg { width: 26px; height: 26px; }
 
   .fly-mov-head { display: none !important; }
 
   .fly-mov-row {
     grid-template-columns: 1fr !important;
     gap: 4px;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
   }
 
@@ -397,7 +428,7 @@
     align-items: flex-start;
   }
 
-  /* ─── Modals — iOS bottom sheet ─── */
+  /* ─── Modals — One UI bottom sheet ─── */
   .modal-overlay {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -407,27 +438,31 @@
   .add-item-modal {
     max-width: 100% !important;
     width: 100% !important;
-    max-height: 92vh !important;
-    border-radius: 16px 16px 0 0 !important;
-    padding: 20px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: 93vh !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Bottom sheet grab bar */
   .modal-card::before,
   .add-item-modal::before {
     content: '';
     display: block;
-    width: 36px;
+    width: 40px;
     height: 4px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.18);
     border-radius: 2px;
-    margin: 0 auto 16px;
+    margin: 0 auto 20px;
   }
 
-  .modal-header h3 { font-size: 1.15rem; }
-  .modal-header p { font-size: 0.78rem; }
+  .modal-header h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .modal-header p { font-size: 0.8rem; opacity: 0.6; }
 
   .add-item-modal .grid-cols-2 {
     grid-template-columns: 1fr !important;
@@ -435,18 +470,19 @@
 
   /* ─── Empty States ─── */
   .fly-inventory-empty,
-  .fly-empty-state {
-    padding: 48px 24px;
-  }
+  .fly-empty-state { padding: 52px 28px; }
 
   .fly-empty-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
+    font-weight: 800;
     text-align: center;
+    letter-spacing: -0.01em;
   }
 
   .fly-empty-state p {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     text-align: center;
+    opacity: 0.55;
   }
 
   /* ─── Database Admin ─── */
@@ -455,85 +491,87 @@
     align-items: flex-start;
   }
 
-  .db-admin-header-left h1 { font-size: 1.15rem; }
+  .db-admin-header-left h1 {
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
 
   .db-cat-grid { grid-template-columns: 1fr !important; gap: 10px; }
-  .db-cat-card { padding: 14px; border-radius: 14px; }
-  .db-create-form { padding: 16px; border-radius: 14px; }
+  .db-cat-card { padding: 16px; border-radius: 18px; }
+  .db-create-form { padding: 18px; border-radius: 18px; }
 
   .db-column-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
+    gap: 8px;
   }
 
   .db-column-row input,
-  .db-column-row select { width: 100% !important; }
+  .db-column-row select { width: 100% !important; border-radius: 12px; }
 
   /* ─── Profile ─── */
   .profile-container { padding: 0 4px; }
-  .profile-card { padding: 16px; border-radius: 16px; }
+  .profile-card { padding: 18px; border-radius: 20px; }
 
   /* ─── Users ─── */
   .users-grid { grid-template-columns: 1fr !important; }
-  .user-card { padding: 14px; border-radius: 14px; }
+  .user-card { padding: 16px; border-radius: 18px; }
 
   /* ─── Settings ─── */
   .settings-container { padding: 0 4px; }
   .settings-grid { grid-template-columns: 1fr !important; }
 
-  /* ─── Scrollbar hide ─── */
+  /* ─── Global scrollbar hide ─── */
   ::-webkit-scrollbar { display: none; }
   * { scrollbar-width: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SMALL PHONE (≤ 480px) — Extra compact
+   SMALL PHONE (≤ 480px) — One UI compact
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 480px) and (pointer: coarse) {
   .fly-inventory-view,
   .fly-dashboard,
   .db-admin-view {
-    padding: 0 12px 20px !important;
+    padding: 0 16px 20px !important;
   }
 
-  .fly-hero-title { font-size: 1.55rem; }
-  .fly-hero-kicker { font-size: 0.65rem; }
-  .fly-hero-sub { font-size: 0.65rem; }
+  .fly-hero-title { font-size: 1.75rem; letter-spacing: -0.02em; }
+  .fly-hero-kicker { font-size: 0.62rem; }
+  .fly-hero-sub { font-size: 0.72rem; }
 
   .fly-metric-card {
-    min-width: 155px;
-    padding: 12px;
+    min-width: 152px;
+    padding: 14px;
+    border-radius: 18px;
   }
 
-  .fly-metric-value { font-size: 1.4rem; }
+  .fly-metric-value { font-size: 1.55rem; }
 
-  .fly-inventory-item { padding: 12px; }
+  .fly-inventory-item { padding: 14px; border-radius: 18px; }
 
   .fly-item-avatar {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    font-size: 0.9rem;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 1rem;
+    border-radius: 12px;
   }
 
-  .fly-item-name { font-size: 0.85rem; }
-  .fly-stock-num { font-size: 1.25rem; }
+  .fly-item-name { font-size: 0.88rem; }
+  .fly-stock-num { font-size: 1.3rem; }
 
-  .fly-action-btn {
-    width: 36px;
-    height: 36px;
-  }
+  .fly-action-btn { width: 38px; height: 38px; border-radius: 11px; }
 
-  .fly-zones-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
+  .fly-zones-grid { grid-template-columns: 1fr 1fr !important; }
 
-  /* Transactions */
-  .invt-data-row { padding: 10px 12px; }
-  .invt-avatar { width: 32px; height: 32px; min-width: 32px; }
-  .invt-item-name { font-size: 0.8rem; }
+  .invt-data-row { padding: 12px 14px; }
+  .invt-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 10px; }
+  .invt-item-name { font-size: 0.82rem; }
+
+  .modal-card,
+  .add-item-modal { border-radius: 20px 20px 0 0 !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════

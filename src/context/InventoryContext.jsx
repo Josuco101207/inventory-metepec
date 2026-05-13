@@ -129,7 +129,6 @@ export const InventoryProvider = ({ children }) => {
           setMovementsState(getMovements());
         }
 
-        setGlobalStats(getStats());
         setLastSync(new Date());
       } catch (err) {
         console.error('[Inventory] Init error:', err);
@@ -144,18 +143,22 @@ export const InventoryProvider = ({ children }) => {
     init();
   }, [user, catsLoading, loadAllItems]);
 
-  // ─── Actualizar estadísticas ───
+  // ─── Actualizar estadísticas desde state (no localStorage) ───
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(() => {
-      setGlobalStats(prev => ({
-        ...prev,
-        items: items.length,
-        movements: movements.length,
-        critical: items.filter(i => (i.qty || 0) <= (i.threshold || 0) && (i.threshold || 0) > 0).length,
-      }));
-    }, 30000);
-    return () => clearInterval(interval);
+    const last7Days = [6,5,4,3,2,1,0].map(i => {
+      const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); return d;
+    });
+    const activity = last7Days.map(day => ({
+      name: day.toLocaleDateString('es-ES', { weekday: 'short' }),
+      movimientos: movements.filter(m => new Date(m.timestamp).toDateString() === day.toDateString()).length
+    }));
+    setGlobalStats({
+      items: items.length,
+      movements: movements.length,
+      critical: items.filter(i => (i.qty || 0) <= (i.threshold || 0) && (i.threshold || 0) > 0).length,
+      activity,
+    });
   }, [user, items, movements]);
 
   // ─── Helpers ───
@@ -180,11 +183,10 @@ export const InventoryProvider = ({ children }) => {
       const saved = await sbInsertMovement(movementData);
       const finalMovement = saved || { ...movementData, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) };
 
-      // Always keep localStorage in sync as local cache
+      // Keep localStorage in sync as local cache
       addLocalStorageMovement(movementData);
 
       setMovementsState(prev => [finalMovement, ...prev]);
-      setGlobalStats(getStats());
     } catch (e) {
       console.error("Error adding movement:", e);
     }
@@ -235,154 +237,167 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [addMovement, getTableName]);
 
-  const loanItem = useCallback((itemId, borrower, userName = 'Jonathan') => {
+  const loanItem = useCallback(async (itemId, borrower, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     if (!item || (item.qty || 0) <= 0) {
       toast.error("No hay stock disponible para préstamo");
       return;
     }
 
+    const tableName = item._tableName || getTableName(item.category);
     const qtyNum = parseInt(item.qty) || 0;
     const prestadosNum = parseInt(item.prestados) || (item.status === 'Prestado' ? 1 : 0);
-    
     const remainingQty = Math.max(qtyNum - 1, 0);
     const totalLent = prestadosNum + 1;
-    
-    const updatedItem = updateLocalStorageItem(itemId, {
+    const updates = {
       qty: remainingQty,
       prestados: totalLent,
       status: remainingQty <= 0 ? 'Prestado' : 'Disponible',
       borrowedBy: borrower || null,
       lentBy: userName || null,
       loanDate: new Date().toISOString()
-    });
+    };
 
-    if (updatedItem) {
-      setItemsState(prev => prev.map(i => i.id === itemId ? updatedItem : i));
+    try {
+      if (tableName) await sbUpdateItem(tableName, itemId, updates);
+      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
       addMovement('Préstamo', item.name, 1, userName, borrower, item.category);
       toast.success(`Artículo prestado a ${borrower} (Disponibles: ${remainingQty})`);
+    } catch (err) {
+      toast.error(`Error al registrar préstamo: ${err.message}`);
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const bulkLoanItems = useCallback((itemIds, borrower, userName = 'Jonathan') => {
+  const bulkLoanItems = useCallback(async (itemIds, borrower, userName = 'Jonathan') => {
     const availableItems = itemsRef.current.filter(i => itemIds.includes(i.id) && (i.qty || 0) > 0);
     if (availableItems.length === 0) {
       toast.error("Ninguno de los artículos seleccionados tiene stock");
       return;
     }
 
-    const updatedItems = [];
-    availableItems.forEach(item => {
-      const qtyNum = parseInt(item.qty) || 0;
-      const prestadosNum = parseInt(item.prestados) || (item.status === 'Prestado' ? 1 : 0);
-      const remainingQty = Math.max(qtyNum - 1, 0);
-      const totalLent = prestadosNum + 1;
-      
-      const updated = updateLocalStorageItem(item.id, {
-        qty: remainingQty,
-        prestados: totalLent,
-        status: remainingQty <= 0 ? 'Prestado' : 'Disponible',
-        borrowedBy: borrower || null,
-        lentBy: userName || null,
-        loanDate: new Date().toISOString()
+    try {
+      const updatesList = availableItems.map(item => {
+        const remainingQty = Math.max((parseInt(item.qty) || 0) - 1, 0);
+        const totalLent = (parseInt(item.prestados) || 0) + 1;
+        return {
+          item,
+          updates: {
+            qty: remainingQty,
+            prestados: totalLent,
+            status: remainingQty <= 0 ? 'Prestado' : 'Disponible',
+            borrowedBy: borrower || null,
+            lentBy: userName || null,
+            loanDate: new Date().toISOString()
+          }
+        };
       });
-      if (updated) updatedItems.push(updated);
-    });
 
-    setItemsState(prev => {
-      const updated = [...prev];
-      updatedItems.forEach(item => {
-        const idx = updated.findIndex(i => i.id === item.id);
-        if (idx !== -1) updated[idx] = item;
-      });
-      return updated;
-    });
+      await Promise.all(updatesList.map(({ item, updates }) => {
+        const tableName = item._tableName || getTableName(item.category);
+        return tableName ? sbUpdateItem(tableName, item.id, updates) : Promise.resolve();
+      }));
 
-    for (const item of availableItems) {
-      addMovement('Préstamo', item.name, 1, userName, borrower, item.category);
+      setItemsState(prev => prev.map(i => {
+        const found = updatesList.find(u => u.item.id === i.id);
+        return found ? { ...i, ...found.updates } : i;
+      }));
+
+      for (const { item } of updatesList) {
+        addMovement('Préstamo', item.name, 1, userName, borrower, item.category);
+      }
+      toast.success(`${availableItems.length} artículos prestados a ${borrower}`);
+    } catch (err) {
+      toast.error(`Error en préstamo masivo: ${err.message}`);
     }
-    toast.success(`${availableItems.length} artículos prestados a ${borrower}`);
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const returnItem = useCallback((itemId, userName = 'Jonathan') => {
+  const returnItem = useCallback(async (itemId, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     if (!item) return;
 
-    const qtyNum = parseInt(item.qty) || 0;
-    const prestadosNum = parseInt(item.prestados) || (item.status === 'Prestado' ? 1 : 0);
-
-    const newQty = qtyNum + 1;
-    const newLent = Math.max(prestadosNum - 1, 0);
-
-    const updatedItem = updateLocalStorageItem(itemId, {
+    const tableName = item._tableName || getTableName(item.category);
+    const newQty = (parseInt(item.qty) || 0) + 1;
+    const newLent = Math.max((parseInt(item.prestados) || 0) - 1, 0);
+    const updates = {
       qty: newQty,
       prestados: newLent,
       status: 'Disponible',
       borrowedBy: newLent === 0 ? null : (item.borrowedBy || null),
       lentBy: newLent === 0 ? null : (item.lentBy || null),
       loanDate: newLent === 0 ? null : (item.loanDate || null)
-    });
+    };
 
-    if (updatedItem) {
-      setItemsState(prev => prev.map(i => i.id === itemId ? updatedItem : i));
+    try {
+      if (tableName) await sbUpdateItem(tableName, itemId, updates);
+      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
       addMovement('Devolución', item.name, 1, userName, 'Devuelto a almacén', item.category);
       toast.success(`Herramienta devuelta (En almacén: ${newQty})`);
+    } catch (err) {
+      toast.error(`Error al registrar devolución: ${err.message}`);
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const reportMaintenance = useCallback((itemId, reason, userName = 'Jonathan') => {
+  const reportMaintenance = useCallback(async (itemId, reason, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     if (!item) return;
 
+    const tableName = item._tableName || getTableName(item.category);
     const remainingQty = Math.max((item.qty || 0) - 1, 0);
-
-    const updatedItem = updateLocalStorageItem(itemId, {
+    const updates = {
       qty: remainingQty,
       observaciones: `Falla: ${reason} (Reportó: ${userName})`,
       status: 'Mantenimiento'
-    });
+    };
 
-    if (updatedItem) {
-      setItemsState(prev => prev.map(i => i.id === itemId ? updatedItem : i));
+    try {
+      if (tableName) await sbUpdateItem(tableName, itemId, updates);
+      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
       addMovement('Falla/Manto', item.name, 1, userName, reason, item.category);
       toast.warning(`Reporte registrado: 1x ${item.name} retirado por falla`);
+    } catch (err) {
+      toast.error(`Error al reportar falla: ${err.message}`);
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const completeMaintenance = useCallback((itemId, userName = 'Jonathan') => {
+  const completeMaintenance = useCallback(async (itemId, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     if (!item) return;
 
+    const tableName = item._tableName || getTableName(item.category);
     const newQty = (item.qty || 0) + 1;
-
-    const updatedItem = updateLocalStorageItem(itemId, {
+    const updates = {
       qty: newQty,
       status: 'Disponible',
       observaciones: `Reparado el ${new Date().toLocaleDateString()} por ${userName}`
-    });
+    };
 
-    if (updatedItem) {
-      setItemsState(prev => prev.map(i => i.id === itemId ? updatedItem : i));
+    try {
+      if (tableName) await sbUpdateItem(tableName, itemId, updates);
+      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
       addMovement('Entrada', item.name, 1, userName, 'Reparado / Fin de mantenimiento', item.category);
       toast.success(`Herramienta reparada: ${item.name} vuelve a estar disponible`);
+    } catch (err) {
+      toast.error(`Error al completar mantenimiento: ${err.message}`);
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
-  const auditStock = useCallback((itemId, physicalQty, userName = 'Jonathan', reason = '') => {
+  const auditStock = useCallback(async (itemId, physicalQty, userName = 'Jonathan', reason = '') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     if (!item) return;
 
+    const tableName = item._tableName || getTableName(item.category);
     const diff = physicalQty - (item.qty || 0);
-    
-    const updatedItem = updateLocalStorageItem(itemId, { qty: physicalQty });
-    if (updatedItem) {
-      setItemsState(prev => prev.map(i => i.id === itemId ? updatedItem : i));
-      
+
+    try {
+      if (tableName) await sbUpdateItem(tableName, itemId, { qty: physicalQty });
+      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, qty: physicalQty } : i));
       const finalReason = reason ? `Audit: ${reason}` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
       addMovement('Auditoría', item.name, Math.abs(diff), userName, finalReason, item.category);
       toast.success("Auditoría registrada exitosamente");
+    } catch (err) {
+      toast.error(`Error en auditoría: ${err.message}`);
     }
-  }, [addMovement]);
+  }, [addMovement, getTableName]);
 
   const addItem = useCallback(async (newItem, userName = 'Jonathan') => {
     const tableName = getTableName(newItem.category);

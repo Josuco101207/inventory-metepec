@@ -17,7 +17,7 @@ const MobileTabBar = ({ onMorePress }) => {
   return (
     <nav className="ios-tab-bar">
       <NavLink to="/" end className={({ isActive }) => `ios-tab ${isActive ? 'active' : ''}`}>
-        <LayoutDashboard size={22} />
+        <div className="ios-tab-icon"><LayoutDashboard size={22} /></div>
         <span>Inicio</span>
       </NavLink>
 
@@ -26,19 +26,19 @@ const MobileTabBar = ({ onMorePress }) => {
         const isActive = location.pathname === cat.route;
         return (
           <NavLink key={cat.id} to={cat.route} className={`ios-tab ${isActive ? 'active' : ''}`}>
-            <Icon size={22} />
-            <span>{cat.shortTitle?.substring(0, 8) || cat.title.substring(0, 8)}</span>
+            <div className="ios-tab-icon"><Icon size={22} /></div>
+            <span>{cat.shortTitle?.substring(0, 7) || cat.title.substring(0, 7)}</span>
           </NavLink>
         );
       })}
 
       <NavLink to="/transactions" className={({ isActive }) => `ios-tab ${isActive ? 'active' : ''}`}>
-        <Activity size={22} />
+        <div className="ios-tab-icon"><Activity size={22} /></div>
         <span>Historial</span>
       </NavLink>
 
       <button className="ios-tab" onClick={onMorePress}>
-        <MoreHorizontal size={22} />
+        <div className="ios-tab-icon"><MoreHorizontal size={22} /></div>
         <span>Más</span>
       </button>
     </nav>
