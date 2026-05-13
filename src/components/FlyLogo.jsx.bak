@@ -1,0 +1,128 @@
+import React from 'react';
+
+/**
+ * FlyLogo — Logotipo oficial Fly Extreme
+ * Respeta:
+ *  - Ratio 1:1 del círculo (Pág. 10 - prohibido deformar)
+ *  - Área de seguridad basada en altura de "EXTREME" (Pág. 8)
+ *  - Paleta oficial únicamente
+ *
+ * Props:
+ *  - size: número en px (default 120)
+ *  - variant: 'yellow' | 'magenta' | 'dark' | 'outline' (default 'yellow')
+ *  - showText: bool (default true) - si false solo muestra el círculo
+ */
+const FlyLogo = ({ size = 120, variant = 'yellow', showText = true, className = '' }) => {
+  const palette = {
+    yellow: { bg: '#E0DA3C', fg: '#252220', accent: '#DA00A3' },
+    magenta: { bg: '#DA00A3', fg: '#FFFFFF', accent: '#E0DA3C' },
+    dark: { bg: '#252220', fg: '#E0DA3C', accent: '#DA00A3' },
+    outline: { bg: 'transparent', fg: '#E0DA3C', accent: '#DA00A3' },
+  }[variant] || { bg: '#E0DA3C', fg: '#252220', accent: '#DA00A3' };
+
+  const stroke = variant === 'outline' ? '#E0DA3C' : palette.bg;
+
+  return (
+    <div
+      className={`fly-logo ${className}`.trim()}
+      style={{
+        width: size,
+        height: size,
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <svg
+        viewBox="0 0 200 200"
+        width={size}
+        height={size}
+        style={{ display: 'block' }}
+        aria-label="Fly Extreme logo"
+      >
+        {/* Circulo principal — ratio 1:1 estricto */}
+        <circle
+          cx="100"
+          cy="100"
+          r="96"
+          fill={palette.bg}
+          stroke={stroke}
+          strokeWidth={variant === 'outline' ? 4 : 0}
+        />
+
+        {/* Acento Bauhaus: cuarto de circulo magenta (Pag. 17-19) */}
+        <path
+          d="M 100,4 A 96,96 0 0 1 196,100 L 100,100 Z"
+          fill={palette.accent}
+          opacity="0.18"
+        />
+
+        {/* Triangulo / ala estilizada (simbolo aviacion - "FLY") */}
+        <g transform="translate(100, 100)">
+          {/* Ala izquierda */}
+          <polygon
+            points="-58,12 -8,-30 8,-30 -28,18"
+            fill={palette.fg}
+          />
+          {/* Cuerpo central */}
+          <polygon
+            points="-12,-36 12,-36 18,30 -18,30"
+            fill={palette.fg}
+          />
+          {/* Ala derecha */}
+          <polygon
+            points="58,12 8,-30 -8,-30 28,18"
+            fill={palette.fg}
+          />
+          {/* Acento velocidad magenta */}
+          <rect
+            x="-2"
+            y="-44"
+            width="4"
+            height="14"
+            fill={palette.accent}
+            rx="2"
+          />
+        </g>
+
+        {showText && (
+          <>
+            {/* Texto curvo "FLY EXTREME" alrededor del logo */}
+            <defs>
+              <path
+                id="fly-text-circle"
+                d="M 100,100 m -76,0 a 76,76 0 1,1 152,0 a 76,76 0 1,1 -152,0"
+                fill="none"
+              />
+            </defs>
+            <text
+              fill={palette.fg}
+              fontFamily="Montserrat, sans-serif"
+              fontWeight="900"
+              fontSize="13"
+              letterSpacing="6"
+            >
+              <textPath href="#fly-text-circle" startOffset="25%" textAnchor="middle">
+                FLY · EXTREME
+              </textPath>
+            </text>
+            <text
+              fill={palette.accent}
+              fontFamily="Montserrat, sans-serif"
+              fontWeight="700"
+              fontSize="9"
+              letterSpacing="4"
+            >
+              <textPath href="#fly-text-circle" startOffset="75%" textAnchor="middle">
+                · SPORTS PARK ·
+              </textPath>
+            </text>
+          </>
+        )}
+      </svg>
+    </div>
+  );
+};
+
+export default FlyLogo;

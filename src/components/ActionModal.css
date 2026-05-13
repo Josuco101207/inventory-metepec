@@ -1,0 +1,235 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: hsla(0, 0%, 0%, 0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.modal-card {
+  background: hsl(var(--bg-card));
+  width: 100%;
+  max-width: 500px;
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid hsl(var(--border-color));
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.modal-header {
+  margin-bottom: 2.5rem;
+}
+
+.modal-header h3 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: hsl(var(--text-main));
+  letter-spacing: -0.03em;
+}
+
+.f-group label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: hsl(var(--text-muted));
+  letter-spacing: 0.1em;
+  margin-bottom: 0.625rem;
+  padding-left: 0.25rem;
+}
+
+.f-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid hsl(var(--border-color));
+  background-color: hsl(var(--bg-main));
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  transition: all 0.2s;
+  outline: none;
+}
+
+.f-input:focus {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--bg-card));
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.1);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: hsl(var(--bg-main));
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--text-muted));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid hsl(var(--border-color));
+}
+
+.close-btn:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-col { flex-direction: column; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+
+/* Apple Style Buttons */
+.btn-apple-primary {
+  background: hsl(var(--primary));
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px hsla(var(--primary), 0.3);
+}
+
+.btn-apple-danger {
+  background: #ff3b30;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.btn-apple-secondary {
+  background: hsl(var(--bg-main));
+  color: hsl(var(--text-main));
+  border: 1px solid hsl(var(--border-color));
+  padding: 1rem;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-apple-primary:hover, .btn-apple-danger:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.btn-apple-primary:disabled, .btn-apple-danger:disabled {
+  background: #d1d1d6;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Operation Toggle Buttons */
+.operation-toggle {
+  display: flex;
+  background: hsl(var(--bg-main));
+  padding: 4px;
+  border-radius: 18px;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.op-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: none;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: hsl(var(--text-muted));
+  transition: all 0.2s;
+}
+
+.op-btn.active-entrada {
+  background: hsl(var(--bg-card));
+  color: hsl(var(--primary));
+  box-shadow: var(--shadow-sm);
+}
+
+.op-btn.active-salida {
+  background: hsl(var(--bg-card));
+  color: hsl(var(--danger));
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 2rem 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUpSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUpSheet {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .close-btn {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .operation-toggle {
+    border-radius: 14px;
+  }
+
+  .op-btn {
+    padding: 0.85rem;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+
+  .btn-apple-primary,
+  .btn-apple-danger,
+  .btn-apple-secondary {
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+}
+

@@ -1,0 +1,420 @@
+/* ═══════════════════════════════════════════════════════════════
+   FLY EXTREME — GLOBAL OVERRIDES
+   Rediseño completo basado en Manual de Identidad Fly Extreme.
+   Este archivo se importa AL FINAL para forzar prioridad sobre
+   todos los estilos de componentes legacy.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── BODY / BASE ─── */
+body {
+  background-color: var(--fly-dark) !important;
+  color: var(--fly-white) !important;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-heading);
+  color: var(--fly-white);
+}
+
+h1 { letter-spacing: var(--tracking-hero); }
+
+/* ─── SCROLLBARS FLY ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(218, 0, 163, 0.4);
+  border-radius: 10px;
+  transition: background 300ms var(--ease-fly);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fly-magenta);
+}
+
+/* ─── LINKS ─── */
+a {
+  color: var(--fly-yellow);
+  text-decoration: none;
+  transition: var(--transition-fly);
+}
+a:hover {
+  color: var(--fly-magenta);
+}
+
+/* ═══════════════════ CARDS / CONTAINERS ═══════════════════ */
+.card,
+.apple-card,
+.glass-card,
+.dashboard-card,
+.crit-modal-card,
+.metric-card,
+.chart-card,
+.categories-card,
+.dash-movements-card {
+  background: rgba(37, 34, 32, 0.85) !important;
+  border-radius: var(--radius-container) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--fly-white);
+  transition: var(--transition-fly);
+}
+
+.card:hover,
+.apple-card:hover,
+.glass-card:hover {
+  border-color: rgba(218, 0, 163, 0.35);
+}
+
+/* ═══════════════════ MODALES ═══════════════════ */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-card {
+  background: var(--fly-dark) !important;
+  border: 1px solid rgba(218, 0, 163, 0.3) !important;
+  border-radius: var(--radius-container) !important;
+  box-shadow: var(--shadow-dark), var(--shadow-glow-magenta);
+  color: var(--fly-white);
+}
+
+.modal-card h1,
+.modal-card h2,
+.modal-card h3 {
+  color: var(--fly-yellow);
+}
+
+/* ═══════════════════ INPUTS GLOBALES ═══════════════════ */
+input,
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: var(--fly-white) !important;
+  border-radius: var(--radius-input) !important;
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: var(--transition-fly);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--fly-yellow) !important;
+  box-shadow: 0 0 0 3px rgba(224, 218, 60, 0.2) !important;
+  outline: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+select option {
+  background: var(--fly-dark);
+  color: var(--fly-white);
+}
+
+/* Labels */
+label {
+  color: var(--fly-white);
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+/* ═══════════════════ BOTONES GLOBALES ═══════════════════ */
+button {
+  font-family: var(--font-heading);
+  transition: var(--transition-fly);
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.btn-primary,
+.btn-apple-primary {
+  background: var(--fly-yellow) !important;
+  color: var(--fly-dark) !important;
+  border: none !important;
+  border-radius: var(--radius-button) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-heading) !important;
+  transition: var(--transition-fly);
+  cursor: pointer;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-apple-primary:hover:not(:disabled) {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-glow-yellow);
+  background: var(--fly-yellow) !important;
+  opacity: 1 !important;
+}
+
+.btn-secondary,
+.btn-apple-secondary {
+  background: transparent !important;
+  color: var(--fly-magenta) !important;
+  border: 2px solid var(--fly-magenta) !important;
+  border-radius: var(--radius-button) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-heading) !important;
+  cursor: pointer;
+  transition: var(--transition-fly);
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-apple-secondary:hover:not(:disabled) {
+  background: var(--fly-magenta) !important;
+  color: var(--fly-white) !important;
+  box-shadow: var(--shadow-glow-magenta);
+  transform: scale(1.03);
+}
+
+.btn-danger,
+.btn-apple-danger {
+  background: var(--fly-magenta) !important;
+  color: var(--fly-white) !important;
+  border: none !important;
+  border-radius: var(--radius-button) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-heading) !important;
+  cursor: pointer;
+  transition: var(--transition-fly);
+}
+
+.btn-danger:hover:not(:disabled),
+.btn-apple-danger:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-magenta);
+  transform: scale(1.03);
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+  background: rgba(37, 34, 32, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.sidebar-title {
+  color: var(--fly-yellow) !important;
+  font-family: var(--font-heading);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.5rem !important;
+}
+
+.logo-icon {
+  background: var(--fly-yellow) !important;
+  border-radius: var(--radius-button) !important;
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.logo-icon svg {
+  color: var(--fly-dark) !important;
+}
+
+.nav-item {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: var(--font-body);
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem !important;
+  transition: var(--transition-fly);
+}
+
+.nav-item:hover {
+  background: rgba(224, 218, 60, 0.08) !important;
+  color: var(--fly-yellow) !important;
+}
+
+.nav-item.active {
+  background: var(--fly-yellow) !important;
+  color: var(--fly-dark) !important;
+  font-weight: 900 !important;
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.nav-item.active svg {
+  color: var(--fly-dark) !important;
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.user-profile-mini {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-button) !important;
+}
+
+/* ═══════════════════ TABLES ═══════════════════ */
+table {
+  color: var(--fly-white);
+  border-radius: var(--radius-container);
+  overflow: hidden;
+}
+
+th {
+  background: rgba(218, 0, 163, 0.1) !important;
+  color: var(--fly-yellow) !important;
+  font-family: var(--font-heading);
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: var(--fly-white);
+}
+
+tr:hover td {
+  background: rgba(224, 218, 60, 0.05) !important;
+}
+
+/* ═══════════════════ DASHBOARD STATS ═══════════════════ */
+.stat-card {
+  background: rgba(37, 34, 32, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--radius-container) !important;
+  color: var(--fly-white);
+  transition: var(--transition-fly);
+}
+
+.stat-card:hover {
+  border-color: rgba(224, 218, 60, 0.4);
+  box-shadow: var(--shadow-glow-yellow);
+  transform: translateY(-4px);
+}
+
+.stat-value {
+  color: var(--fly-yellow) !important;
+  font-family: var(--font-heading);
+  font-weight: 900;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.6) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+/* ═══════════════════ BADGES / TAGS ═══════════════════ */
+.badge,
+.tag,
+.chip {
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.65rem !important;
+  padding: 0.25rem 0.75rem !important;
+}
+
+/* ═══════════════════ HEADER ═══════════════════ */
+.app-header,
+.view-header,
+header {
+  background: rgba(37, 34, 32, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ═══════════════════ TEXTO / TIPOGRAFÍA GLOBAL ═══════════════════ */
+.text-muted,
+.text-soft {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+strong, b {
+  color: var(--fly-yellow);
+}
+
+/* Toasts (sonner) */
+[data-sonner-toast] {
+  background: var(--fly-dark) !important;
+  border: 1px solid rgba(218, 0, 163, 0.3) !important;
+  color: var(--fly-white) !important;
+  border-radius: var(--radius-button) !important;
+  font-family: var(--font-body);
+}
+
+[data-sonner-toast][data-type="success"] {
+  border-color: var(--fly-yellow) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-color: var(--fly-magenta) !important;
+}
+
+/* ═══════════════════ LOADERS / SKELETONS ═══════════════════ */
+@keyframes fly-spin {
+  to { transform: rotate(360deg); }
+}
+
+.loader,
+.animate-spin {
+  color: var(--fly-yellow) !important;
+}
+
+/* ═══════════════════ FOCUS VISIBLE ═══════════════════ */
+*:focus-visible {
+  outline: 2px solid var(--fly-yellow);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════ SELECCIÓN DE TEXTO ═══════════════════ */
+::selection {
+  background: var(--fly-magenta);
+  color: var(--fly-white);
+}
+
+/* ═══════════════════ UTILIDADES FLY ═══════════════════ */
+.text-fly-yellow { color: var(--fly-yellow) !important; }
+.text-fly-magenta { color: var(--fly-magenta) !important; }
+.text-fly-white { color: var(--fly-white) !important; }
+.bg-fly-dark { background: var(--fly-dark) !important; }
+.bg-fly-yellow { background: var(--fly-yellow) !important; }
+
+/* ═══════════════════ DIVIDERS ═══════════════════ */
+hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 1.5rem 0;
+}
+
+/* ═══════════════════ ANIMACIONES ═══════════════════ */
+@keyframes fly-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fly-fade-in {
+  animation: fly-fade-in 400ms var(--ease-fly) forwards;
+}

@@ -1,0 +1,226 @@
+.add-item-modal {
+  max-width: 650px !important;
+}
+
+.f-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.f-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: hsl(var(--text-main));
+}
+
+.f-group input, .f-group select {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1.5px solid hsl(var(--border-color));
+  background-color: hsl(var(--bg-main));
+  color: hsl(var(--text-main));
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.f-group input:focus, .f-group select:focus {
+  border-color: var(--primary-color);
+}
+
+.grid {
+  display: grid;
+}
+
+.grid.gap-4 {
+  gap: 1rem;
+}
+
+.dynamic-section {
+  padding: 1.5rem;
+  background-color: hsl(var(--bg-main));
+  border-radius: 20px;
+  border: 1.5px dashed hsl(var(--border-color));
+}
+
+.btn-primary {
+  background-color: var(--fly-yellow);
+  color: var(--fly-dark);
+  border: none;
+  padding: 1rem;
+  border-radius: var(--radius-button);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: var(--transition-fly);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--fly-magenta);
+  border: 2px solid var(--fly-magenta);
+  padding: 1rem;
+  border-radius: var(--radius-button);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: var(--transition-fly);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--fly-magenta);
+  color: var(--fly-white);
+  box-shadow: var(--shadow-glow-magenta);
+}
+
+/* iOS / Cupertino Settings Style for Herramientas */
+.ios-settings-card {
+  background: hsl(var(--bg-main));
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.ios-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem 1rem 1rem;
+}
+
+.ios-icon {
+  color: hsl(var(--primary));
+  background: hsla(var(--primary), 0.1);
+  padding: 6px;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+}
+
+.ios-settings-header h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(var(--text-main));
+}
+
+.ios-settings-header p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: hsl(var(--text-muted));
+  font-weight: 500;
+}
+
+.ios-settings-group {
+  background: hsl(var(--bg-card));
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.ios-settings-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border-color));
+  min-height: 54px;
+}
+
+.ios-settings-row:last-child {
+  border-bottom: none;
+}
+
+.ios-settings-row label {
+  flex: 0 0 120px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  margin: 0;
+}
+
+.ios-input-container {
+  flex: 1;
+  display: flex;
+}
+
+.ios-input-container input,
+.ios-input-container select {
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.9rem;
+  color: hsl(var(--text-muted)) !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-align: right;
+  direction: rtl; /* Makes select arrow and text align right */
+}
+
+/* Fix for input text align while keeping LTR text entry */
+.ios-input-container input {
+  direction: ltr;
+}
+
+.ios-input-container input:focus,
+.ios-input-container select:focus {
+  color: hsl(var(--primary)) !important;
+}
+
+.ios-input-container input::placeholder {
+  color: hsl(var(--text-soft));
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .add-item-modal {
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .ios-settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: auto;
+    padding: 0.6rem 1rem;
+  }
+
+  .ios-settings-row label {
+    flex: none;
+    font-size: 0.75rem;
+    color: hsl(var(--text-muted));
+  }
+
+  .ios-input-container {
+    width: 100%;
+  }
+
+  .ios-input-container input,
+  .ios-input-container select {
+    text-align: left;
+    direction: ltr;
+  }
+
+  .dynamic-section {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .grid.gap-4 {
+    gap: 0.75rem;
+  }
+}
+

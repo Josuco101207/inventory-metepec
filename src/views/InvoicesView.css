@@ -1,0 +1,736 @@
+/* ═══════════════════════════════════════════════════════════════
+   InvoicesView — Registro de Facturas de Materiales
+   Cupertino Design System — Scoped Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Layout Shell ─── */
+.invoices-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: iv-fadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes iv-fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Header ─── */
+.iv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.iv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iv-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(210, 100%, 40%));
+  color: #fff;
+  box-shadow: 0 8px 24px -4px hsla(var(--primary), 0.35);
+}
+
+.iv-header h1 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: hsl(var(--text-main));
+}
+
+.iv-header h1 span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--text-muted));
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+.iv-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Card Wrapper (shared) ─── */
+.iv-card {
+  background: hsl(var(--bg-card));
+  border-radius: var(--radius-apple);
+  border: 1px solid hsl(var(--border-color));
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* ─── Invoice Header Form ─── */
+.iv-invoice-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  align-items: end;
+}
+
+.iv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+}
+
+.iv-field label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: hsl(var(--text-muted));
+  letter-spacing: 0.1em;
+  padding-left: 4px;
+}
+
+.iv-field .required-dot {
+  color: hsl(var(--danger));
+  margin-left: 2px;
+}
+
+.iv-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1.5px solid hsl(var(--border-color));
+  background: hsl(var(--bg-main));
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  transition: all 0.2s;
+  outline: none;
+}
+
+.iv-input:focus {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--bg-card));
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.12);
+}
+
+.iv-input::placeholder {
+  color: hsl(var(--text-soft));
+  font-weight: 500;
+}
+
+.iv-input.iv-input-error {
+  border-color: hsl(var(--danger));
+  box-shadow: 0 0 0 3px hsla(var(--danger), 0.12);
+}
+
+select.iv-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* ─── Currency Toggle ─── */
+.iv-currency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.iv-currency-switch {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.iv-currency-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.iv-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: hsl(var(--success));
+  transition: background 0.3s;
+}
+
+.iv-currency-switch input:checked + .iv-switch-track {
+  background: hsl(210, 100%, 55%);
+}
+
+.iv-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iv-currency-switch input:checked + .iv-switch-track .iv-switch-thumb {
+  transform: translateX(26px);
+}
+
+.iv-currency-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: hsl(var(--text-main));
+  min-width: 36px;
+}
+
+.iv-currency-label.active {
+  color: hsl(var(--primary));
+}
+
+/* ─── Line Items Table ─── */
+.iv-table-wrapper {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  border-radius: 16px;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.iv-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+}
+
+.iv-table thead {
+  background: hsla(var(--primary), 0.06);
+}
+
+.iv-table th {
+  padding: 0.75rem 0.6rem;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--text-muted));
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1.5px solid hsl(var(--border-color));
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.iv-table th:first-child {
+  padding-left: 1rem;
+}
+
+.iv-table tbody tr {
+  transition: background 0.15s;
+}
+
+.iv-table tbody tr:hover {
+  background: hsla(var(--primary), 0.03);
+}
+
+.iv-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid hsl(var(--border-color));
+}
+
+.iv-table td {
+  padding: 0.5rem 0.4rem;
+  vertical-align: middle;
+}
+
+.iv-table td:first-child {
+  padding-left: 1rem;
+}
+
+.iv-table-input {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  background: hsl(var(--bg-main));
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  transition: all 0.2s;
+  outline: none;
+}
+
+.iv-table-input:focus {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--bg-card));
+  box-shadow: 0 0 0 3px hsla(var(--primary), 0.1);
+}
+
+.iv-table-input.iv-cell-error {
+  border-color: hsl(var(--danger));
+  background: hsla(var(--danger), 0.04);
+}
+
+.iv-table-input.iv-readonly {
+  background: hsla(var(--primary), 0.04);
+  color: hsl(var(--primary));
+  font-weight: 700;
+  cursor: default;
+  border-color: transparent;
+}
+
+select.iv-table-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 1.8rem;
+  cursor: pointer;
+}
+
+/* Row number */
+.iv-row-num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: hsl(var(--text-soft));
+  min-width: 28px;
+  text-align: center;
+}
+
+/* Delete row button */
+.iv-delete-row {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--text-soft));
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iv-delete-row:hover {
+  color: hsl(var(--danger));
+  background: hsla(var(--danger), 0.08);
+}
+
+/* Add row button */
+.iv-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  margin-top: 1rem;
+  border: 2px dashed hsl(var(--border-color));
+  border-radius: 14px;
+  background: transparent;
+  color: hsl(var(--text-muted));
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.iv-add-row:hover {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  background: hsla(var(--primary), 0.04);
+}
+
+/* ─── Totals Panel ─── */
+.iv-totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.iv-totals-box {
+  min-width: 320px;
+  background: hsl(var(--bg-main));
+  border-radius: 18px;
+  border: 1px solid hsl(var(--border-color));
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.iv-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: hsl(var(--text-muted));
+}
+
+.iv-total-row .iv-total-value {
+  font-weight: 700;
+  color: hsl(var(--text-main));
+  font-variant-numeric: tabular-nums;
+}
+
+.iv-total-row.iv-grand-total {
+  border-top: 2px solid hsl(var(--border-color));
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: hsl(var(--text-main));
+}
+
+.iv-total-row.iv-grand-total .iv-total-value {
+  color: hsl(var(--primary));
+  font-size: 1.3rem;
+}
+
+/* ─── Footer Actions ─── */
+.iv-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Saved Invoices List ─── */
+.iv-invoices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.iv-invoice-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px 140px 100px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: hsl(var(--bg-main));
+  border-radius: 14px;
+  border: 1px solid hsl(var(--border-color));
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.iv-invoice-row:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 4px 16px hsla(var(--primary), 0.08);
+  transform: translateY(-1px);
+}
+
+.iv-invoice-row-folio {
+  font-weight: 800;
+  color: hsl(var(--text-main));
+  font-size: 0.95rem;
+}
+
+.iv-invoice-row-provider {
+  font-weight: 600;
+  color: hsl(var(--text-muted));
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iv-invoice-row-date {
+  font-size: 0.8rem;
+  color: hsl(var(--text-soft));
+  font-weight: 600;
+}
+
+.iv-invoice-row-total {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--primary));
+  text-align: right;
+}
+
+.iv-invoice-row-items {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: hsl(var(--text-soft));
+  text-align: right;
+}
+
+/* ─── Autocomplete Dropdown ─── */
+.iv-autocomplete-wrapper {
+  position: relative;
+}
+
+.iv-autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: hsl(var(--bg-card));
+  border: 1px solid hsl(var(--border-color));
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.iv-autocomplete-item {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  transition: background 0.1s;
+  border-bottom: 1px solid hsla(var(--border-color), 0.5);
+}
+
+.iv-autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.iv-autocomplete-item:hover,
+.iv-autocomplete-item.iv-ac-active {
+  background: hsla(var(--primary), 0.08);
+  color: hsl(var(--primary));
+}
+
+.iv-autocomplete-item small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: hsl(var(--text-soft));
+  margin-top: 2px;
+}
+
+/* ─── Empty State ─── */
+.iv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.iv-empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: hsla(var(--primary), 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary));
+}
+
+.iv-empty h3 {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: hsl(var(--text-main));
+}
+
+.iv-empty p {
+  color: hsl(var(--text-muted));
+  font-size: 0.9rem;
+  max-width: 360px;
+}
+
+/* ─── Tab System ─── */
+.iv-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: hsl(var(--bg-main));
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.iv-tab {
+  padding: 0.55rem 1.25rem;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: hsl(var(--text-muted));
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.iv-tab:hover {
+  color: hsl(var(--text-main));
+  background: hsla(var(--bg-card), 0.6);
+}
+
+.iv-tab.iv-tab-active {
+  background: hsl(var(--bg-card));
+  color: hsl(var(--primary));
+  box-shadow: var(--shadow-sm);
+}
+
+.iv-tab-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+/* ─── Validation Message ─── */
+.iv-validation-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  animation: iv-fadeIn 0.3s ease forwards;
+}
+
+.iv-validation-msg.iv-msg-error {
+  background: hsla(var(--danger), 0.08);
+  color: hsl(var(--danger));
+  border: 1px solid hsla(var(--danger), 0.15);
+}
+
+.iv-validation-msg.iv-msg-success {
+  background: hsla(var(--success), 0.08);
+  color: hsl(var(--success));
+  border: 1px solid hsla(var(--success), 0.15);
+}
+
+/* ─── Skeleton while saving ─── */
+.iv-saving-overlay {
+  position: absolute;
+  inset: 0;
+  background: hsla(var(--bg-card), 0.7);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* ─── Responsive: Tablet ─── */
+@media (max-width: 1024px) {
+  .iv-card {
+    padding: 1.5rem;
+  }
+
+  .iv-invoice-header {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .iv-totals-box {
+    min-width: 260px;
+  }
+  
+  .iv-invoice-row {
+    grid-template-columns: 1fr 1fr 100px;
+    gap: 0.5rem;
+  }
+  
+  .iv-invoice-row-date,
+  .iv-invoice-row-items {
+    display: none;
+  }
+}
+
+/* ─── Responsive: Phone ─── */
+@media (max-width: 768px) {
+  .iv-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .iv-header-actions {
+    width: 100%;
+  }
+
+  .iv-header-actions button {
+    flex: 1;
+  }
+
+  .iv-card {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .iv-invoice-header {
+    grid-template-columns: 1fr;
+  }
+
+  .iv-totals {
+    justify-content: stretch;
+  }
+
+  .iv-totals-box {
+    min-width: 100%;
+  }
+
+  .iv-footer {
+    flex-direction: column;
+  }
+
+  .iv-footer button {
+    width: 100%;
+  }
+
+  .iv-invoice-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+  }
+
+  .iv-invoice-row-provider {
+    display: none;
+  }
+
+  .iv-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ─── Responsive: Small Phone ─── */
+@media (max-width: 480px) {
+  .iv-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .iv-header h1 {
+    font-size: 1.3rem;
+  }
+}
