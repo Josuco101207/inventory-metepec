@@ -958,19 +958,91 @@
 
 @media (max-width: 768px) and (pointer: coarse) {
   .fly-dashboard {
-    padding: 0 16px calc(56px + env(safe-area-inset-bottom, 24px)) !important;
+    padding: 0 20px calc(72px + env(safe-area-inset-bottom, 16px)) !important;
   }
 
-  .fly-hero-name { font-size: 1.75rem; }
-  .fly-hero-kicker { font-size: 0.7rem; opacity: 0.5; }
-  .fly-hero-sub { font-size: 0.72rem; opacity: 0.6; }
+  /* Hero — One UI: título grande, kicker pequeño */
+  .fly-hero-section {
+    padding: 8px 0 14px;
+    margin-bottom: 4px;
+  }
 
+  .fly-hero-name {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  .fly-hero-kicker {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    opacity: 0.4;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .fly-hero-sub {
+    font-size: 0.78rem;
+    opacity: 0.55;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Metrics row — snappy horizontal scroll con fade edges */
+  .fly-metrics-row {
+    display: flex !important;
+    flex-direction: row !important;
+    grid-template-columns: unset !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 10px;
+    margin: 0 -20px 16px;
+    padding: 6px 20px 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+    mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  }
+
+  .fly-metrics-row::-webkit-scrollbar { display: none; }
+
+  .fly-metric-card {
+    min-width: 162px !important;
+    max-width: 162px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 16px !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    background: rgba(255,255,255,0.05) !important;
+  }
+
+  .fly-metric-value {
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .fly-metric-label {
+    font-size: 0.58rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    opacity: 0.45 !important;
+  }
+
+  /* Cards — One UI style */
   .fly-card-header {
     flex-direction: column;
     gap: 10px;
   }
 
-  .fly-card-title { font-size: 1.05rem; }
+  .fly-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
 
   .fly-card-controls {
     width: 100%;
@@ -981,28 +1053,55 @@
   .fly-card-controls .fly-btn {
     flex: 1;
     font-size: 0.62rem;
-    height: 36px;
-    border-radius: 18px;
+    font-weight: 700;
+    height: 38px;
+    border-radius: 19px;
   }
 
   .fly-date-input {
     flex: 1;
     min-width: 0;
-    height: 36px;
-    border-radius: 10px;
-    font-size: 0.72rem;
-    padding: 0 10px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    padding: 0 12px;
   }
 
   .fly-chart-card,
   .fly-zones-card,
   .fly-movements-card {
-    padding: 16px 14px;
-    border-radius: 16px;
+    padding: 18px 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.07);
   }
 
   .fly-chart-body { margin: 0 -4px; }
   .fly-chart-empty { height: 160px; }
+
+  /* Zones grid — 2 col tiles */
+  .fly-zones-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  .fly-zone-tile {
+    padding: 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    transition: background 0.1s ease, transform 0.1s ease !important;
+  }
+
+  .fly-zone-tile:active {
+    transform: scale(0.96);
+    background: rgba(255,255,255,0.08) !important;
+  }
+
+  .fly-zone-title {
+    font-size: 0.6rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+  }
 
   .fly-legacy-warning-content {
     flex-direction: column;
@@ -1017,12 +1116,11 @@
   .fly-legacy-warning-delete {
     flex: 1;
     font-size: 0.7rem;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
-  /* Critical modal */
   .fly-critical-modal {
-    border-radius: 16px 16px 0 0 !important;
+    border-radius: 24px 24px 0 0 !important;
   }
 
   .fly-crit-row {
@@ -1040,15 +1138,20 @@
 
 @media (max-width: 480px) and (pointer: coarse) {
   .fly-dashboard {
-    padding: 0 12px calc(56px + env(safe-area-inset-bottom, 20px)) !important;
+    padding: 0 16px calc(72px + env(safe-area-inset-bottom, 16px)) !important;
   }
 
-  .fly-hero-name { font-size: 1.5rem; }
+  .fly-hero-name { font-size: 1.75rem; }
+
+  .fly-metric-card {
+    min-width: 150px !important;
+    max-width: 150px;
+  }
 
   .fly-chart-card,
   .fly-zones-card,
   .fly-movements-card {
-    padding: 14px 12px;
-    border-radius: 14px;
+    padding: 16px 14px;
+    border-radius: 20px;
   }
 }

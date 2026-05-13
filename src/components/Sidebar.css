@@ -202,7 +202,7 @@
   }
 }
 
-/* ─── Phone (≤ 768px) — iOS action sheet style (touch devices only) ─── */
+/* ─── Phone (≤ 768px) — One UI 8.5 bottom sheet ─── */
 @media (max-width: 768px) and (pointer: coarse) {
   .sidebar {
     top: auto;
@@ -212,86 +212,111 @@
     width: 100% !important;
     max-width: 100%;
     height: auto;
-    max-height: 85vh;
+    max-height: 88vh;
     transform: translateY(100%);
-    border-radius: 16px 16px 0 0;
-    padding: 20px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-radius: 28px 28px 0 0;
+    padding: 8px 20px calc(20px + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    background: rgba(24, 22, 20, 0.97);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
   }
 
   .sidebar-mobile-open {
     transform: translateY(0);
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6);
   }
 
-  /* Grab bar indicator */
+  /* One UI grab bar — más visible */
   .sidebar::before {
     content: '';
     display: block;
-    width: 36px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-    margin: 0 auto 16px;
+    width: 44px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    margin: 0 auto 20px;
     flex-shrink: 0;
   }
 
   .sidebar-header {
-    padding: 0.5rem;
-    margin-bottom: 1rem;
+    padding: 0 4px;
+    margin-bottom: 16px;
   }
 
+  /* User card — full width, row style */
+  .sidebar-footer .user-profile-mini {
+    grid-column: 1 / -1;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* Nav grid — 3 cols with more breathing room */
   .sidebar-nav,
   .sidebar-nav ul,
   .sidebar-footer ul {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px;
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
   .sidebar-footer {
-    padding-top: 8px;
+    padding-top: 12px;
     border-top: 0.5px solid rgba(255, 255, 255, 0.08);
-    margin-top: 8px;
+    margin-top: 12px;
   }
 
-  .sidebar-footer .user-profile-mini {
-    grid-column: 1 / -1;
-    margin-bottom: 8px;
-  }
-
+  /* Nav items — One UI app grid style */
   .nav-item {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 14px 8px;
+    gap: 6px;
+    padding: 16px 8px;
     font-size: 0.62rem;
-    min-height: 64px;
-    border-radius: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    min-height: 72px;
+    border-radius: 18px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.7);
+    transition: background 0.15s ease, transform 0.1s ease;
   }
 
   .nav-item svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
 
-  .nav-item.active,
+  .nav-item.active {
+    background: var(--fly-yellow);
+    color: #1a1a1a;
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(213, 255, 0, 0.35);
+  }
+
+  .nav-item.active svg { color: #1a1a1a; }
+
   .nav-item:active {
-    background: rgba(255, 255, 255, 0.08);
+    transform: scale(0.93);
+    background: rgba(255, 255, 255, 0.1);
+    transition: transform 0.08s ease;
   }
 
   .sidebar-overlay {
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 }
 
