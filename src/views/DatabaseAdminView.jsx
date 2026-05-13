@@ -259,6 +259,9 @@ const DatabaseAdminView = () => {
 
   const getTypeInfo = (type) => COLUMN_TYPES.find(t => t.value === type) || COLUMN_TYPES[0];
 
+  // Debug: log render state
+  console.log('[DB Admin] Render - showCreateForm:', showCreateForm, 'authLoading:', authLoading);
+
   // Wait for auth to load before showing restricted message
   if (authLoading) {
     return (
@@ -314,7 +317,13 @@ const DatabaseAdminView = () => {
             <button
               type="button"
               className="db-btn db-btn-primary db-btn-new-cat"
-              onClick={() => setShowCreateForm(v => !v)}
+              onClick={() => {
+                console.log('[DB Admin] Button clicked, current showCreateForm:', showCreateForm);
+                setShowCreateForm(v => {
+                  console.log('[DB Admin] Setting showCreateForm to:', !v);
+                  return !v;
+                });
+              }}
             >
               {showCreateForm ? <X size={16} /> : <Plus size={16} />}
               {showCreateForm ? 'Cancelar' : 'Nueva Categoría'}
