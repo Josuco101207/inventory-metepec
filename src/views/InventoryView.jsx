@@ -74,7 +74,7 @@ const InventoryRow = React.memo(({ item, index, categoryTitle, isAdmin, isStaff,
 
       {/* Actions */}
       <div className="invt-cell-act">
-        {isStaff && (
+        {(isStaff || canEditIn(categoryTitle)) && (
           <>
             <button className="invt-btn invt-btn-blue" onClick={() => handleAction(item)} title="Movimiento">
               <Activity size={15} />
@@ -464,7 +464,7 @@ const InventoryView = ({ categoryTitle }) => {
                     </div>
                   </div>
                   <div className="fly-lr-actions">
-                    {isStaff && (
+                    {(isStaff || canEditIn(categoryTitle)) && (
                       <>
                         <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>
                         <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={14} /></button>

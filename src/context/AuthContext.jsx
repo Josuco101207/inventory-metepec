@@ -278,20 +278,18 @@ export const AuthProvider = ({ children }) => {
   // Returns true if the current user can add items to the given category
   const canAddTo = useCallback((category) => {
     if (isAdmin) return true;
-    if (!isStaff) return false;
     const allowed = userData?.allowedCategories;
-    if (!allowed || !Array.isArray(allowed)) return false;
+    if (!allowed || !Array.isArray(allowed) || allowed.length === 0) return false;
     return allowed.includes(category);
-  }, [isAdmin, isStaff, userData?.allowedCategories]);
+  }, [isAdmin, userData?.allowedCategories]);
 
   // Returns true if the current user can edit items in the given category
   const canEditIn = useCallback((category) => {
     if (isAdmin) return true;
-    if (!isStaff) return false;
     const editable = userData?.editableCategories;
-    if (!editable || !Array.isArray(editable)) return false;
+    if (!editable || !Array.isArray(editable) || editable.length === 0) return false;
     return editable.includes(category);
-  }, [isAdmin, isStaff, userData?.editableCategories]);
+  }, [isAdmin, userData?.editableCategories]);
 
   const contextValue = useMemo(() => ({
     user, 
