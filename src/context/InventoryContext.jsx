@@ -684,6 +684,12 @@ export const InventoryProvider = ({ children }) => {
         } else if (mov.action === 'Devolución') {
           qtyChange = -1;
           extraFields.prestados = (parseInt(item.prestados) || 0) + 1;
+        } else if (mov.action === 'Auditoría') {
+          // Parse diff from details: "Conteo físico: 201 (Ajuste: +1)" or "Audit: reason (Ajuste: -5)"
+          const match = mov.details?.match(/Ajuste:\s*([+-]?\d+)/);
+          if (match) {
+            qtyChange = -parseInt(match[1]); // Reverse the adjustment
+          }
         }
 
         if (qtyChange !== 0 || Object.keys(extraFields).length > 0) {
