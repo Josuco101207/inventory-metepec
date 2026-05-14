@@ -184,14 +184,17 @@ export const InventoryProvider = ({ children }) => {
         time: new Date().toLocaleString(),
       };
 
-      // Save original values for annulment (if provided)
-      if (originalValues) {
-        movementData.originalValues = originalValues;
-      }
+      // Save original values for annulment (if provided) - only in local state, not in Supabase
+      const finalOriginalValues = originalValues;
 
       // Save to Supabase (fire-and-forget, fallback to localStorage on error)
       const saved = await sbInsertMovement(movementData);
       const finalMovement = saved || { ...movementData, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) };
+      
+      // Attach originalValues to local movement only (not persisted to DB)
+      if (finalOriginalValues) {
+        finalMovement.originalValues = finalOriginalValues;
+      }
 
       // Keep localStorage in sync as local cache
       addLocalStorageMovement(movementData);
