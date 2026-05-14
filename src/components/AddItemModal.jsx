@@ -32,6 +32,7 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
   // Get schema from the category
   const catConfig = useMemo(() => getCategoryByTitle(category) || {}, [category, getCategoryByTitle]);
   const schema = useMemo(() => catConfig.schema || [], [catConfig]);
+  const zoneColor = useMemo(() => catConfig?.zone || 'arcade', [catConfig]);
 
   // Visible fields = schema minus hidden ones
   const visibleFields = useMemo(() =>
@@ -89,9 +90,13 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-card add-item-modal animate-scale-up">
-        <header className="modal-header">
-          <h3>{initialData ? 'Editar' : 'Nuevo'} Artículo en {category}</h3>
+      <div className={`modal-card add-item-modal animate-scale-up add-modal-${zoneColor}`}>
+        <header className={`modal-header add-modal-header-${zoneColor}`}>
+          <div className="add-modal-badge">
+            <Plus size={16} />
+            <span>{category.toUpperCase()}</span>
+          </div>
+          <h3>{initialData ? 'Editar' : 'Nuevo'} Artículo</h3>
           <p>Completa los campos definidos para esta categoría.</p>
           <button type="button" className="modal-close-btn" onClick={onClose}><X size={20} /></button>
         </header>
@@ -151,7 +156,7 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
 
           <div className="flex gap-4">
             <button type="button" className="btn-apple-secondary flex-1" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn-apple-primary flex-1" disabled={saving || visibleFields.length === 0}>
+            <button type="submit" className={`btn-fly-primary btn-fly-${zoneColor} flex-1`} disabled={saving || visibleFields.length === 0}>
               <Save size={18} /> {saving ? 'Guardando...' : (initialData ? 'Guardar Cambios' : 'Crear Artículo')}
             </button>
           </div>
