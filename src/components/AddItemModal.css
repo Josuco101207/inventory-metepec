@@ -6,7 +6,8 @@
   max-width: 680px !important;
   padding: 0 !important;
   overflow: hidden;
-  max-height: 90vh;
+  height: 85vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
 }
