@@ -256,20 +256,36 @@ const UserManagementView = () => {
   const savePermissions = async (u) => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      console.log('[Permisos] Saving for user:', u.id, {
+        allowed_views: u.allowedViews || [],
+        allowed_categories: u.allowedCategories || [],
+        editable_categories: u.editableCategories || [],
+      });
+
+      const { data, error, status, statusText } = await supabase
         .from('profiles')
         .update({
           allowed_views: u.allowedViews || [],
           allowed_categories: u.allowedCategories || [],
           editable_categories: u.editableCategories || [],
         })
-        .eq('id', u.id);
+        .eq('id', u.id)
+        .select();
+
+      console.log('[Permisos] Response:', { data, error, status, statusText });
 
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        console.warn('[Permisos] Update returned 0 rows — RLS may be blocking the update');
+        toast.error('Sin cambios guardados — verifica los permisos RLS en Supabase');
+        return;
+      }
+
       toast.success(`Permisos de ${u.name || u.email} guardados`);
     } catch (err) {
-      console.error('[Permisos] Error:', err);
-      toast.error('Error al guardar permisos: ' + (err.message || ''));
+      console.error('[Permisos] Error completo:', err);
+      toast.error('Error: ' + (err.message || JSON.stringify(err)));
     } finally {
       setSaving(false);
     }
