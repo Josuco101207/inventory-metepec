@@ -102,63 +102,67 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
         </header>
 
         <form onSubmit={handleSubmit}>
-          <div className="main-fields mb-6">
-            {visibleFields.length === 0 ? (
-              <p className="text-xs text-muted italic" style={{ padding: '2rem', textAlign: 'center' }}>
-                Esta categoría no tiene columnas definidas. Ve a Base de Datos para configurarla.
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {visibleFields.map(field => {
-                  const inputType = dbTypeToInput(field.type);
-                  const isWide = field.name === 'name' || field.name === 'observaciones' || inputType === 'checkbox';
+          <div className="form-scroll-content">
+            <div className="main-fields mb-6">
+              {visibleFields.length === 0 ? (
+                <p className="text-xs text-muted italic" style={{ padding: '2rem', textAlign: 'center' }}>
+                  Esta categoría no tiene columnas definidas. Ve a Base de Datos para configurarla.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {visibleFields.map(field => {
+                    const inputType = dbTypeToInput(field.type);
+                    const isWide = field.name === 'name' || field.name === 'observaciones' || inputType === 'checkbox';
 
-                  return (
-                    <div className={`f-group ${isWide ? 'col-span-2' : ''}`} key={field.name}>
-                      <label>{field.label || field.name}</label>
-                      {field.name === 'observaciones' ? (
-                        <textarea
-                          name={field.name}
-                          placeholder={`Ingresa ${field.label || field.name}...`}
-                          onChange={handleChange}
-                          value={formData[field.name] || ''}
-                          className="w-full p-3 h-20"
-                          style={{ resize: 'none' }}
-                        />
-                      ) : inputType === 'checkbox' ? (
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
+                    return (
+                      <div className={`f-group ${isWide ? 'col-span-2' : ''}`} key={field.name}>
+                        <label>{field.label || field.name}</label>
+                        {field.name === 'observaciones' ? (
+                          <textarea
                             name={field.name}
-                            checked={!!formData[field.name]}
+                            placeholder={`Ingresa ${field.label || field.name}...`}
                             onChange={handleChange}
+                            value={formData[field.name] || ''}
+                            className="w-full p-3 h-20"
+                            style={{ resize: 'none' }}
                           />
-                          <span>{formData[field.name] ? 'Sí' : 'No'}</span>
-                        </label>
-                      ) : (
-                        <input
-                          type={inputType}
-                          name={field.name}
-                          placeholder={`Ingresa ${field.label || field.name}...`}
-                          value={formData[field.name] ?? ''}
-                          onChange={handleChange}
-                          step={inputType === 'number' ? 'any' : undefined}
-                          required={field.name === 'name'}
-                          className="w-full"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        ) : inputType === 'checkbox' ? (
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name={field.name}
+                              checked={!!formData[field.name]}
+                              onChange={handleChange}
+                            />
+                            <span>{formData[field.name] ? 'Sí' : 'No'}</span>
+                          </label>
+                        ) : (
+                          <input
+                            type={inputType}
+                            name={field.name}
+                            placeholder={`Ingresa ${field.label || field.name}...`}
+                            value={formData[field.name] ?? ''}
+                            onChange={handleChange}
+                            step={inputType === 'number' ? 'any' : undefined}
+                            required={field.name === 'name'}
+                            className="w-full"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-4">
-            <button type="button" className="btn-apple-secondary flex-1" onClick={onClose}>Cancelar</button>
-            <button type="submit" className={`btn-fly-primary btn-fly-${zoneColor} flex-1`} disabled={saving || visibleFields.length === 0}>
-              <Save size={18} /> {saving ? 'Guardando...' : (initialData ? 'Guardar Cambios' : 'Crear Artículo')}
-            </button>
+          <div className="form-button-footer">
+            <div className="flex gap-4">
+              <button type="button" className="btn-apple-secondary flex-1" onClick={onClose}>Cancelar</button>
+              <button type="submit" className={`btn-fly-primary btn-fly-${zoneColor} flex-1`} disabled={saving || visibleFields.length === 0}>
+                <Save size={18} /> {saving ? 'Guardando...' : (initialData ? 'Guardar Cambios' : 'Crear Artículo')}
+              </button>
+            </div>
           </div>
         </form>
       </div>

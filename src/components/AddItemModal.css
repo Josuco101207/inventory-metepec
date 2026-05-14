@@ -5,16 +5,21 @@
 .add-item-modal {
   max-width: 680px !important;
   padding: 0 !important;
-  overflow: visible;
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ═══ MODAL HEADER ═══ */
 .add-modal-header {
   position: relative;
-  padding: 2.5rem 2.5rem 2rem;
+  padding: 2rem 2rem 1.5rem;
   margin-bottom: 0;
   border-bottom: 1px solid hsl(var(--border-color));
   background: linear-gradient(135deg, hsla(var(--bg-card), 0.5), hsla(var(--bg-main), 0.3));
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .add-modal-badge {
@@ -91,11 +96,40 @@
 
 /* ═══ FORM CONTENT ═══ */
 .add-item-modal form {
-  padding: 2rem 2.5rem 2.5rem;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.form-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border-color)) transparent;
+}
+
+.form-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-scroll-content::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border-color));
+  border-radius: 3px;
+}
+
+.form-scroll-content::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--text-muted));
 }
 
 .main-fields {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .grid {
@@ -311,6 +345,14 @@
 }
 
 /* ═══ BUTTON CONTAINER ═══ */
+.form-button-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid hsl(var(--border-color));
+  background: hsl(var(--bg-card));
+  flex-shrink: 0;
+  z-index: 10;
+}
+
 .flex {
   display: flex;
 }
@@ -389,10 +431,17 @@
   .add-item-modal {
     max-width: 100% !important;
     border-radius: 24px 24px 0 0 !important;
+    max-height: 100vh;
+    height: 100vh;
   }
 
   .add-modal-header {
-    padding: 2rem 1.5rem 1.5rem;
+    padding: 1.5rem 1.25rem 1rem;
+  }
+
+  .add-modal-badge {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.65rem;
   }
 
   .add-modal-header h3 {
@@ -403,8 +452,8 @@
     font-size: 0.85rem;
   }
 
-  .add-item-modal form {
-    padding: 1.5rem;
+  .form-scroll-content {
+    padding: 1.25rem;
   }
 
   .grid-cols-2 {
@@ -433,24 +482,40 @@
   .main-fields {
     margin-bottom: 1.25rem;
   }
+
+  .form-button-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid hsl(var(--border-color));
+  }
+
+  .btn-fly-primary,
+  .btn-apple-secondary {
+    min-height: 48px;
+    font-size: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
 }
 
 @media (max-width: 480px) {
   .add-modal-header {
-    padding: 1.75rem 1.25rem 1.25rem;
+    padding: 1.25rem 1rem 0.75rem;
   }
 
   .add-modal-badge {
-    padding: 0.4rem 0.875rem;
-    font-size: 0.65rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.6rem;
   }
 
   .add-modal-header h3 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
-  .add-item-modal form {
-    padding: 1.25rem;
+  .add-modal-header p {
+    font-size: 0.8rem;
+  }
+
+  .form-scroll-content {
+    padding: 1rem;
   }
 
   .f-group input,
@@ -460,8 +525,29 @@
     font-size: 0.85rem;
   }
 
+  .f-group label {
+    font-size: 0.65rem;
+  }
+
   .gap-4 {
     gap: 0.75rem;
+  }
+
+  .form-button-footer {
+    padding: 0.875rem 1rem;
+  }
+
+  .btn-fly-primary,
+  .btn-apple-secondary {
+    min-height: 44px;
+    font-size: 0.7rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .btn-fly-primary svg,
+  .btn-apple-secondary svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
