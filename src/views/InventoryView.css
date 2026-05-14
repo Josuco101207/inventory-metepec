@@ -922,6 +922,8 @@
 @media (max-width: 768px) {
   .fly-inventory-view {
     padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 82px);
+    overflow-y: auto;
+    max-height: 100vh;
   }
 
   .fly-hero-title {
