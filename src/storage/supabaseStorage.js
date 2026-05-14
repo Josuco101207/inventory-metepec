@@ -114,3 +114,100 @@ export const updateMovement = async (movementId, updates) => {
     return null;
   }
 };
+
+// ─── PERSONNEL ───
+
+export const fetchPersonnel = async () => {
+  try {
+    const data = await restFetch('personnel?select=*&order=created_at.asc');
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchPersonnel:', err.message);
+    return [];
+  }
+};
+
+export const insertPersonnel = async (person) => {
+  try {
+    const { id, createdAt, created_at, ...rest } = person;
+    const data = await restFetch('personnel', { method: 'POST', body: JSON.stringify(rest) });
+    return data?.[0] || data;
+  } catch (err) {
+    console.error('[SupabaseStorage] insertPersonnel:', err.message);
+    return null;
+  }
+};
+
+export const deletePersonnel = async (id) => {
+  try {
+    await restFetch(`personnel?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+    return true;
+  } catch (err) {
+    console.error('[SupabaseStorage] deletePersonnel:', err.message);
+    return false;
+  }
+};
+
+// ─── BRANDS ───
+
+export const fetchBrands = async () => {
+  try {
+    const data = await restFetch('brands?select=*&order=name.asc');
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchBrands:', err.message);
+    return [];
+  }
+};
+
+export const insertBrand = async (name) => {
+  try {
+    const data = await restFetch('brands', { method: 'POST', body: JSON.stringify({ name }) });
+    return data?.[0] || data;
+  } catch (err) {
+    console.error('[SupabaseStorage] insertBrand:', err.message);
+    return null;
+  }
+};
+
+export const deleteBrand = async (id) => {
+  try {
+    await restFetch(`brands?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+    return true;
+  } catch (err) {
+    console.error('[SupabaseStorage] deleteBrand:', err.message);
+    return false;
+  }
+};
+
+// ─── LOCATIONS ───
+
+export const fetchLocations = async () => {
+  try {
+    const data = await restFetch('locations?select=*&order=name.asc');
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchLocations:', err.message);
+    return [];
+  }
+};
+
+export const insertLocation = async (name, zone = '') => {
+  try {
+    const data = await restFetch('locations', { method: 'POST', body: JSON.stringify({ name, zone }) });
+    return data?.[0] || data;
+  } catch (err) {
+    console.error('[SupabaseStorage] insertLocation:', err.message);
+    return null;
+  }
+};
+
+export const deleteLocation = async (id) => {
+  try {
+    await restFetch(`locations?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+    return true;
+  } catch (err) {
+    console.error('[SupabaseStorage] deleteLocation:', err.message);
+    return false;
+  }
+};

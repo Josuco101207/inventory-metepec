@@ -1,14 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useCategories } from './CategoriesContext';
+import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import {
-  getItems, setItems, addItem as addLocalStorageItem, updateItem as updateLocalStorageItem, deleteItem as deleteLocalStorageItem,
-  getMovements, setMovements, addMovement as addLocalStorageMovement, updateMovement as updateLocalStorageMovement,
-  getPersonnel, setPersonnel, addPerson as addLocalStoragePerson, deletePerson as deleteLocalStoragePerson,
-  getBrands, setBrands, addBrand as addLocalStorageBrand, deleteBrand as deleteLocalStorageBrand,
-  getLocations, setLocations, addLocation as addLocalStorageLocation, deleteLocation as deleteLocalStorageLocation,
-  clearAllData, getStats
+  getMovements, addMovement as addLocalStorageMovement, updateMovement as updateLocalStorageMovement,
+  getPersonnel, getBrands, getLocations,
+  clearAllData
 } from '../storage/localStorage';
 import {
   fetchItems as sbFetchItems,
@@ -18,6 +16,15 @@ import {
   fetchMovements as sbFetchMovements,
   insertMovement as sbInsertMovement,
   updateMovement as sbUpdateMovement,
+  fetchPersonnel as sbFetchPersonnel,
+  insertPersonnel as sbInsertPersonnel,
+  deletePersonnel as sbDeletePersonnel,
+  fetchBrands as sbFetchBrands,
+  insertBrand as sbInsertBrand,
+  deleteBrand as sbDeleteBrand,
+  fetchLocations as sbFetchLocations,
+  insertLocation as sbInsertLocation,
+  deleteLocation as sbDeleteLocation,
 } from '../storage/supabaseStorage';
 
 const InventoryContext = createContext();
@@ -111,30 +118,28 @@ export const InventoryProvider = ({ children }) => {
     const init = async () => {
       setLoadError(null);
       try {
-        // Load personnel, brands, locations from localStorage
-        setPersonnelState(getPersonnel());
-        setBrandsState(getBrands());
-        setLocationsState(getLocations());
-
-        // Load items and movements from Supabase in parallel
-        const [, sbMovements] = await Promise.all([
+        // Load all data from Supabase in parallel
+        const [, sbMovements, sbPersonnel, sbBrands, sbLocations] = await Promise.all([
           loadAllItems(),
           sbFetchMovements(500),
+          sbFetchPersonnel(),
+          sbFetchBrands(),
+          sbFetchLocations(),
         ]);
 
-        if (sbMovements.length > 0) {
-          setMovementsState(sbMovements);
-        } else {
-          // Fallback: show localStorage movements if Supabase table not yet created
-          setMovementsState(getMovements());
-        }
+        setMovementsState(sbMovements.length > 0 ? sbMovements : getMovements());
+        setPersonnelState(sbPersonnel.length > 0 ? sbPersonnel : getPersonnel());
+        setBrandsState(sbBrands.length > 0 ? sbBrands : getBrands());
+        setLocationsState(sbLocations.length > 0 ? sbLocations : getLocations());
 
         setLastSync(new Date());
       } catch (err) {
         console.error('[Inventory] Init error:', err);
         setLoadError(err.message);
-        // Fallback to localStorage on error
         setMovementsState(getMovements());
+        setPersonnelState(getPersonnel());
+        setBrandsState(getBrands());
+        setLocationsState(getLocations());
       } finally {
         setLoading(false);
       }
@@ -487,64 +492,59 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [getTableName]);
 
-  const bulkAddPersonnel = useCallback((personnelArray) => {
-    const createdPersons = personnelArray.map(person => addLocalStoragePerson({
+  const bulkAddPersonnel = useCallback(async (personnelArray) => {
+    const results = await Promise.all(personnelArray.map(person => sbInsertPersonnel({
       ...person,
-      createdAt: new Date().toISOString()
-    }));
-    
-    setPersonnelState(prev => [...prev, ...createdPersons]);
-    toast.success(`Personal importado: ${personnelArray.length} trabajadores añadidos`);
+      created_at: new Date().toISOString()
+    })));
+    const valid = results.filter(Boolean);
+    setPersonnelState(prev => [...prev, ...valid]);
+    toast.success(`Personal importado: ${valid.length} trabajadores añadidos`);
   }, []);
 
-  const addWorker = useCallback((workerData) => {
-    const createdPerson = addLocalStoragePerson({
+  const addWorker = useCallback(async (workerData) => {
+    const created = await sbInsertPersonnel({
       ...workerData,
-      createdAt: new Date().toISOString()
+      created_at: new Date().toISOString()
     });
-    
-    if (createdPerson) {
-      setPersonnelState(prev => [...prev, createdPerson]);
+    if (created) {
+      setPersonnelState(prev => [...prev, created]);
       toast.success(`Trabajador añadido: ${workerData.name}`);
     }
   }, []);
 
-  const deleteWorker = useCallback((workerId) => {
-    deleteLocalStoragePerson(workerId);
+  const deleteWorker = useCallback(async (workerId) => {
+    await sbDeletePersonnel(workerId);
     setPersonnelState(prev => prev.filter(p => p.id !== workerId));
     toast.info("Trabajador eliminado de la lista");
   }, []);
 
-  const addBrand = useCallback((name) => {
-    const existingBrand = getBrands().find(b => b.name === name);
-    if (existingBrand) {
-      toast.error("Esta marca ya existe");
-      return;
-    }
-    
-    const createdBrand = addLocalStorageBrand(name);
-    if (createdBrand) {
-      setBrandsState(prev => [...prev, createdBrand]);
+  const addBrand = useCallback(async (name) => {
+    const existing = brands.find(b => b.name === name);
+    if (existing) { toast.error("Esta marca ya existe"); return; }
+    const created = await sbInsertBrand(name);
+    if (created) {
+      setBrandsState(prev => [...prev, created]);
       toast.success(`Marca añadida: ${name}`);
     }
-  }, []);
+  }, [brands]);
 
-  const deleteBrand = useCallback((id) => {
-    deleteLocalStorageBrand(id);
+  const deleteBrand = useCallback(async (id) => {
+    await sbDeleteBrand(id);
     setBrandsState(prev => prev.filter(b => b.id !== id));
     toast.info("Marca eliminada");
   }, []);
 
-  const addLocation = useCallback((name, zone = '') => {
-    const createdLocation = addLocalStorageLocation(name, zone);
-    if (createdLocation) {
-      setLocationsState(prev => [...prev, createdLocation]);
+  const addLocation = useCallback(async (name, zone = '') => {
+    const created = await sbInsertLocation(name, zone);
+    if (created) {
+      setLocationsState(prev => [...prev, created]);
       toast.success(`Ubicación añadida: ${name}`);
     }
   }, []);
 
-  const deleteLocation = useCallback((id) => {
-    deleteLocalStorageLocation(id);
+  const deleteLocation = useCallback(async (id) => {
+    await sbDeleteLocation(id);
     setLocationsState(prev => prev.filter(l => l.id !== id));
     toast.info("Ubicación eliminada");
   }, []);
@@ -723,6 +723,58 @@ export const InventoryProvider = ({ children }) => {
       toast.error("Error al anular movimiento");
     }
   }, [movements, addMovement]);
+
+  // ─── Supabase Realtime subscriptions ───
+  useEffect(() => {
+    if (!user || catsLoading || !categories.length) return;
+
+    const channels = [];
+
+    // Subscribe to movements table
+    const movCh = supabase
+      .channel('realtime-movements')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'movements' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setMovementsState(prev => {
+            if (prev.find(m => m.id === payload.new.id)) return prev;
+            return [payload.new, ...prev];
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          setMovementsState(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
+        } else if (payload.eventType === 'DELETE') {
+          setMovementsState(prev => prev.filter(m => m.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+    channels.push(movCh);
+
+    // Subscribe to each category item table
+    categories.forEach(cat => {
+      if (!cat.tableName) return;
+      const ch = supabase
+        .channel(`realtime-${cat.tableName}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: cat.tableName }, (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setItemsState(prev => {
+              if (prev.find(i => i.id === payload.new.id)) return prev;
+              return [...prev, { ...payload.new, category: cat.title, _tableName: cat.tableName }];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setItemsState(prev => prev.map(i =>
+              i.id === payload.new.id ? { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName } : i
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setItemsState(prev => prev.filter(i => i.id !== payload.old.id));
+          }
+        })
+        .subscribe();
+      channels.push(ch);
+    });
+
+    return () => {
+      channels.forEach(ch => supabase.removeChannel(ch));
+    };
+  }, [user, categories, catsLoading]);
 
   // Sync: reload items from Supabase
   const syncInventory = useCallback(async () => {
