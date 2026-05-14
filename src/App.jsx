@@ -50,6 +50,9 @@ const LoginView = lazy(() => import('./views/LoginView'));
 const ParquesView = lazy(() => import('./views/ParquesView'));
 const TransactionsView = lazy(() => import('./views/TransactionsView'));
 const DatabaseAdminView = lazy(() => import('./views/DatabaseAdminView'));
+const AnalyticsView = lazy(() => import('./views/AnalyticsView'));
+const ToolsView = lazy(() => import('./views/ToolsView'));
+const InvoicesView = lazy(() => import('./views/InvoicesView'));
 
 import { InventoryProvider, useInventory } from './context/InventoryContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -156,6 +159,10 @@ const RootApp = () => {
                 />
               ))}
               <Route path="/transactions" element={<ViewProtectedRoute viewId="transactions"><TransactionsView /></ViewProtectedRoute>} />
+              <Route path="/parques" element={<ViewProtectedRoute viewId="parques"><ParquesView /></ViewProtectedRoute>} />
+              <Route path="/analytics" element={isAdmin ? <AnalyticsView /> : <Navigate to="/" />} />
+              <Route path="/tools" element={isAdmin ? <ToolsView /> : <Navigate to="/" />} />
+              <Route path="/invoices" element={isAdmin ? <InvoicesView /> : <Navigate to="/" />} />
               <Route path="/settings" element={isAdmin ? <SettingsView /> : <Navigate to="/" />} />
               <Route path="/profile" element={<ProfileView />} />
               <Route path="/users" element={isAdmin ? <UserManagementView /> : <Navigate to="/" />} />
