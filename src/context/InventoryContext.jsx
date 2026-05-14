@@ -697,8 +697,7 @@ export const InventoryProvider = ({ children }) => {
       }
 
       const annulFields = {
-        annulled: true,
-        annulledBy: adminName
+        annulled: true
       };
 
       // Update in Supabase
