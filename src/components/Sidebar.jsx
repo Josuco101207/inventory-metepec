@@ -41,8 +41,10 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
 
   const hasAccess = (viewId) => {
     if (isAdmin) return true;
+    const defaultAllowed = ['dashboard', 'profile'];
+    if (defaultAllowed.includes(viewId)) return true;
     if (!userData) return false;
-    if (!userData.allowedViews) return true; 
+    if (!userData.allowedViews) return true;
     return userData.allowedViews.includes(viewId);
   };
 
