@@ -60,10 +60,12 @@ export const insertItem = async (tableName, item) => {
 export const updateItem = async (tableName, itemId, updates) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
   const { id, createdAt, created_at, ...rest } = updates;
+  console.log('[updateItem] Table:', tableName, 'ID:', itemId, 'Updates:', rest);
   const data = await restFetch(`${tableName}?id=eq.${itemId}`, {
     method: 'PATCH',
     body: JSON.stringify(rest),
   });
+  console.log('[updateItem] Response:', data);
   return data?.[0] || data;
 };
 
