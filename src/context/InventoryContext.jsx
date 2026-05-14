@@ -729,11 +729,26 @@ export const InventoryProvider = ({ children }) => {
     if (!user || catsLoading || !categories.length) return;
 
     const channels = [];
+    let subscribedCount = 0;
+    const totalChannels = categories.filter(c => c.tableName).length + 1;
+
+    const onChannelReady = () => {
+      subscribedCount++;
+      if (subscribedCount >= totalChannels) {
+        setConnectionStatus('online');
+        setLastSync(new Date());
+      }
+    };
+
+    const onChannelError = () => {
+      setConnectionStatus('offline');
+    };
 
     // Subscribe to movements table
     const movCh = supabase
       .channel('realtime-movements')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'movements' }, (payload) => {
+        setLastSync(new Date());
         if (payload.eventType === 'INSERT') {
           setMovementsState(prev => {
             if (prev.find(m => m.id === payload.new.id)) return prev;
@@ -745,7 +760,11 @@ export const InventoryProvider = ({ children }) => {
           setMovementsState(prev => prev.filter(m => m.id !== payload.old.id));
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') onChannelReady();
+        else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') onChannelError();
+        else if (status === 'TIMED_OUT') setConnectionStatus('reconnecting');
+      });
     channels.push(movCh);
 
     // Subscribe to each category item table
@@ -754,6 +773,7 @@ export const InventoryProvider = ({ children }) => {
       const ch = supabase
         .channel(`realtime-${cat.tableName}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: cat.tableName }, (payload) => {
+          setLastSync(new Date());
           if (payload.eventType === 'INSERT') {
             setItemsState(prev => {
               if (prev.find(i => i.id === payload.new.id)) return prev;
@@ -767,11 +787,16 @@ export const InventoryProvider = ({ children }) => {
             setItemsState(prev => prev.filter(i => i.id !== payload.old.id));
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') onChannelReady();
+          else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') onChannelError();
+          else if (status === 'TIMED_OUT') setConnectionStatus('reconnecting');
+        });
       channels.push(ch);
     });
 
     return () => {
+      setConnectionStatus('offline');
       channels.forEach(ch => supabase.removeChannel(ch));
     };
   }, [user, categories, catsLoading]);

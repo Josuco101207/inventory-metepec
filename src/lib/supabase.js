@@ -10,5 +10,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Use placeholder to prevent crash — auth calls will fail gracefully
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
 );
