@@ -215,10 +215,12 @@
     max-height: 92dvh;
     transform: translateY(100%);
     border-radius: 24px 24px 0 0;
-    padding: 12px 10px calc(env(safe-area-inset-bottom, 0px) + 80px);
+    padding: 12px 10px 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
     background: rgba(20, 19, 17, 0.99);
     backdrop-filter: blur(40px) saturate(200%);
@@ -297,8 +299,10 @@
 
   .sidebar-footer {
     padding-top: 10px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 82px);
     border-top: 0.5px solid rgba(255, 255, 255, 0.08);
     margin-top: 10px;
+    flex-shrink: 0;
   }
 
   /* Nav items — equal size square grid */
