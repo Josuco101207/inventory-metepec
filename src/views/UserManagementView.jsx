@@ -318,11 +318,6 @@ const UserManagementView = () => {
     }
   };
 
-  const sendResetEmail = async (email) => {
-    // Not implemented for local version
-    toast.info("Función no disponible en versión local");
-  };
-
   const togglePasswordVisibility = (uid) => {
     setShowPasswords(prev => ({ ...prev, [uid]: !prev[uid] }));
   };
@@ -640,13 +635,6 @@ const UserManagementView = () => {
                   </button>
                 </div>
                 
-                <button 
-                  type="button" 
-                  onClick={() => sendResetEmail(changingPasswordUser.email)}
-                  style={{ background: 'none', border: 'none', color: '#0071e3', fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  O enviar correo de restablecimiento
-                </button>
               </div>
             </form>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoriesContext';
@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import FlyPattern from '../components/FlyPattern';
 import { useNavigate } from 'react-router-dom';
 import { exportToExcel } from '../utils/exportUtils';
+import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import './TransactionsView.css';
 
 const actionConfig = {
@@ -42,21 +43,38 @@ const TransactionsView = () => {
   const todayStr = toLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dayMovements, setDayMovements] = useState([]);
+  const [loadingDay, setLoadingDay] = useState(false);
+
+  const loadDayMovements = useCallback(async (dateStr) => {
+    setLoadingDay(true);
+    try {
+      const data = await fetchMovementsByDate(dateStr);
+      setDayMovements(data);
+    } catch (err) {
+      console.error('[Transactions] fetchMovementsByDate error:', err);
+      setDayMovements([]);
+    } finally {
+      setLoadingDay(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDayMovements(selectedDate);
+  }, [selectedDate, loadDayMovements]);
+
+  // Refresh today when realtime pushes new movements
+  useEffect(() => {
+    if (selectedDate === todayStr) loadDayMovements(todayStr);
+  }, [movements.length, todayStr]);
 
   const filteredMovements = useMemo(() => {
-    return movements.filter(m => {
-      if (!m.timestamp) return false;
-      const movDate = toLocalDateString(new Date(m.timestamp));
-      if (movDate !== selectedDate) return false;
-      if (searchTerm) {
-        const q = searchTerm.toLowerCase();
-        const match = [m.item, m.action, m.details, m.user, m.category]
-          .some(v => (v || '').toLowerCase().includes(q));
-        if (!match) return false;
-      }
-      return true;
-    });
-  }, [movements, selectedDate, searchTerm]);
+    if (!searchTerm) return dayMovements;
+    const q = searchTerm.toLowerCase();
+    return dayMovements.filter(m =>
+      [m.item, m.action, m.details, m.user, m.category].some(v => (v || '').toLowerCase().includes(q))
+    );
+  }, [dayMovements, searchTerm]);
 
   const handleArticleClick = (movement) => {
     const route = categoryToRoute(movement.category);
@@ -172,7 +190,7 @@ const TransactionsView = () => {
         </div>
 
         <div className="invt-body scrollbar-hide">
-          {loading ? (
+          {loadingDay ? (
             <div className="fly-empty-state">
               <Loader2 className="animate-spin" size={40} />
               <p>SINCRONIZANDO MOVIMIENTOS...</p>
