@@ -396,7 +396,7 @@ export const InventoryProvider = ({ children }) => {
     try {
       if (tableName) await sbUpdateItem(tableName, itemId, { qty: physicalQty });
       setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, qty: physicalQty } : i));
-      const finalReason = reason ? `Audit: ${reason}` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
+      const finalReason = reason ? `Audit: ${reason} (Ajuste: ${diff > 0 ? '+' : ''}${diff})` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
       addMovement('Auditoría', item.name, Math.abs(diff), userName, finalReason, item.category);
       toast.success("Auditoría registrada exitosamente");
     } catch (err) {
