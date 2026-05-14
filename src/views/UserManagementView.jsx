@@ -417,8 +417,7 @@ const UserManagementView = () => {
                           className={`fly-action-btn ${isExpanded ? 'fly-action-active' : ''}`}
                           title="Gestionar permisos"
                         >
-                          <Lock size={13} />
-                          <span className="fly-btn-label">Permisos</span>
+                          <Lock size={14} />
                           {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                       )}
