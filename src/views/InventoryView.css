@@ -1001,6 +1001,7 @@
 @media (max-width: 480px) {
   .fly-inventory-hero {
     padding: 1rem 0;
+    margin-bottom: 0.5rem;
   }
 
   .fly-hero-title {
