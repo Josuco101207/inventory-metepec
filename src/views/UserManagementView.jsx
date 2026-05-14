@@ -109,11 +109,48 @@ const UserManagementView = () => {
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+
+      // Merge Supabase profiles with localStorage passwords (passwords never go to Supabase)
+      const localUsers = getUsers();
+      const merged = (profiles || []).map(p => {
+        const local = localUsers.find(u => u.email === p.email || u.id === p.id);
+        return {
+          id: p.id,
+          email: p.email,
+          name: p.name || p.email,
+          displayName: p.name || p.email,
+          role: p.role || 'user',
+          allowedCategories: p.allowed_categories || [],
+          editableCategories: p.editable_categories || [],
+          allowedViews: p.allowed_views || [],
+          password: local?.password || '',
+        };
+      });
+
+      merged.sort((a, b) => (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase()));
+      setUsers(merged);
+    } catch (err) {
+      console.error('[UserMgmt] Error loading profiles:', err.message);
+      // Fallback to localStorage
+      const data = getUsers();
+      data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
+      setUsers(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const data = getUsers();
-    data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
-    setUsers(data);
-    setLoading(false);
+    loadUsers();
   }, []);
 
   const handleCreateUser = async (e) => {
@@ -168,10 +205,8 @@ const UserManagementView = () => {
       setIsAddModalOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'user' });
 
-      // Reload users
-      const data = getUsers();
-      data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
-      setUsers(data);
+      // Reload users from Supabase
+      await loadUsers();
     } catch (err) {
       toast.error(err.message || 'Error al crear cuenta');
     } finally { 
@@ -184,6 +219,7 @@ const UserManagementView = () => {
     const next = u.role === 'admin' ? 'almacenista' : u.role === 'almacenista' ? 'user' : 'admin';
     if (window.confirm(`¿Cambiar rol de ${u.email} a ${next.toUpperCase()}?`)) {
       updateUser(u.id, { role: next });
+      await supabase.from('profiles').update({ role: next }).eq('id', u.id);
       setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: next } : user));
       toast.success(`Rol cambiado a ${next}`);
     }
@@ -193,6 +229,7 @@ const UserManagementView = () => {
     if (u.role === 'admin') return toast.error('No puedes eliminar a Jonathan');
     if (window.confirm(`¿Eliminar acceso para ${u.email}?`)) {
       deleteUser(u.id);
+      await supabase.from('profiles').delete().eq('id', u.id);
       setUsers(prev => prev.filter(user => user.id !== u.id));
       toast.info('Perfil eliminado');
     }
@@ -218,6 +255,14 @@ const UserManagementView = () => {
       }
       
       updateUser(u.id, updates);
+      // Map camelCase keys to snake_case for Supabase
+      const sbUpdates = {};
+      if (updates.allowedCategories !== undefined) sbUpdates.allowed_categories = updates.allowedCategories;
+      if (updates.editableCategories !== undefined) sbUpdates.editable_categories = updates.editableCategories;
+      if (updates.allowedViews !== undefined) sbUpdates.allowed_views = updates.allowedViews;
+      if (Object.keys(sbUpdates).length > 0) {
+        await supabase.from('profiles').update(sbUpdates).eq('id', u.id);
+      }
       setUsers(prev => prev.map(user => user.id === u.id ? { ...user, ...updates } : user));
     }
     catch { toast.error('Error al guardar'); }
@@ -231,6 +276,8 @@ const UserManagementView = () => {
       : [];
     try { 
       updateUser(u.id, { [field]: data });
+      const sbField = field === 'allowedCategories' ? 'allowed_categories' : field === 'editableCategories' ? 'editable_categories' : 'allowed_views';
+      await supabase.from('profiles').update({ [sbField]: data }).eq('id', u.id);
       setUsers(prev => prev.map(user => user.id === u.id ? { ...user, [field]: data } : user));
     }
     finally { setSaving(false); }
