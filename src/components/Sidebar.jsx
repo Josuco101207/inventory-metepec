@@ -69,6 +69,7 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
         </div>
       
         <nav className="sidebar-nav">
+          <p className="sidebar-section-label">Categorías</p>
           <ul>
             {hasAccess('dashboard') && (
               <li>
@@ -94,7 +95,7 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-profile-mini">
+          <div className="user-profile-mini sidebar-user-card">
             <div className="avatar-small bg-primary flex items-center justify-center rounded-full shadow-sm" style={{ width: '32px', height: '32px', minWidth: '32px', backgroundColor: '#0071e3', color: '#fff' }}>
               <User size={16} />
             </div>
