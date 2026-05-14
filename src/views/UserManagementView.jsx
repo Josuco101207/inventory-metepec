@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 import { localAuth } from '../auth/localAuth';
 import {
   UserPlus, Trash2, Shield, Mail, Key, Loader2,
@@ -97,6 +98,7 @@ const UserManagementView = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const isCreatingRef = useRef(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -116,40 +118,63 @@ const UserManagementView = () => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
+    if (isCreatingRef.current) return;
+    isCreatingRef.current = true;
     setIsCreating(true);
     try {
-      const result = await localAuth.register({
+      // 1. Create user in Supabase Auth (appears in Supabase dashboard)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        name: newUser.name
+        options: { data: { name: newUser.name } }
       });
-      
-      if (result.success) {
-        addUser({
-          name: newUser.name,
-          displayName: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
-          allowedCategories: [...ALL_CATEGORIES],
-          editableCategories: [],
-          allowedViews: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques'],
-          password: newUser.password
-        });
-        
-        toast.success(`Usuario ${newUser.name} creado`);
-        setIsAddModalOpen(false);
-        setNewUser({ name: '', email: '', password: '', role: 'user' });
-        
-        // Reload users
-        const data = getUsers();
-        data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
-        setUsers(data);
-      } else {
-        toast.error(result.error || 'Error al crear cuenta');
+
+      if (authError) {
+        toast.error(authError.message || 'Error al crear cuenta en Supabase');
+        return;
       }
+
+      // 2. Insert profile row with role and permissions
+      if (authData?.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            name: newUser.name,
+            role: newUser.role,
+            allowed_categories: [...ALL_CATEGORIES],
+            editable_categories: [],
+            allowed_views: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques']
+          }, { onConflict: 'id' });
+
+        if (profileError) {
+          console.warn('[UserMgmt] Profile insert error:', profileError.message);
+        }
+      }
+
+      // 3. Also save to localStorage for local auth system
+      const result = localAuth.register({
+        email: newUser.email,
+        password: newUser.password,
+        name: newUser.name,
+        role: newUser.role,
+        allowedCategories: [...ALL_CATEGORIES],
+        editableCategories: [],
+        allowedViews: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques']
+      });
+
+      toast.success(`Usuario ${newUser.name} creado`);
+      setIsAddModalOpen(false);
+      setNewUser({ name: '', email: '', password: '', role: 'user' });
+
+      // Reload users
+      const data = getUsers();
+      data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
+      setUsers(data);
     } catch (err) {
       toast.error(err.message || 'Error al crear cuenta');
     } finally { 
+      isCreatingRef.current = false;
       setIsCreating(false); 
     }
   };

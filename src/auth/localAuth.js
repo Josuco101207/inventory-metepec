@@ -49,25 +49,35 @@ const logout = () => {
   localStorage.removeItem(AUTH_KEY);
 };
 
+let _registerLock = false;
+
 const register = async (userData) => {
-  initializeUsers();
-  const users = getUsers();
-  
-  if (users.find(u => u.email === userData.email)) {
-    return { success: false, error: 'Email already exists' };
+  if (_registerLock) {
+    return { success: false, error: 'Registration already in progress' };
   }
-  
-  const newUser = {
-    id: Date.now().toString(),
-    ...userData,
-    role: 'user'
-  };
-  
-  users.push(newUser);
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  
-  const { password: _, ...userWithoutPassword } = newUser;
-  return { success: true, user: userWithoutPassword };
+  _registerLock = true;
+  try {
+    initializeUsers();
+    const users = getUsers();
+
+    if (users.find(u => u.email === userData.email)) {
+      return { success: false, error: 'Email already exists' };
+    }
+
+    const newUser = {
+      id: Date.now().toString(),
+      role: 'user',
+      ...userData
+    };
+
+    users.push(newUser);
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    return { success: true, user: userWithoutPassword };
+  } finally {
+    _registerLock = false;
+  }
 };
 
 export const localAuth = {
