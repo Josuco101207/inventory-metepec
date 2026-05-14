@@ -262,25 +262,16 @@ const UserManagementView = () => {
         editable_categories: u.editableCategories || [],
       });
 
-      const { data, error, status, statusText } = await supabase
-        .from('profiles')
-        .update({
-          allowed_views: u.allowedViews || [],
-          allowed_categories: u.allowedCategories || [],
-          editable_categories: u.editableCategories || [],
-        })
-        .eq('id', u.id)
-        .select();
+      const { error } = await supabase.rpc('update_user_permissions', {
+        target_user_id: u.id,
+        new_allowed_views: u.allowedViews || [],
+        new_allowed_categories: u.allowedCategories || [],
+        new_editable_categories: u.editableCategories || [],
+      });
 
-      console.log('[Permisos] Response:', { data, error, status, statusText });
+      console.log('[Permisos] RPC response error:', error);
 
       if (error) throw error;
-
-      if (!data || data.length === 0) {
-        console.warn('[Permisos] Update returned 0 rows — RLS may be blocking the update');
-        toast.error('Sin cambios guardados — verifica los permisos RLS en Supabase');
-        return;
-      }
 
       toast.success(`Permisos de ${u.name || u.email} guardados`);
     } catch (err) {
