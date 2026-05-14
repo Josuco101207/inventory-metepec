@@ -137,6 +137,33 @@ export const AuthProvider = ({ children }) => {
     };
   }, [loadProfile]);
 
+  // Realtime: reload profile when admin changes permissions
+  useEffect(() => {
+    if (!user) return;
+
+    const profileChannel = supabase
+      .channel(`profile-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+        async (payload) => {
+          const updated = payload.new;
+          setUserData(prev => ({
+            ...prev,
+            role: updated.role || prev?.role || 'user',
+            allowedViews: updated.allowed_views || [],
+            allowedCategories: updated.allowed_categories || [],
+            editableCategories: updated.editable_categories || [],
+          }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profileChannel);
+    };
+  }, [user]);
+
   const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
