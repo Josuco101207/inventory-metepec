@@ -24,7 +24,11 @@ const defaultForType = (dbType) => {
 };
 
 // Fields that are auto-managed and should NOT appear in the form
-const HIDDEN_FIELDS = ['id', 'created_at', 'updated_at'];
+const HIDDEN_FIELDS = [
+  'id', 'created_at', 'updated_at',
+  // Managed by loan/return/maintenance system
+  'status', 'prestados', 'borrowedBy', 'lentBy', 'loanDate',
+];
 
 const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
   const { getCategoryByTitle } = useCategories();
