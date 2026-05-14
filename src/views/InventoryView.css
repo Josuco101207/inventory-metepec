@@ -917,7 +917,7 @@
   }
 
   .fly-hero-title {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 7vw, 2rem);
   }
 
   .fly-inventory-metrics {
@@ -926,38 +926,63 @@
 
   .fly-inventory-actions {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 
+  /* Action buttons: 2x2 compact grid */
   .fly-action-buttons {
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
 
   .fly-action-buttons .fly-btn {
-    flex: 1;
-    min-width: calc(50% - 0.25rem);
+    flex: unset;
+    height: 38px;
+    min-height: 38px;
+    font-size: 0.68rem;
+    padding: 0 10px;
+    border-radius: 12px !important;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fly-action-buttons .fly-btn span {
+    display: inline !important;
+    font-size: 0.68rem;
   }
 
   .fly-list-header { display: none; }
 
   .fly-list-row {
-    grid-template-columns: 1fr 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr auto;
     grid-template-rows: auto auto auto;
-    padding: 0.85rem 1rem;
-    gap: 0.5rem;
+    padding: 0.8rem 0.9rem;
+    gap: 0.25rem 0.5rem;
+    align-items: center;
   }
 
-  .fly-lr-name    { grid-column: 1 / -1; }
-  .fly-lr-stock   { grid-column: 1; font-size: 1.1rem; }
-  .fly-lr-bar     { grid-column: 1 / -1; }
-  .fly-lr-actions { grid-column: 2; justify-content: flex-end; }
-  .fly-lr-sub, .fly-lr-brand, .fly-lr-location, .fly-lr-min { display: none; }
+  .fly-lr-name    { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .fly-lr-sub     { grid-column: 1; grid-row: 2; font-size: 0.62rem; padding-left: 2px; display: block !important; }
+  .fly-lr-bar     { grid-column: 1; grid-row: 3; padding-right: 8px; }
+  .fly-lr-stock   { grid-column: 2; grid-row: 1; font-size: 1rem; text-align: right; white-space: nowrap; }
+  .fly-lr-actions { grid-column: 2; grid-row: 2 / 4; justify-content: flex-end; align-self: center; gap: 4px; }
+  .fly-lr-brand, .fly-lr-location, .fly-lr-min { display: none !important; }
+
+  .fly-lr-nametext { font-size: 0.85rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fly-lr-avatar   { width: 32px; height: 32px; min-width: 32px; font-size: 0.8rem; border-radius: 9px; }
 
   .fly-action-btn {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    padding: 0;
   }
+
+  .fly-action-btn svg { width: 14px; height: 14px; }
 }
 
 @media (max-width: 480px) {
