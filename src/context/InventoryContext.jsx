@@ -218,7 +218,11 @@ export const InventoryProvider = ({ children }) => {
     
     try {
       if (tableName) {
+        console.log('[updateStock] Updating table:', tableName, 'id:', itemId, 'newQty:', newQty);
         await sbUpdateItem(tableName, itemId, { qty: newQty });
+        console.log('[updateStock] Table update OK');
+      } else {
+        console.warn('[updateStock] No tableName found for item:', item.name, 'category:', item.category);
       }
       setItemsState(prev => {
         const updated = [...prev];
@@ -227,7 +231,8 @@ export const InventoryProvider = ({ children }) => {
       });
       
       const defaultDetails = `${change > 0 ? 'Reposición' : 'Gasto'} de material`;
-      addMovement(
+      console.log('[updateStock] Adding movement...');
+      await addMovement(
         change > 0 ? 'Entrada' : 'Salida', 
         item.name, 
         Math.abs(change), 
@@ -235,10 +240,11 @@ export const InventoryProvider = ({ children }) => {
         customDetails || defaultDetails,
         item.category
       );
+      console.log('[updateStock] Movement added OK');
       toast.success(`${change > 0 ? 'Entrada' : 'Salida'} registrada: ${item.name}`);
     } catch (err) {
-      console.error('Update stock error:', err);
-      toast.error(`Error al actualizar stock: ${err.message}`);
+      console.error('[updateStock] ERROR:', err);
+      toast.error(`Error: ${err.message}`, { duration: 6000 });
     }
   }, [addMovement, getTableName]);
 
