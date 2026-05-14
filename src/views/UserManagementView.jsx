@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { localAuth } from '../auth/localAuth';
 import {
-  UserPlus, Trash2, Shield, Mail, Key, Loader2,
+  UserPlus, Trash2, Shield, ShieldCheck, Mail, Key, Loader2,
   Warehouse, User, ChevronDown, ChevronUp, Lock, PlusCircle, Edit3, X, Eye, EyeOff,
   LayoutDashboard, History, Activity, FileText
 } from 'lucide-react';
@@ -237,37 +237,42 @@ const UserManagementView = () => {
   };
 
   // Toggle a single permission for a user
-  const togglePerm = async (u, field, category) => {
+  const togglePerm = (u, field, category) => {
     const current = u[field] || [];
     const isPresent = current.includes(category);
     const next = isPresent ? current.filter(c => c !== category) : [...current, category];
-    
+    const updates = { [field]: next };
+
+    if (!isPresent && (field === 'allowedCategories' || field === 'editableCategories')) {
+      const viewId = categoryToViewId(category);
+      if (viewId && !(u.allowedViews || []).includes(viewId)) {
+        updates.allowedViews = [...(u.allowedViews || []), viewId];
+      }
+    }
+
+    setUsers(prev => prev.map(user => user.id === u.id ? { ...user, ...updates } : user));
+  };
+
+  const savePermissions = async (u) => {
     setSaving(true);
     try {
-      const updates = { [field]: next };
-      
-      // Auto-sync: If they can Add or Edit, they MUST be able to View.
-      // If they lose View, they probably shouldn't Add/Edit (optional, but safer)
-      if (!isPresent && (field === 'allowedCategories' || field === 'editableCategories')) {
-        const viewId = categoryToViewId(category);
-        if (viewId && !(u.allowedViews || []).includes(viewId)) {
-          updates.allowedViews = [...(u.allowedViews || []), viewId];
-        }
-      }
-      
-      updateUser(u.id, updates);
-      // Map camelCase keys to snake_case for Supabase
-      const sbUpdates = {};
-      if (updates.allowedCategories !== undefined) sbUpdates.allowed_categories = updates.allowedCategories;
-      if (updates.editableCategories !== undefined) sbUpdates.editable_categories = updates.editableCategories;
-      if (updates.allowedViews !== undefined) sbUpdates.allowed_views = updates.allowedViews;
-      if (Object.keys(sbUpdates).length > 0) {
-        await supabase.from('profiles').update(sbUpdates).eq('id', u.id);
-      }
-      setUsers(prev => prev.map(user => user.id === u.id ? { ...user, ...updates } : user));
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          allowed_views: u.allowedViews || [],
+          allowed_categories: u.allowedCategories || [],
+          editable_categories: u.editableCategories || [],
+        })
+        .eq('id', u.id);
+
+      if (error) throw error;
+      toast.success(`Permisos de ${u.name || u.email} guardados`);
+    } catch (err) {
+      console.error('[Permisos] Error:', err);
+      toast.error('Error al guardar permisos: ' + (err.message || ''));
+    } finally {
+      setSaving(false);
     }
-    catch { toast.error('Error al guardar'); }
-    finally { setSaving(false); }
   };
 
   const setAll = async (u, field, value) => {
@@ -509,6 +514,27 @@ const UserManagementView = () => {
                             <p>💡 <strong>Tip:</strong> Si activas "Agregar" o "Editar" para una categoría, el sistema le dará automáticamente permiso de <strong>Vista</strong>.</p>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Save button */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 4px' }}>
+                        <button
+                          onClick={() => savePermissions(u)}
+                          disabled={saving}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '10px 24px', borderRadius: 12,
+                            background: saving ? '#94a3b8' : '#0071e3',
+                            color: '#fff', border: 'none', cursor: saving ? 'default' : 'pointer',
+                            fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.02em',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {saving
+                            ? <><Loader2 size={16} className="animate-spin" /> Guardando...</>
+                            : <><ShieldCheck size={16} /> Guardar Permisos</>
+                          }
+                        </button>
                       </div>
                     </div>
                   )}
