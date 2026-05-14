@@ -147,9 +147,6 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
               </button>
             </li>
           </ul>
-          <div className="mt-2 text-[10px] text-center opacity-30 font-mono">
-            v1.2.8 - Premium Layout Fix
-          </div>
         </div>
       </aside>
     </>
