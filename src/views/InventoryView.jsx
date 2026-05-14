@@ -421,78 +421,63 @@ const InventoryView = ({ categoryTitle }) => {
         </div>
       )}
 
-      {/* ═══ ITEMS GRID ═══ */}
-      <section className="fly-inventory-grid">
+      {/* ═══ ITEMS LIST ═══ */}
+      <section className="fly-inventory-list-wrap">
         {filteredItems.length > 0 ? (
           <>
-            {filteredItems.slice(0, visibleCount).map((item, index) => {
+            <div className="fly-list-header">
+              <span className="fly-lh-name">ARTÍCULO</span>
+              <span className="fly-lh-sub">SUBCATEGORÍA</span>
+              <span className="fly-lh-brand">MARCA</span>
+              <span className="fly-lh-location">UBICACIÓN</span>
+              <span className="fly-lh-stock">STOCK</span>
+              <span className="fly-lh-min">MÍN</span>
+              <span className="fly-lh-bar">NIVEL</span>
+              <span className="fly-lh-actions">ACCIONES</span>
+            </div>
+
+            {filteredItems.slice(0, visibleCount).map((item) => {
               const isCritical = (item.qty || 0) <= (item.threshold || 0);
               const isLow = !isCritical && (item.qty || 0) <= (item.threshold || 0) * 2;
+              const statusClass = isCritical ? 'critical' : isLow ? 'low' : 'ok';
+              const barPct = Math.min(((item.qty || 0) / Math.max((item.threshold || 1) * 3, 1)) * 100, 100);
 
               return (
-                <div 
-                  key={item.id} 
-                  className={`fly-inventory-item fly-item-${zoneColor}`}
-                >
-                  <div className="fly-item-header">
-                    <div className="fly-item-avatar">
+                <div key={item.id} className={`fly-list-row fly-list-row-${zoneColor} ${isCritical ? 'fly-row-critical' : ''}`}>
+                  <div className="fly-lr-name">
+                    <div className={`fly-lr-avatar fly-lravatar-${zoneColor}`}>
                       {item.name ? item.name.charAt(0).toUpperCase() : '?'}
                     </div>
-                    <div className="fly-item-info">
-                      <h3 className="fly-item-name">{item.name || 'Sin nombre'}</h3>
-                      <div className="fly-item-tags">
-                        {item.subcategory && <span className="fly-tag fly-tag-blue">{item.subcategory}</span>}
-                        {item.marca && <span className="fly-tag fly-tag-gray">{item.marca}</span>}
-                      </div>
-                    </div>
+                    <span className="fly-lr-nametext">{item.name || 'Sin nombre'}</span>
                   </div>
-
-                  <div className="fly-item-stock">
-                    <div className="fly-stock-row">
-                      <span className={`fly-stock-num ${isCritical ? 'critical' : isLow ? 'low' : 'ok'}`}>
-                        {item.qty || 0}
-                      </span>
-                      <span className="fly-stock-unit">{item.unit || 'pz'}</span>
-                    </div>
+                  <span className="fly-lr-sub">{item.subcategory || '—'}</span>
+                  <span className="fly-lr-brand">{item.marca || '—'}</span>
+                  <div className="fly-lr-location">
+                    <Landmark size={11} />
+                    <span>{item.location || 'General'}</span>
+                  </div>
+                  <span className={`fly-lr-stock ${statusClass}`}>{item.qty ?? 0} <em>{item.unit || 'pz'}</em></span>
+                  <span className="fly-lr-min">{item.threshold || 0}</span>
+                  <div className="fly-lr-bar">
                     <div className="fly-stock-bar-bg">
-                      <div 
-                        className={`fly-stock-bar ${isCritical ? 'critical' : isLow ? 'low' : 'ok'}`}
-                        style={{ width: `${Math.min(((item.qty || 0) / Math.max((item.threshold || 1) * 3, 1)) * 100, 100)}%` }}
-                      />
+                      <div className={`fly-stock-bar ${statusClass}`} style={{ width: `${barPct}%` }} />
                     </div>
                   </div>
-
-                <div className="fly-item-ref">
-                  <span className="fly-ref-min">Mín: {item.threshold || 0}</span>
-                  <div className="fly-ref-loc">
-                    <Landmark size={12} />
-                    {item.location || 'General'}
+                  <div className="fly-lr-actions">
+                    {isStaff && (
+                      <>
+                        <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>
+                        <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={14} /></button>
+                      </>
+                    )}
+                    {(isAdmin || canEditIn(categoryTitle)) && (
+                      <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar"><Edit3 size={14} /></button>
+                    )}
+                    {isAdmin && (
+                      <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar"><Trash2 size={14} /></button>
+                    )}
                   </div>
                 </div>
-
-                <div className="fly-item-actions">
-                  {isStaff && (
-                    <>
-                      <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento">
-                        <Activity size={16} />
-                      </button>
-                      <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar">
-                        <ClipboardCheck size={16} />
-                      </button>
-                    </>
-                  )}
-                  {(isAdmin || canEditIn(categoryTitle)) && (
-                    <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar">
-                      <Edit3 size={16} />
-                    </button>
-                  )}
-                  {isAdmin && (
-                    <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
               );
             })}
 
