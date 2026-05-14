@@ -167,7 +167,7 @@ export const InventoryProvider = ({ children }) => {
   }, [user, items, movements]);
 
   // ─── Helpers ───
-  const addMovement = useCallback(async (action, itemName, qty, userName = 'Jonathan', details = '', category = 'General') => {
+  const addMovement = useCallback(async (action, itemName, qty, userName = 'Jonathan', details = '', category = 'General', originalValues = null) => {
     try {
       const relatedItem = itemsRef.current.find(i => i.name === itemName);
       const subcategory = relatedItem?.subcategory || '';
@@ -183,6 +183,11 @@ export const InventoryProvider = ({ children }) => {
         timestamp: new Date().toISOString(),
         time: new Date().toLocaleString(),
       };
+
+      // Save original values for annulment (if provided)
+      if (originalValues) {
+        movementData.originalValues = originalValues;
+      }
 
       // Save to Supabase (fire-and-forget, fallback to localStorage on error)
       const saved = await sbInsertMovement(movementData);
@@ -451,13 +456,30 @@ export const InventoryProvider = ({ children }) => {
     try {
       if (tableName) {
         const { category: _cat, _tableName, id, created_at, createdAt, ...dbFields } = updatedFields;
+        
+        // Build changes details for annulment
+        const changes = [];
+        const originalValues = {};
+        Object.keys(dbFields).forEach(key => {
+          if (item[key] !== dbFields[key]) {
+            changes.push(`${key}: "${item[key]}" → "${dbFields[key]}"`);
+            originalValues[key] = item[key];
+          }
+        });
+        
         const updated = await sbUpdateItem(tableName, itemId, dbFields);
         if (updated) {
           setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updated } : i));
         }
+        
+        // Save changes in details for annulment
+        const details = changes.length > 0 
+          ? `Cambios: ${changes.join(', ')}`
+          : 'Artículo editado (sin cambios detectados)';
+        
+        addMovement('Edición', item?.name || updatedFields.name || 'Desconocido', 0, userName, details, item?.category || updatedFields.category || 'General', originalValues);
+        toast.success("Cambios guardados");
       }
-      addMovement('Edición', item?.name || updatedFields.name || 'Desconocido', 0, userName, 'Artículo editado', item?.category || updatedFields.category || 'General');
-      toast.success("Cambios guardados");
     } catch (err) {
       console.error('Edit item error:', err);
       toast.error(`Error al editar: ${err.message}`);
@@ -694,6 +716,9 @@ export const InventoryProvider = ({ children }) => {
             console.warn('[annulMovement] Old audit without diff - cannot reverse stock automatically');
             toast.warning('Auditoría antigua: no se puede revertir el stock automáticamente. Solo se marcará como anulada.');
           }
+        } else if (mov.action === 'Edición' && mov.originalValues) {
+          // Restore original values
+          extraFields = { ...mov.originalValues };
         }
 
         if (qtyChange !== 0 || Object.keys(extraFields).length > 0) {
