@@ -686,9 +686,14 @@ export const InventoryProvider = ({ children }) => {
           extraFields.prestados = (parseInt(item.prestados) || 0) + 1;
         } else if (mov.action === 'Auditoría') {
           // Parse diff from details: "Conteo físico: 201 (Ajuste: +1)" or "Audit: reason (Ajuste: -5)"
+          console.log('[annulMovement] Auditoría details:', mov.details);
           const match = mov.details?.match(/Ajuste:\s*([+-]?\d+)/);
+          console.log('[annulMovement] Regex match:', match);
           if (match) {
             qtyChange = -parseInt(match[1]); // Reverse the adjustment
+            console.log('[annulMovement] qtyChange calculated:', qtyChange);
+          } else {
+            console.warn('[annulMovement] Could not parse diff from details');
           }
         }
 
