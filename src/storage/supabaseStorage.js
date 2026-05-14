@@ -78,12 +78,27 @@ export const deleteItem = async (tableName, itemId) => {
 
 // ─── MOVEMENTS ───
 
-export const fetchMovements = async (limit = 500) => {
+export const fetchMovements = async (limit = 2000) => {
   try {
     const data = await restFetch(`movements?select=*&order=timestamp.desc&limit=${limit}`);
     return data || [];
   } catch (err) {
     console.error('[SupabaseStorage] fetchMovements:', err.message);
+    return [];
+  }
+};
+
+export const fetchMovementsByDate = async (dateStr) => {
+  try {
+    // Use local midnight offsets to cover full local day regardless of UTC offset
+    const localStart = new Date(`${dateStr}T00:00:00`);
+    const localEnd   = new Date(`${dateStr}T23:59:59.999`);
+    const data = await restFetch(
+      `movements?select=*&timestamp=gte.${localStart.toISOString()}&timestamp=lte.${localEnd.toISOString()}&order=timestamp.desc`
+    );
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchMovementsByDate:', err.message);
     return [];
   }
 };

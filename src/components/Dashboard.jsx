@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import FlyPattern from './FlyPattern';
 import FlyLogo from './FlyLogo';
 import Header from './Header';
+import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import './Dashboard.css';
 
 const toLocalDateString = (date) => {
@@ -52,6 +53,8 @@ const Dashboard = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef(null);
   const [movDate, setMovDate] = useState(todayStr);
+  const [dayMovementsRemote, setDayMovementsRemote] = useState(null);
+  const [loadingDayMov, setLoadingDayMov] = useState(false);
   const [showCriticalStock, setShowCriticalStock] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [legacyCategoriesWarning, setLegacyCategoriesWarning] = useState(null);
@@ -78,14 +81,36 @@ const Dashboard = () => {
     }
   }, [items, loading]);
 
-  const dayMovements = useMemo(() =>
-    movements.filter(m => {
-      if (!m.timestamp) return false;
-      const ts = typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
-      return toLocalDateString(ts) === movDate;
-    }),
-    [movements, movDate]
-  );
+  // Load movements for selected date directly from Supabase
+  const loadDayMovements = useCallback(async (dateStr) => {
+    setLoadingDayMov(true);
+    try {
+      const data = await fetchMovementsByDate(dateStr);
+      setDayMovementsRemote(data);
+    } catch (err) {
+      console.error('[Dashboard] fetchMovementsByDate error:', err);
+      setDayMovementsRemote(null);
+    } finally {
+      setLoadingDayMov(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDayMovements(movDate);
+  }, [movDate, loadDayMovements]);
+
+  // Also refresh today's movements when realtime pushes new ones
+  useEffect(() => {
+    if (movDate === todayStr) {
+      loadDayMovements(todayStr);
+    }
+  }, [movements.length, todayStr]);
+
+  const dayMovements = dayMovementsRemote ?? movements.filter(m => {
+    if (!m.timestamp) return false;
+    const ts = typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+    return toLocalDateString(ts) === movDate;
+  });
 
   const lowStockItems = useMemo(() => 
     items.filter(item => (item.qty || 0) <= (item.threshold || 0)),
