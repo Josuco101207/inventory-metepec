@@ -119,7 +119,7 @@
   border: 1px solid hsl(var(--border-color));
 }
 
-.notification-btn:hover, .theme-toggle-btn:hover {
+.notification-btn:hover {
   background: hsl(var(--bg-main));
   color: hsl(var(--text-main));
   transform: scale(1.05);
@@ -244,29 +244,6 @@
   font-weight: 600;
 }
 
-/* ─── Dark Mode Overrides ─── */
-.dark .search-bar {
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.dark .search-results-dropdown {
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  background: hsla(var(--bg-card), 0.95);
-  backdrop-filter: blur(20px);
-}
-
-.dark .search-result-item:hover,
-.dark .search-result-item.selected {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.dark .notification-dot {
-  border-color: hsl(var(--bg-card));
-}
-
-.dark .theme-toggle-btn:hover, .dark .notification-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
 
 /* ─── Responsive: Tablet (≤ 1024px) ─── */
 @media (max-width: 1024px) {

@@ -1,16 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Bell, User, Moon, Sun, Wifi, WifiOff, RefreshCw, Package } from 'lucide-react';
+import { Search, Bell, User, Wifi, WifiOff, RefreshCw, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
-import { useTheme } from '../context/ThemeContext';
 import { useCategories } from '../context/CategoriesContext';
 import './Header.css';
 
 const Header = () => {
   const { userData, isAdmin } = useAuth();
   const { connectionStatus, lastSync, items } = useInventory();
-  const { isDarkMode, toggleDarkMode } = useTheme();
   const { categoryToRoute } = useCategories();
   const navigate = useNavigate();
   
@@ -138,14 +136,6 @@ const Header = () => {
             </span>
           </div>
         </div>
-
-        <button 
-          className="theme-toggle-btn" 
-          onClick={toggleDarkMode}
-          title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-        >
-          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
 
         <div className="notification-btn">
           <Bell size={20} />
