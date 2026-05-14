@@ -7,7 +7,7 @@
   display: none;
 }
 
-@media (max-width: 768px) and (pointer: coarse) {
+@media (max-width: 768px) {
   .ios-tab-bar {
     display: flex;
     position: fixed;
