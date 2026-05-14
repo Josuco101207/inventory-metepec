@@ -687,13 +687,12 @@ export const InventoryProvider = ({ children }) => {
         }
 
         if (qtyChange !== 0 || Object.keys(extraFields).length > 0) {
-          const updatedItem = updateLocalStorageItem(item.id, { 
-            qty: (parseInt(item.qty) || 0) + qtyChange,
-            ...extraFields
-          });
-          if (updatedItem) {
-            setItemsState(prev => prev.map(i => i.id === item.id ? updatedItem : i));
+          const newQty = (parseInt(item.qty) || 0) + qtyChange;
+          const tableName = item._tableName || getTableName(item.category);
+          if (tableName) {
+            await sbUpdateItem(tableName, item.id, { qty: newQty, ...extraFields });
           }
+          setItemsState(prev => prev.map(i => i.id === item.id ? { ...i, qty: newQty, ...extraFields } : i));
         }
       }
 
