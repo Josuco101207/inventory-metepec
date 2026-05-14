@@ -463,12 +463,39 @@
   }
 
   /* ── Header ── */
+  .add-item-modal > header,
+  .add-item-modal .modal-header {
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+  }
+
   .add-modal-header {
     padding: 1rem 1.25rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     position: relative;
+  }
+
+  /* ── Form layout: force flex column with constrained height ── */
+  .add-item-modal form {
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+  }
+
+  .add-item-modal .form-scroll-content {
+    flex: 1 1 0% !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+  }
+
+  .add-item-modal .form-button-footer {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column;
   }
 
   .add-modal-badge {
