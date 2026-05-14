@@ -360,41 +360,52 @@ const UserManagementView = () => {
               const allowedCats = u.allowedCategories || [];
               const editableCats = u.editableCategories || [];
 
+              const permPct = ALL_CATEGORIES.length > 0
+                ? Math.round(((u.allowedCategories || []).length / ALL_CATEGORIES.length) * 100)
+                : 0;
+              const initials = (u.displayName || u.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
               return (
                 <div key={u.id} className={`fly-team-card ${isExpanded ? 'fly-card-expanded' : ''}`}>
                   
                   {/* User Row */}
                   <div className="fly-team-row">
-                    {/* Avatar */}
-                    <div className={`fly-team-avatar ${isAdminUser ? 'fly-avatar-admin' : ''}`}>
-                      <User size={20} />
+                    {/* Avatar with initials */}
+                    <div className={`fly-team-avatar ${isAdminUser ? 'fly-avatar-admin' : 'fly-avatar-user'}`}>
+                      <span className="fly-avatar-initials">{initials}</span>
                     </div>
 
-                    {/* Name + email */}
+                    {/* Name + email + progress */}
                     <div className="fly-team-info">
-                      <p className="fly-team-name">{u.displayName || u.name}</p>
+                      <div className="fly-team-name-row">
+                        <p className="fly-team-name">{u.displayName || u.name}</p>
+                        <span className={`fly-role-pill ${u.role}`}>
+                          {u.role === 'admin' && <Shield size={10} />}
+                          {u.role === 'almacenista' && <Warehouse size={10} />}
+                          {u.role === 'user' && <User size={10} />}
+                          {(u.role || 'user').toUpperCase()}
+                        </span>
+                      </div>
                       <div className="fly-team-email-row">
-                        <p className="fly-team-email">
-                          <Mail size={12} /> {u.email}
-                        </p>
+                        <p className="fly-team-email"><Mail size={12} /> {u.email}</p>
                         <div className="fly-team-password" onClick={() => togglePasswordVisibility(u.id)}>
                           <Key size={10} />
                           <span>{showPasswords[u.id] ? (u.password || '---') : '••••••••'}</span>
                           {showPasswords[u.id] ? <EyeOff size={10} /> : <Eye size={10} />}
                         </div>
                       </div>
+                      {!isAdminUser && (
+                        <div className="fly-team-perm-bar-wrap">
+                          <div className="fly-team-perm-bar">
+                            <div className="fly-team-perm-bar-fill" style={{ width: `${permPct}%` }} />
+                          </div>
+                          <span className="fly-team-perm-pct">{permPct}% acceso</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Role pill */}
-                    <span className={`fly-role-pill ${u.role}`}>
-                      {u.role === 'admin' && <Shield size={10} />}
-                      {u.role === 'almacenista' && <Warehouse size={10} />}
-                      {u.role === 'user' && <User size={10} />}
-                      {(u.role || 'user').toUpperCase()}
-                    </span>
-
-                    {/* Summary pill */}
-                    <span className="fly-summary-pill">
+                    {/* Summary */}
+                    <span className={`fly-summary-pill fly-summary-${isAdminUser ? 'admin' : allowedCats.length === 0 ? 'none' : 'partial'}`}>
                       {ss.text}
                     </span>
 
@@ -404,17 +415,20 @@ const UserManagementView = () => {
                         <button
                           onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
                           className={`fly-action-btn ${isExpanded ? 'fly-action-active' : ''}`}
+                          title="Gestionar permisos"
                         >
-                          <Lock size={12} /> Permisos {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          <Lock size={13} />
+                          <span className="fly-btn-label">Permisos</span>
+                          {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                       )}
-                      <button onClick={() => toggleRole(u)} title="Cambiar rol" className="fly-action-btn fly-action-gray">
-                        <Shield size={13} />
+                      <button onClick={() => toggleRole(u)} title="Cambiar rol" className="fly-action-btn fly-action-icon">
+                        <Shield size={14} />
                       </button>
-                      <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} title="Cambiar Contraseña" className="fly-action-btn fly-action-gray">
-                        <Key size={13} />
+                      <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} title="Cambiar contraseña" className="fly-action-btn fly-action-icon">
+                        <Key size={14} />
                       </button>
-                      <button onClick={() => handleDelete(u)} title="Eliminar" className="fly-action-btn fly-action-red">
+                      <button onClick={() => handleDelete(u)} title="Eliminar" className="fly-action-btn fly-action-red fly-action-icon">
                         <Trash2 size={14} />
                       </button>
                     </div>
