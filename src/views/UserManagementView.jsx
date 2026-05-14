@@ -140,6 +140,7 @@ const UserManagementView = () => {
           .from('profiles')
           .upsert({
             id: authData.user.id,
+            email: newUser.email,
             name: newUser.name,
             role: newUser.role,
             allowed_categories: [...ALL_CATEGORIES],
