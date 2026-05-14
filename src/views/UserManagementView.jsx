@@ -132,7 +132,7 @@ const UserManagementView = () => {
           allowedCategories: p.allowed_categories || [],
           editableCategories: p.editable_categories || [],
           allowedViews: p.allowed_views || [],
-          password: local?.password || '',
+          password: p.password_hint || local?.password || '',
         };
       });
 
@@ -180,6 +180,7 @@ const UserManagementView = () => {
             email: newUser.email,
             name: newUser.name,
             role: newUser.role,
+            password_hint: newUser.password,
             allowed_categories: [...ALL_CATEGORIES],
             editable_categories: [],
             allowed_views: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques']
@@ -290,11 +291,10 @@ const UserManagementView = () => {
 
     try {
       // Update in localStorage
-      updateUser(changingPasswordUser.id, {
-        password: newPassword
-      });
+      updateUser(changingPasswordUser.id, { password: newPassword });
+      // Update in Supabase profiles
+      await supabase.from('profiles').update({ password_hint: newPassword }).eq('id', changingPasswordUser.id);
       setUsers(prev => prev.map(user => user.id === changingPasswordUser.id ? { ...user, password: newPassword } : user));
-
       toast.success(`Contraseña de ${changingPasswordUser.email} actualizada`);
       setIsChangeModalOpen(false);
       setNewPassword('');
