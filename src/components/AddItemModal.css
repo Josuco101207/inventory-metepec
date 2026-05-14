@@ -431,17 +431,22 @@
   border: 1px solid hsl(var(--border-color));
 }
 
-/* ═══ RESPONSIVE DESIGN ═══ */
+/* ═══ MOBILE REDESIGN — CSS GRID LAYOUT ═══ */
 @media (max-width: 768px) {
+
+  /* ── Modal Container: CSS Grid with 4 rows ── */
   .add-item-modal {
     max-width: 100% !important;
     width: 100% !important;
     border-radius: 20px 20px 0 0 !important;
-    max-height: 95vh;
-    height: 95vh;
-    margin: 0;
-    overflow: hidden !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
+    margin: 0 !important;
     padding: 0 !important;
+    overflow: hidden !important;
+    /* Grid layout: handle, header, scrollable-content, footer */
+    display: grid !important;
+    grid-template-rows: auto auto 1fr auto !important;
     animation: slideUpModal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
@@ -450,7 +455,7 @@
     to { transform: translateY(0); opacity: 1; }
   }
 
-  /* ── Drag Handle Indicator ── */
+  /* ── Row 1: Drag Handle ── */
   .add-item-modal::before {
     content: '';
     display: block;
@@ -458,71 +463,45 @@
     height: 4px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 100px;
-    margin: 10px auto 0;
-    flex-shrink: 0;
+    margin: 10px auto 4px;
   }
 
-  /* ── Header ── */
+  /* ── Row 2: Header ── */
   .add-item-modal > header,
   .add-item-modal .modal-header {
     margin-bottom: 0 !important;
-    flex-shrink: 0;
-  }
-
-  .add-modal-header {
-    padding: 1rem 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    padding: 0.75rem 1.25rem 0.75rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     position: relative;
   }
 
-  /* ── Form layout: force flex column with constrained height ── */
-  .add-item-modal form {
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    min-height: 0 !important;
-  }
-
-  .add-item-modal .form-scroll-content {
-    flex: 1 1 0% !important;
-    overflow-y: auto !important;
-    min-height: 0 !important;
-  }
-
-  .add-item-modal .form-button-footer {
-    flex-shrink: 0 !important;
-    display: flex !important;
-    flex-direction: column;
-  }
-
   .add-modal-badge {
-    padding: 0.35rem 0.75rem;
+    padding: 0.3rem 0.65rem;
     font-size: 0.6rem;
-    align-self: flex-start;
+    margin-bottom: 0.25rem;
   }
 
+  .add-item-modal .modal-header h3,
   .add-modal-header h3 {
-    font-size: 1.3rem;
-    margin: 0;
+    font-size: 1.2rem !important;
+    margin: 0 !important;
     padding-right: 3rem;
   }
 
+  .add-item-modal .modal-header p,
   .add-modal-header p {
-    font-size: 0.8rem;
-    margin: 0;
-    line-height: 1.3;
-    opacity: 0.7;
+    font-size: 0.75rem !important;
+    margin: 0 !important;
+    opacity: 0.6;
   }
 
+  /* Close button */
   .add-item-modal .modal-close-btn {
     position: absolute;
-    top: 1rem;
-    right: 1.25rem;
-    width: 36px;
-    height: 36px;
+    top: 0.75rem;
+    right: 1rem;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -531,22 +510,39 @@
     border-radius: 50%;
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition: all 0.2s;
     z-index: 20;
   }
 
-  .add-item-modal .modal-close-btn:active {
-    background: rgba(255, 80, 80, 0.2);
-    color: #ff6b6b;
-    transform: scale(0.9);
+  /* ── KEY: Form uses display:contents ──
+     This makes form-scroll-content and form-button-footer 
+     become direct grid children of .add-item-modal (rows 3 & 4) */
+  .add-item-modal form {
+    display: contents !important;
   }
 
-  /* ── Form Content ── */
-  .form-scroll-content {
-    padding: 1.25rem;
+  /* ── Row 3: Scrollable Form Content ── */
+  .add-item-modal .form-scroll-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 1rem 1.25rem;
     -webkit-overflow-scrolling: touch;
+    min-height: 0;
   }
 
+  /* ── Row 4: Footer with Buttons (ALWAYS VISIBLE) ── */
+  .add-item-modal .form-button-footer {
+    padding: 0.875rem 1.25rem;
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 12px));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: hsl(var(--bg-card));
+  }
+
+  .add-item-modal .form-button-footer .flex {
+    display: flex !important;
+    gap: 0.75rem;
+  }
+
+  /* ── Form field styles ── */
   .grid-cols-2 {
     grid-template-columns: 1fr;
   }
@@ -556,27 +552,26 @@
   }
 
   .gap-4 {
-    gap: 1rem;
+    gap: 0.875rem;
   }
 
-  /* ── Form Fields ── */
   .f-group {
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .f-group label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.4);
     padding-left: 0.125rem;
   }
 
   .f-group input,
   .f-group select,
   .f-group textarea {
-    padding: 0.9rem 1rem;
-    font-size: 1rem;
-    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
     border: 1.5px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
     -webkit-appearance: none;
@@ -588,52 +583,36 @@
   .f-group textarea:focus {
     border-color: rgba(255, 255, 255, 0.25);
     background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
   }
 
   .f-group input[type="number"] {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-    font-size: 1.05rem;
   }
 
   .f-group label.flex {
-    padding: 0.9rem 1rem;
-    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    border-radius: 10px;
   }
 
   .main-fields {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
   }
 
-  /* ── Footer Buttons ── */
-  .form-button-footer {
-    padding: 1rem 1.25rem;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 16px));
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: linear-gradient(
-      to top,
-      hsl(var(--bg-card)) 80%,
-      hsla(var(--bg-card), 0.8)
-    );
-  }
-
-  .form-button-footer .flex {
-    gap: 0.75rem;
-  }
-
+  /* ── Button styles ── */
   .btn-fly-primary,
   .btn-apple-secondary {
-    min-height: 50px;
-    font-size: 0.75rem;
-    padding: 0.9rem 1rem;
+    min-height: 48px;
+    font-size: 0.72rem;
+    padding: 0.8rem 1rem;
     border-radius: 12px;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
   }
 
   .btn-fly-primary {
     font-weight: 900;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   }
 
   .btn-apple-secondary {
@@ -645,8 +624,8 @@
 /* ═══ EXTRA SMALL SCREENS ═══ */
 @media (max-width: 480px) {
   .add-item-modal {
-    max-height: 100vh;
-    height: 100vh;
+    height: 100vh !important;
+    max-height: 100vh !important;
     border-radius: 0 !important;
   }
 
@@ -654,45 +633,30 @@
     display: none;
   }
 
-  .add-modal-header {
-    padding: 1.25rem 1rem 0.875rem;
-  }
-
-  .add-modal-header h3 {
-    font-size: 1.2rem;
-  }
-
-  .form-scroll-content {
+  .add-item-modal .form-scroll-content {
     padding: 1rem;
   }
 
   .gap-4 {
-    gap: 0.875rem;
+    gap: 0.75rem;
   }
 
   .f-group input,
   .f-group select,
   .f-group textarea {
-    padding: 0.85rem 0.9rem;
-    font-size: 0.95rem;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
   }
 
-  .form-button-footer {
-    padding: 0.875rem 1rem;
-    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 16px));
+  .add-item-modal .form-button-footer {
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 12px));
   }
 
   .btn-fly-primary,
   .btn-apple-secondary {
-    min-height: 48px;
-    font-size: 0.7rem;
-    padding: 0.85rem 0.9rem;
-  }
-
-  .btn-fly-primary svg,
-  .btn-apple-secondary svg {
-    width: 16px;
-    height: 16px;
+    min-height: 46px;
+    font-size: 0.68rem;
   }
 }
 
