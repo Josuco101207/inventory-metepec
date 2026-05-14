@@ -770,6 +770,7 @@ export const InventoryProvider = ({ children }) => {
       const ch = supabase
         .channel(`realtime-${cat.tableName}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: cat.tableName }, (payload) => {
+          console.log('[Realtime] Table:', cat.tableName, 'Event:', payload.eventType, 'Payload:', payload);
           setLastSync(new Date());
           if (payload.eventType === 'INSERT') {
             setItemsState(prev => {
@@ -777,6 +778,7 @@ export const InventoryProvider = ({ children }) => {
               return [...prev, { ...payload.new, category: cat.title, _tableName: cat.tableName }];
             });
           } else if (payload.eventType === 'UPDATE') {
+            console.log('[Realtime UPDATE] Updating item:', payload.new.id, 'New qty:', payload.new.qty);
             setItemsState(prev => prev.map(i =>
               i.id === payload.new.id ? { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName } : i
             ));
