@@ -61,7 +61,7 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
       )}
 
       <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
-        <div className="sidebar-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+        <div className="sidebar-header" style={{ flexDirection: 'column', alignItems: 'center', gap: 8 }}>
           <FlyLogo size={84} glow circular />
           <p style={{ fontSize: 10, color: 'var(--fly-magenta)', fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
             ● {isAdmin ? 'MODO ADMIN' : 'OPERADOR'}
