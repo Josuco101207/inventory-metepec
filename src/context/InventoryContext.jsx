@@ -698,8 +698,7 @@ export const InventoryProvider = ({ children }) => {
 
       const annulFields = {
         annulled: true,
-        annulledBy: adminName,
-        annulledAt: new Date().toISOString()
+        annulledBy: adminName
       };
 
       // Update in Supabase
