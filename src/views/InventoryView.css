@@ -921,7 +921,7 @@
 
 @media (max-width: 768px) {
   .fly-inventory-view {
-    padding: 0 1rem 2rem;
+    padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 82px);
   }
 
   .fly-hero-title {
