@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, RefreshCw, ArrowUpCircle, ArrowDownCircle, User, AlertCircle } from 'lucide-react';
+import { X, RefreshCw, ArrowUpCircle, ArrowDownCircle, FileText, AlertCircle } from 'lucide-react';
 import './ActionModal.css';
 
 const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
@@ -15,7 +15,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
   const handleConfirm = () => {
     if (!isValid) return;
     const finalQty = isSalida ? -parseInt(qty) : parseInt(qty);
-    const detailText = details.trim() ? `Entregado a: ${details.trim()}` : '';
+    const detailText = details.trim() ? (isSalida ? `Motivo: ${details.trim()}` : details.trim()) : '';
     onConfirm(item.id, finalQty, detailText);
     setDetails('');
     setQty(1);
@@ -70,30 +70,24 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
             />
           </div>
 
-          {/* Recipient — always shown, REQUIRED for Salida */}
+          {/* Reason — shown for both, REQUIRED for Salida */}
           <div className="f-group">
             <label>
-              <User size={14} style={{ marginRight: 6 }} />
-              {isSalida ? 'Entregado a (OBLIGATORIO)' : 'Recibe / Destinatario (Opcional)'}
+              <FileText size={14} style={{ marginRight: 6 }} />
+              {isSalida ? 'Motivo de salida (OBLIGATORIO)' : 'Notas (Opcional)'}
             </label>
 
             <div style={{ position: 'relative' }}>
               <input
                 type="text"
                 className="f-input"
-                list="personnel-list-modal"
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                placeholder={isSalida ? 'Nombre de quien recibe...' : 'Nombre (opcional)...'}
+                placeholder={isSalida ? 'Ej: uso en evento, consumo diario, préstamo...' : 'Notas adicionales (opcional)...'}
                 style={{
                   borderColor: isSalida && details.trim().length === 0 ? 'hsl(var(--danger))' : undefined,
                 }}
               />
-              <datalist id="personnel-list-modal">
-                {personnel.map(p => (
-                  <option key={p.id} value={p.name} />
-                ))}
-              </datalist>
             </div>
 
             {/* Warning message when Salida and empty */}
@@ -105,7 +99,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
                 fontSize: 11, fontWeight: 700, color: 'hsl(var(--danger))'
               }}>
                 <AlertCircle size={13} />
-                Debes indicar quién recibe el material para continuar.
+                Debes indicar el motivo de la salida para continuar.
               </div>
             )}
           </div>
