@@ -101,18 +101,21 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .form-scroll-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.5rem 2rem;
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--border-color)) transparent;
+  min-height: 0;
 }
 
 .form-scroll-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .form-scroll-content::-webkit-scrollbar-track {
@@ -121,7 +124,7 @@
 
 .form-scroll-content::-webkit-scrollbar-thumb {
   background-color: hsl(var(--border-color));
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .form-scroll-content::-webkit-scrollbar-thumb:hover {
@@ -130,6 +133,7 @@
 
 .main-fields {
   margin-bottom: 1.5rem;
+  min-height: 0;
 }
 
 .grid {
