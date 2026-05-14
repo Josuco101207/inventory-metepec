@@ -215,7 +215,7 @@
     max-height: 85dvh;
     transform: translateY(100%);
     border-radius: 24px 24px 0 0;
-    padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 80px);
+    padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 16px);
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
