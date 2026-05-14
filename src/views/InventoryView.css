@@ -932,6 +932,7 @@
 
   .fly-inventory-metrics {
     grid-template-columns: 1fr;
+    margin-bottom: 1rem;
   }
 
   .fly-inventory-actions {
