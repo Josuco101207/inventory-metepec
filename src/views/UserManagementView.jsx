@@ -159,6 +159,9 @@ const UserManagementView = () => {
     isCreatingRef.current = true;
     setIsCreating(true);
     try {
+      // 0. Save current admin session BEFORE signUp (signUp auto-switches session)
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+
       // 1. Create user in Supabase Auth (appears in Supabase dashboard)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
@@ -169,6 +172,14 @@ const UserManagementView = () => {
       if (authError) {
         toast.error(authError.message || 'Error al crear cuenta en Supabase');
         return;
+      }
+
+      // 1.5. Restore admin session so we don't get logged out
+      if (adminSession) {
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token,
+        });
       }
 
       // 2. Insert profile row with role and permissions
