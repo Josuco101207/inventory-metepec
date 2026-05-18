@@ -626,6 +626,47 @@ async function processWithMock() {
 }
 
 /**
+ * Compresses an image file to reduce size before sending to AI.
+ */
+function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const srcUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(srcUrl);
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        blob ? resolve(blob) : reject(new Error('Failed to compress image'));
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(srcUrl); reject(new Error('Failed to load image for compression')); };
+    img.src = srcUrl;
+  });
+}
+
+/**
  * Process an invoice file (image or PDF) and return extracted data.
  * @param {File} file - The invoice file to process
  * @returns {Promise<{ header, items }>}
@@ -633,8 +674,21 @@ async function processWithMock() {
 export async function processInvoice(file) {
   // If API key is set, use the configured AI provider
   if (AI_API_KEY) {
-    const base64 = await fileToBase64(file);
-    const mimeType = file.type || 'image/jpeg';
+    let fileToProcess = file;
+    let mimeType = file.type || 'image/jpeg';
+
+    // Compress image if it is an image
+    if (file.type && file.type.startsWith('image/')) {
+      try {
+        console.log('Compressing image to save quota...');
+        fileToProcess = await compressImage(file);
+        mimeType = 'image/jpeg'; // We compressed to jpeg
+      } catch (e) {
+        console.error('Failed to compress image, using original:', e);
+      }
+    }
+
+    const base64 = await fileToBase64(fileToProcess);
 
     if (AI_PROVIDER === 'openai') {
       return processWithOpenAI(base64, mimeType);
