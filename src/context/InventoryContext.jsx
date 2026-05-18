@@ -74,6 +74,30 @@ export const InventoryProvider = ({ children }) => {
     return cat?.schema?.map(col => col.name) || null;
   }, []);
 
+  // Helper: Smart map generic fields to table-specific valid columns
+  const mapToDbFields = useCallback((rawFields, validColumns) => {
+    const dbFields = {};
+    if (!validColumns) {
+      Object.assign(dbFields, rawFields);
+      return dbFields;
+    }
+
+    const mappedNameKey = validColumns.includes('name') ? 'name' : validColumns.find(c => ['nombre', 'titulo', 'title', 'producto', 'articulo'].includes(c.toLowerCase()));
+    const mappedQtyKey = validColumns.includes('qty') ? 'qty' : validColumns.find(c => ['cantidad', 'stock', 'existencias'].includes(c.toLowerCase()));
+    const mappedObsKey = validColumns.includes('observaciones') ? 'observaciones' : validColumns.find(c => ['detalles', 'notas', 'descripcion'].includes(c.toLowerCase()) && c !== mappedNameKey);
+
+    for (const key of Object.keys(rawFields)) {
+      if (validColumns.includes(key)) {
+        dbFields[key] = rawFields[key];
+      } else {
+        if (key === 'name' && mappedNameKey) dbFields[mappedNameKey] = rawFields[key];
+        if (key === 'qty' && mappedQtyKey) dbFields[mappedQtyKey] = rawFields[key];
+        if (key === 'observaciones' && mappedObsKey) dbFields[mappedObsKey] = rawFields[key];
+      }
+    }
+    return dbFields;
+  }, []);
+
   // ─── Limpieza al logout ───
   useEffect(() => {
     if (!user) {
@@ -427,14 +451,7 @@ export const InventoryProvider = ({ children }) => {
       // Remove category and _tableName — they're not DB columns
       const { category: _cat, _tableName, ...rawFields } = newItem;
       
-      const dbFields = {};
-      if (validColumns) {
-        for (const key of Object.keys(rawFields)) {
-          if (validColumns.includes(key)) dbFields[key] = rawFields[key];
-        }
-      } else {
-        Object.assign(dbFields, rawFields);
-      }
+      const dbFields = mapToDbFields(rawFields, validColumns);
       
       const createdItem = await sbInsertItem(tableName, dbFields);
 
@@ -475,14 +492,7 @@ export const InventoryProvider = ({ children }) => {
       if (tableName) {
         const { category: _cat, _tableName, id, created_at, createdAt, ...rawFields } = updatedFields;
         
-        const dbFields = {};
-        if (validColumns) {
-          for (const key of Object.keys(rawFields)) {
-            if (validColumns.includes(key)) dbFields[key] = rawFields[key];
-          }
-        } else {
-          Object.assign(dbFields, rawFields);
-        }
+        const dbFields = mapToDbFields(rawFields, validColumns);
 
         // Build changes details for annulment
         const changes = [];
@@ -530,14 +540,7 @@ export const InventoryProvider = ({ children }) => {
             status: null,
           };
 
-          const dbItem = {};
-          if (validColumns) {
-            for (const key of Object.keys(initialItem)) {
-              if (validColumns.includes(key)) dbItem[key] = initialItem[key];
-            }
-          } else {
-            Object.assign(dbItem, initialItem);
-          }
+          const dbItem = mapToDbFields(initialItem, validColumns);
 
           const created = await sbInsertItem(tableName, dbItem);
           if (created) return { ...created, category: item.category, _tableName: tableName };
