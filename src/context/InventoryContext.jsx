@@ -260,10 +260,12 @@ export const InventoryProvider = ({ children }) => {
 
     const newQty = (item.qty || 0) + change;
     const tableName = item._tableName || getTableName(item.category);
+    const validColumns = getValidColumns(item.category);
     
     try {
       if (tableName) {
-        await sbUpdateItem(tableName, itemId, { qty: newQty });
+        const updates = mapToDbFields({ qty: newQty }, validColumns);
+        await sbUpdateItem(tableName, itemId, updates);
       }
       setItemsState(prev => {
         const updated = [...prev];
