@@ -167,6 +167,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
             precio_unitario: item.precioUnitario,
             precioUnitario: item.precioUnitario,
             iva: item.iva,
+            unidad: item.unidad,
           }, userName);
         } else if (item.mappedItemId) {
           await updateStock(
