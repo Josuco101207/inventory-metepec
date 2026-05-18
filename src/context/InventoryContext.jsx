@@ -123,7 +123,15 @@ export const InventoryProvider = ({ children }) => {
         const rows = await sbFetchItems(cat.tableName);
         // Tag each row with category info so the rest of the app works
         rows.forEach(row => {
-          allItems.push({ ...row, category: cat.title, _tableName: cat.tableName });
+          const normalizedRow = { ...row };
+          // Normalizar nombre si viene en español
+          if (row.nombre && !row.name) normalizedRow.name = row.nombre;
+          // Normalizar cantidad si viene en español
+          if (row.cantidad !== undefined && row.qty === undefined) normalizedRow.qty = row.cantidad;
+          // Normalizar observaciones si viene como detalles
+          if (row.detalles && !row.observaciones) normalizedRow.observaciones = row.detalles;
+          
+          allItems.push({ ...normalizedRow, category: cat.title, _tableName: cat.tableName });
         });
       }));
       setItemsState(allItems);
