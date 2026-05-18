@@ -129,16 +129,24 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
     setSubmitting(true);
     try {
       for (const item of accepted) {
+        let detallesStr = '';
+        if (item.detallesExtra && typeof item.detallesExtra === 'object') {
+          const keys = Object.keys(item.detallesExtra);
+          if (keys.length > 0) {
+            detallesStr = ' | Detalles: ' + keys.map(k => `${k}: ${item.detallesExtra[k]}`).join(', ');
+          }
+        }
+
         if (item.isNew) {
           await addItem({
             name: item.mappedName,
             qty: Math.round(item.cantidad),
             threshold: 0,
-            marca: header.proveedor,
+            marca: item.detallesExtra?.marca || header.proveedor,
             location: '',
             status: 'Disponible',
             subcategory: '',
-            observaciones: `Factura ${header.folio} | ${header.proveedor} | $${item.precioUnitario}/u`,
+            observaciones: `Factura ${header.folio} | ${header.proveedor} | $${item.precioUnitario}/u${detallesStr}`,
             category: item.category,
           }, userName);
         } else if (item.mappedItemId) {
@@ -146,7 +154,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
             item.mappedItemId,
             Math.round(item.cantidad),
             userName,
-            `Ingreso Factura ${header.folio} | ${header.proveedor}`
+            `Ingreso Factura ${header.folio} | ${header.proveedor}${detallesStr}`
           );
         }
       }

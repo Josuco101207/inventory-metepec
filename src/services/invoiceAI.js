@@ -20,6 +20,7 @@ Para CADA item, devuelve:
 - unidad: unidad de medida (PZA, KG, M, LT, CAJA, etc.)
 - precioUnitario: precio por unidad SIN IVA
 - iva: monto de IVA para ese item (si no se muestra por línea, calcula 16%)
+- detallesExtra: objeto JSON con los atributos adicionales del producto que encuentres (ej. marca, modelo, color, voltaje, dimensiones, etc.)
 
 También extrae los datos del encabezado:
 - folio: número de factura
@@ -31,7 +32,7 @@ Responde SOLO en JSON válido con esta estructura exacta:
 {
   "header": { "folio": "", "proveedor": "", "fecha": "", "moneda": "MXN" },
   "items": [
-    { "descripcion": "", "cantidad": 0, "unidad": "PZA", "precioUnitario": 0, "iva": 0 }
+    { "descripcion": "", "cantidad": 0, "unidad": "PZA", "precioUnitario": 0, "iva": 0, "detallesExtra": {} }
   ]
 }`;
 
