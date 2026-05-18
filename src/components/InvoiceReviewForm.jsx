@@ -36,7 +36,10 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
       const matches = findBestMatches(item.descripcion, inventoryItems);
       const bestMatch = matches[0] || null;
       const isNew = !bestMatch || bestMatch.score < 0.35;
-      const sugCat = isNew ? suggestCategory(item.descripcion) : (bestMatch?.item?.category || '');
+      
+      const rawCat = isNew ? suggestCategory(item.descripcion) : (bestMatch?.item?.category || '');
+      const defaultCat = categoryTitles.length > 0 ? categoryTitles[0] : 'General';
+      const sugCat = categoryTitles.includes(rawCat) ? rawCat : defaultCat;
 
       return {
         _key: `${Date.now()}-${idx}`,
@@ -54,10 +57,11 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
         category: sugCat,
         matches,
         accepted: true,
+        detallesExtra: item.detallesExtra || {}, // Ensure we keep the extra details!
       };
     });
     setItems(mapped);
-  }, [extractedData, inventoryItems]);
+  }, [extractedData, inventoryItems, categoryTitles]);
 
   const updateItem = useCallback((idx, field, value) => {
     setItems(prev => {
