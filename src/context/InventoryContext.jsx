@@ -68,6 +68,12 @@ export const InventoryProvider = ({ children }) => {
     return cat?.tableName || null;
   }, []);
 
+  // Helper: get valid columns for a category
+  const getValidColumns = useCallback((categoryTitle) => {
+    const cat = categoriesRef.current.find(c => c.title === categoryTitle);
+    return cat?.schema?.map(col => col.name) || null;
+  }, []);
+
   // ─── Limpieza al logout ───
   useEffect(() => {
     if (!user) {
@@ -415,10 +421,21 @@ export const InventoryProvider = ({ children }) => {
       toast.error('No se encontró la tabla para esta categoría');
       return;
     }
+    const validColumns = getValidColumns(newItem.category);
 
     try {
       // Remove category and _tableName — they're not DB columns
-      const { category: _cat, _tableName, ...dbFields } = newItem;
+      const { category: _cat, _tableName, ...rawFields } = newItem;
+      
+      const dbFields = {};
+      if (validColumns) {
+        for (const key of Object.keys(rawFields)) {
+          if (validColumns.includes(key)) dbFields[key] = rawFields[key];
+        }
+      } else {
+        Object.assign(dbFields, rawFields);
+      }
+      
       const createdItem = await sbInsertItem(tableName, dbFields);
 
       if (createdItem) {
@@ -452,11 +469,21 @@ export const InventoryProvider = ({ children }) => {
   const editItem = useCallback(async (itemId, updatedFields, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
     const tableName = item?._tableName || getTableName(item?.category);
+    const validColumns = getValidColumns(item?.category);
 
     try {
       if (tableName) {
-        const { category: _cat, _tableName, id, created_at, createdAt, ...dbFields } = updatedFields;
+        const { category: _cat, _tableName, id, created_at, createdAt, ...rawFields } = updatedFields;
         
+        const dbFields = {};
+        if (validColumns) {
+          for (const key of Object.keys(rawFields)) {
+            if (validColumns.includes(key)) dbFields[key] = rawFields[key];
+          }
+        } else {
+          Object.assign(dbFields, rawFields);
+        }
+
         // Build changes details for annulment
         const changes = [];
         const originalValues = {};
@@ -493,13 +520,25 @@ export const InventoryProvider = ({ children }) => {
         itemsArray.map(async (item) => {
           const tableName = getTableName(item.category);
           if (!tableName) return null;
-          const { category: _cat, _tableName, id, createdAt, created_at, ...dbFields } = item;
-          const dbItem = {
-            ...dbFields,
+          const validColumns = getValidColumns(item.category);
+          
+          const { category: _cat, _tableName, id, createdAt, created_at, ...rawFields } = item;
+          const initialItem = {
+            ...rawFields,
             qty: parseInt(item.qty) || 0,
             threshold: parseInt(item.threshold) || 1,
             status: null,
           };
+
+          const dbItem = {};
+          if (validColumns) {
+            for (const key of Object.keys(initialItem)) {
+              if (validColumns.includes(key)) dbItem[key] = initialItem[key];
+            }
+          } else {
+            Object.assign(dbItem, initialItem);
+          }
+
           const created = await sbInsertItem(tableName, dbItem);
           if (created) return { ...created, category: item.category, _tableName: tableName };
           return null;
