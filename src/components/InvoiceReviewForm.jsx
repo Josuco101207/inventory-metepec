@@ -152,6 +152,10 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
             subcategory: '',
             observaciones: `Factura ${header.folio} | ${header.proveedor} | $${item.precioUnitario}/u${detallesStr}`,
             category: item.category,
+            importe: item.importe,
+            precio_unitario: item.precioUnitario,
+            precioUnitario: item.precioUnitario,
+            iva: item.iva,
           }, userName);
         } else if (item.mappedItemId) {
           await updateStock(
