@@ -164,7 +164,7 @@ const RootApp = () => {
               <Route path="/analytics" element={isAdmin ? <AnalyticsView /> : <Navigate to="/" />} />
               <Route path="/tools" element={isAdmin ? <ToolsView /> : <Navigate to="/" />} />
               <Route path="/invoices" element={isAdmin ? <InvoicesView /> : <Navigate to="/" />} />
-              <Route path="/invoice-ai" element={isAdmin ? <InvoiceAIView /> : <Navigate to="/" />} />
+              <Route path="/invoice-ai" element={<InvoiceAIView />} />
               <Route path="/settings" element={isAdmin ? <SettingsView /> : <Navigate to="/" />} />
               <Route path="/profile" element={<ProfileView />} />
               <Route path="/users" element={isAdmin ? <UserManagementView /> : <Navigate to="/" />} />

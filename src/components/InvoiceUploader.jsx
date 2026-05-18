@@ -1,6 +1,6 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Upload, Camera, FileImage, X, AlertCircle, Cpu } from 'lucide-react';
-import { getAIStatus } from '../services/invoiceAI';
+import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const MAX_SIZE_MB = 10;
@@ -11,7 +11,15 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled }) => {
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState('');
+  const [ocrProgress, setOcrProgress] = useState(0);
   const aiStatus = getAIStatus();
+
+  useEffect(() => {
+    if (processing && aiStatus.provider === 'ocr') {
+      setOCRProgressCallback(setOcrProgress);
+      return () => setOCRProgressCallback(null);
+    }
+  }, [processing, aiStatus.provider]);
 
   const validateAndSet = useCallback((file) => {
     setError('');
@@ -63,8 +71,13 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled }) => {
         <div className="iu-processing-inner">
           <div className="iu-spinner" />
           <div className="iu-processing-text">
-            <h3>Procesando factura...</h3>
-            <p>La IA está extrayendo los datos del documento</p>
+            <h3>Procesando factura...{aiStatus.provider === 'ocr' && ocrProgress > 0 ? ` ${ocrProgress}%` : ''}</h3>
+            <p>{aiStatus.provider === 'ocr' ? 'OCR analizando el documento (procesamiento local)' : 'La IA está extrayendo los datos del documento'}</p>
+            {aiStatus.provider === 'ocr' && ocrProgress > 0 && (
+              <div className="iu-progress-bar">
+                <div className="iu-progress-fill" style={{ width: `${ocrProgress}%` }} />
+              </div>
+            )}
           </div>
           <div className="iu-skeleton-lines">
             {[
@@ -89,12 +102,14 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled }) => {
   return (
     <div className="iu-container">
       {/* AI Status Badge */}
-      <div className={`iu-ai-badge ${aiStatus.configured ? 'iu-ai-live' : 'iu-ai-mock'}`}>
+      <div className={`iu-ai-badge ${aiStatus.configured ? 'iu-ai-live' : aiStatus.provider === 'ocr' ? 'iu-ai-ocr' : 'iu-ai-mock'}`}>
         <Cpu size={14} />
         <span>
           {aiStatus.configured
             ? `IA conectada · ${aiStatus.provider.toUpperCase()}`
-            : 'Modo Demo · Sin API Key'}
+            : aiStatus.provider === 'ocr'
+              ? 'OCR Local · Tesseract.js'
+              : 'Modo Demo · Sin API Key'}
         </span>
       </div>
 
