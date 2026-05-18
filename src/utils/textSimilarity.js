@@ -20,7 +20,8 @@ function levenshteinDistance(a, b) {
 }
 
 function normalize(str) {
-  return str
+  if (!str) return '';
+  return String(str)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
