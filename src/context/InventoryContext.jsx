@@ -77,17 +77,19 @@ export const InventoryProvider = ({ children }) => {
   // Helper: Smart map generic fields to table-specific valid columns
   const mapToDbFields = useCallback((rawFields, validColumns) => {
     const dbFields = {};
-    if (!validColumns) {
+    if (!validColumns || !Array.isArray(validColumns)) {
       Object.assign(dbFields, rawFields);
       return dbFields;
     }
 
-    const mappedNameKey = validColumns.includes('name') ? 'name' : validColumns.find(c => ['nombre', 'titulo', 'title', 'producto', 'articulo'].includes(c.toLowerCase()));
-    const mappedQtyKey = validColumns.includes('qty') ? 'qty' : validColumns.find(c => ['cantidad', 'stock', 'existencias'].includes(c.toLowerCase()));
-    const mappedObsKey = validColumns.includes('observaciones') ? 'observaciones' : validColumns.find(c => ['detalles', 'notas', 'descripcion'].includes(c.toLowerCase()) && c !== mappedNameKey);
+    const safeColumns = validColumns.filter(c => typeof c === 'string');
+
+    const mappedNameKey = safeColumns.includes('name') ? 'name' : safeColumns.find(c => ['nombre', 'titulo', 'title', 'producto', 'articulo'].includes(c.toLowerCase()));
+    const mappedQtyKey = safeColumns.includes('qty') ? 'qty' : safeColumns.find(c => ['cantidad', 'stock', 'existencias'].includes(c.toLowerCase()));
+    const mappedObsKey = safeColumns.includes('observaciones') ? 'observaciones' : safeColumns.find(c => ['detalles', 'notas', 'descripcion'].includes(c.toLowerCase()) && c !== mappedNameKey);
 
     for (const key of Object.keys(rawFields)) {
-      if (validColumns.includes(key)) {
+      if (safeColumns.includes(key)) {
         dbFields[key] = rawFields[key];
       } else {
         if (key === 'name' && mappedNameKey) dbFields[mappedNameKey] = rawFields[key];
