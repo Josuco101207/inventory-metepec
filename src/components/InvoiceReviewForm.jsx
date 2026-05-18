@@ -32,6 +32,13 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
   const categoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
 
   useEffect(() => {
+    const parseNumber = (val) => {
+      if (typeof val === 'number') return val;
+      if (!val) return 0;
+      const clean = String(val).replace(/[^0-9.-]/g, '');
+      return parseFloat(clean) || 0;
+    };
+
     const mapped = extractedData.items.map((item, idx) => {
       const matches = findBestMatches(item.descripcion, inventoryItems);
       const bestMatch = matches[0] || null;
@@ -41,16 +48,20 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
       const defaultCat = categoryTitles.length > 0 ? categoryTitles[0] : 'General';
       const sugCat = categoryTitles.includes(rawCat) ? rawCat : defaultCat;
 
+      const cant = parseNumber(item.cantidad);
+      const precio = parseNumber(item.precioUnitario);
+      const ivaVal = item.iva !== undefined ? parseNumber(item.iva) : (precio * cant * IVA_RATE);
+
       return {
         _key: `${Date.now()}-${idx}`,
         originalName: item.descripcion,
         mappedName: bestMatch && !isNew ? bestMatch.item.name : item.descripcion,
         mappedItemId: bestMatch && !isNew ? bestMatch.item.id : null,
-        cantidad: item.cantidad,
-        unidad: item.unidad,
-        precioUnitario: item.precioUnitario,
-        iva: item.iva || item.precioUnitario * item.cantidad * IVA_RATE,
-        importe: item.precioUnitario * item.cantidad,
+        cantidad: cant,
+        unidad: item.unidad || 'PZA',
+        precioUnitario: precio,
+        iva: ivaVal,
+        importe: precio * cant,
         isNew,
         matchScore: bestMatch?.score || 0,
         isExact: bestMatch?.isExact || false,
