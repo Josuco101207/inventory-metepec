@@ -100,6 +100,12 @@
   border: 1px solid rgba(141, 198, 63, 0.3);
 }
 
+.iu-ai-ocr {
+  background: rgba(0, 174, 239, 0.15);
+  color: #00aeef;
+  border: 1px solid rgba(0, 174, 239, 0.3);
+}
+
 .iu-ai-mock {
   background: rgba(247, 148, 30, 0.15);
   color: var(--zone-hachas);
@@ -276,6 +282,23 @@
 .iu-processing-text p {
   font-size: 0.8rem;
   color: hsl(var(--text-muted));
+}
+
+.iu-progress-bar {
+  width: 100%;
+  max-width: 300px;
+  height: 6px;
+  background: hsl(var(--surface-2));
+  border-radius: 3px;
+  margin: 0.75rem auto 0;
+  overflow: hidden;
+}
+
+.iu-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--fly-magenta), var(--fly-yellow));
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
 .iu-skeleton-lines {
