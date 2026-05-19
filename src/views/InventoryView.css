@@ -238,8 +238,8 @@
 
 /* ═══ SEARCH & ACTIONS ═══ */
 .fly-inventory-actions {
-  display: flex;
-  flex-direction: row;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
   align-items: center;
@@ -248,15 +248,21 @@
   width: 100%;
   position: relative;
   z-index: 5;
+  flex-wrap: nowrap;
 }
 
 .fly-inventory-actions .fly-search-wrapper {
-  flex: 1;
-  min-width: 0;
+  flex: 1 !important;
+  min-width: 0 !important;
+  width: auto !important;
 }
 
 .fly-inventory-actions .fly-action-buttons {
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
+  width: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0.5rem;
 }
 
 .fly-action-buttons .fly-btn,
@@ -964,10 +970,6 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .fly-inventory-actions {
-    flex-direction: row;
-  }
-
   .fly-action-buttons {
     justify-content: flex-start;
     flex-wrap: wrap;
@@ -994,17 +996,8 @@
     margin-bottom: 1rem;
   }
 
-  .fly-inventory-actions {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .fly-inventory-actions .fly-search-wrapper {
-    width: 100%;
-  }
-
   .fly-inventory-actions .fly-action-buttons {
-    width: 100%;
+    flex-wrap: wrap;
   }
 
   /* Action buttons: 2x2 compact grid */
