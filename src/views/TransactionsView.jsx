@@ -234,7 +234,7 @@ const TransactionsView = () => {
                         <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
                         {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
-                            <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
+                            <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
                           </a>
                         )}
                         {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (

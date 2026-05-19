@@ -406,7 +406,7 @@ const Dashboard = () => {
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text || '—'}</span>
                         {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer">
-                            <img src={facturaUrl} alt="factura" style={{ width: 36, height: 28, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
+                            <img src={facturaUrl} alt="factura" style={{ width: 36, height: 28, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
                           </a>
                         )}
                         {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
