@@ -10,7 +10,7 @@
 import { supabase } from '../lib/supabase';
 import { compressImage } from './invoiceAI';
 
-const BUCKET = 'facturas';
+const BUCKET = 'Facturas';
 
 /**
  * Genera un nombre único para el archivo.
