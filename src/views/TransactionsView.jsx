@@ -120,60 +120,48 @@ const TransactionsView = () => {
       </section>
 
       {/* ═══ METRICS ROW ═══ */}
-      <section className="fly-inventory-metrics">
-        <div className="fly-metric-card fly-metric-arcade">
-          <div className="fly-metric-icon-wrap"><Activity size={24} /></div>
-          <div className="fly-metric-data">
-            <span className="fly-metric-label">TOTAL</span>
-            <span className="fly-metric-value">{totalToday}</span>
-            <span className="fly-metric-foot">MOVIMIENTOS</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.25rem' }}>
+        {[
+          { label: 'TOTAL', value: totalToday, foot: 'MOVIMIENTOS', Icon: Activity, accent: 'var(--fly-yellow)' },
+          { label: 'ENTRADAS', value: entries, foot: 'ALTAS / INGRESOS', Icon: ArrowUpCircle, accent: '#8dc63f' },
+          { label: 'SALIDAS', value: exits, foot: 'BAJAS / EGRESOS', Icon: ArrowDownCircle, accent: '#f97316' },
+        ].map(({ label, value, foot, Icon, accent }) => (
+          <div key={label} style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon size={22} color={accent} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+              <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', color: accent, textTransform: 'uppercase' }}>{label}</span>
+              <span style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--fly-white)', lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{foot}</span>
+            </div>
+            <div style={{ position: 'absolute', right: -10, bottom: -10, width: 70, height: 70, borderRadius: '50%', background: `${accent}11` }} />
           </div>
-          <div className="fly-metric-shape" />
-        </div>
-        <div className="fly-metric-card fly-metric-arcade">
-          <div className="fly-metric-icon-wrap"><ArrowUpCircle size={24} /></div>
-          <div className="fly-metric-data">
-            <span className="fly-metric-label">ENTRADAS</span>
-            <span className="fly-metric-value">{entries}</span>
-            <span className="fly-metric-foot">ALTAS / INGRESOS</span>
-          </div>
-          <div className="fly-metric-shape" />
-        </div>
-        <div className="fly-metric-card fly-metric-alert">
-          <div className="fly-metric-icon-wrap"><ArrowDownCircle size={24} /></div>
-          <div className="fly-metric-data">
-            <span className="fly-metric-label">SALIDAS</span>
-            <span className="fly-metric-value">{exits}</span>
-            <span className="fly-metric-foot">BAJAS / EGRESOS</span>
-          </div>
-          <div className="fly-metric-shape" />
-        </div>
-      </section>
+        ))}
+      </div>
 
-      {/* ═══ SEARCH & ACTIONS ═══ */}
-      <section className="fly-inventory-actions" style={{ opacity: 1, visibility: 'visible' }}>
-        <div className="fly-action-buttons" style={{ opacity: 1, visibility: 'visible' }}>
-          <div className="fly-btn fly-btn-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
-            <Calendar size={16} />
-            <span>{isToday ? 'Hoy' : selectedDate}</span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
-              max={todayStr}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-            />
-          </div>
-          {!isToday && (
-            <button className="fly-btn fly-btn-secondary" onClick={() => setSelectedDate(todayStr)}>
-              <RefreshCw size={16} /> Hoy
-            </button>
-          )}
-          <button className="fly-btn fly-btn-secondary" onClick={() => exportToExcel(filteredMovements, `transacciones_${selectedDate}`, 'Transacciones')}>
-            <Download size={16} /> Exportar
-          </button>
+      {/* ═══ ACTIONS ═══ */}
+      <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="fly-btn fly-btn-secondary" style={{ position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+          <Calendar size={15} />
+          <span>{isToday ? 'Hoy' : selectedDate}</span>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            max={todayStr}
+            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+          />
         </div>
-      </section>
+        {!isToday && (
+          <button className="fly-btn fly-btn-secondary" style={{ flexShrink: 0 }} onClick={() => setSelectedDate(todayStr)}>
+            <RefreshCw size={15} /> Hoy
+          </button>
+        )}
+        <button className="fly-btn fly-btn-secondary" style={{ flexShrink: 0 }} onClick={() => exportToExcel(filteredMovements, `transacciones_${selectedDate}`, 'Transacciones')}>
+          <Download size={15} /> Exportar
+        </button>
+      </div>
 
       {/* ═══ TABLE ═══ */}
       <div className="invt-container animate-slide-up">
