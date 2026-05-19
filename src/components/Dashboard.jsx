@@ -22,6 +22,19 @@ import Header from './Header';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import './Dashboard.css';
 
+// Limpia item_id/factura_url del texto y extrae la URL de la factura
+const parseMovDetails = (details) => {
+  if (!details) return { text: null, facturaUrl: null };
+  const urlMatch = details.match(/factura_url:(https?:\/\/\S+)/);
+  const facturaUrl = urlMatch ? urlMatch[1] : null;
+  const text = details
+    .replace(/\s*\|?\s*item_id:[\w-]+/g, '')
+    .replace(/\s*\|?\s*factura_url:https?:\/\/\S+/g, '')
+    .replace(/^\s*\|\s*|\s*\|\s*$/g, '')
+    .trim() || null;
+  return { text, facturaUrl };
+};
+
 const toLocalDateString = (date) => {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -380,7 +393,19 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="fly-mov-notes">{mov.details || '—'}</div>
+                  <div className="fly-mov-notes">
+                    {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (<>
+                      {text || '—'}
+                      {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
+                        <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6 }}>
+                          <img src={facturaUrl} alt="factura" style={{ width: 48, height: 36, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', verticalAlign: 'middle' }} />
+                        </a>
+                      )}
+                      {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
+                        <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
+                      )}
+                    </>); })()}
+                  </div>
                   <div className="fly-mov-qty-wrap">
                     <span className="fly-mov-qty">{mov.qty}</span>
                   </div>

@@ -10,6 +10,18 @@ import { exportToExcel } from '../utils/exportUtils';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import './TransactionsView.css';
 
+const parseMovDetails = (details) => {
+  if (!details) return { text: null, facturaUrl: null };
+  const urlMatch = details.match(/factura_url:(https?:\/\/\S+)/);
+  const facturaUrl = urlMatch ? urlMatch[1] : null;
+  const text = details
+    .replace(/\s*\|?\s*item_id:[\w-]+/g, '')
+    .replace(/\s*\|?\s*factura_url:https?:\/\/\S+/g, '')
+    .replace(/^\s*\|\s*|\s*\|\s*$/g, '')
+    .trim() || null;
+  return { text, facturaUrl };
+};
+
 const actionConfig = {
   Entrada:     { label: 'Entrada',    color: '#34c759', bg: 'rgba(52,199,89,0.12)', icon: ArrowUpCircle },
   Salida:      { label: 'Salida',     color: '#ff3b30', bg: 'rgba(255,59,48,0.12)', icon: ArrowDownCircle },
@@ -217,7 +229,19 @@ const TransactionsView = () => {
                   </div>
 
                   <div className="invt-cell-details">
-                    <span className="invt-detail-text">{mov.details || 'Sin detalles adicionales'}</span>
+                    {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (
+                      <>
+                        <span className="invt-detail-text">{text || 'Sin detalles adicionales'}</span>
+                        {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6 }}>
+                            <img src={facturaUrl} alt="factura" style={{ width: 52, height: 38, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(255,255,255,0.15)' }} />
+                          </a>
+                        )}
+                        {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
+                        )}
+                      </>
+                    ); })()}
                     <div className="invt-detail-meta">
                       <div className="invt-user-tag">
                         <Users size={12} />
