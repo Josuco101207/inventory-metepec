@@ -50,7 +50,6 @@ const ManualEntryView = () => {
   const getCategorySchema = useCallback((categoryTitle) => {
     const cat = getCategoryByTitle(categoryTitle);
     const schema = cat?.schema || [];
-    console.log('Schema for', categoryTitle, ':', schema);
     return schema;
   }, [getCategoryByTitle]);
 
