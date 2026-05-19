@@ -135,21 +135,32 @@ export const InventoryProvider = ({ children }) => {
         });
       }));
 
-      // Enriquecer items con factura_url extraída de los movements de "Alta"
+      // Enriquecer items con factura_url extraída de los movements
       const movements = await sbFetchMovements(500);
-      const urlMap = {};
+      // Dos mapas: por item_id (preciso) y por nombre (fallback)
+      const urlById = {};
+      const urlByName = {};
       movements.forEach(m => {
         if (m.details && m.details.includes('factura_url:')) {
-          const match = m.details.match(/factura_url:(https?:\/\/\S+)/);
-          if (match) {
-            const itemName = m.item;
-            if (itemName && !urlMap[itemName]) urlMap[itemName] = match[1];
-          }
+          const urlMatch = m.details.match(/factura_url:(https?:\/\/\S+)/);
+          if (!urlMatch) return;
+          const url = urlMatch[1];
+          // Extraer item_id si viene en details
+          const idMatch = m.details.match(/item_id:([\w-]+)/);
+          if (idMatch && !urlById[idMatch[1]]) urlById[idMatch[1]] = url;
+          // También indexar por nombre como fallback
+          if (m.item && !urlByName[m.item.toLowerCase().trim()]) urlByName[m.item.toLowerCase().trim()] = url;
         }
       });
       allItems.forEach(item => {
-        if (!item.factura_url && item.name && urlMap[item.name]) {
-          item.factura_url = urlMap[item.name];
+        if (!item.factura_url) {
+          // Primero buscar por ID exacto
+          if (item.id && urlById[item.id]) {
+            item.factura_url = urlById[item.id];
+          // Luego por nombre (case-insensitive)
+          } else if (item.name && urlByName[item.name.toLowerCase().trim()]) {
+            item.factura_url = urlByName[item.name.toLowerCase().trim()];
+          }
         }
       });
 
@@ -300,12 +311,17 @@ export const InventoryProvider = ({ children }) => {
       });
       
       const defaultDetails = `${change > 0 ? 'Reposición' : 'Gasto'} de material`;
+      // Si customDetails no incluye item_id, agregarlo para matching robusto
+      let finalDetails = customDetails || defaultDetails;
+      if (finalDetails && !finalDetails.includes('item_id:') && itemId) {
+        finalDetails = `${finalDetails} | item_id:${itemId}`;
+      }
       await addMovement(
         change > 0 ? 'Entrada' : 'Salida', 
         item.name, 
         Math.abs(change), 
         userName, 
-        customDetails || defaultDetails,
+        finalDetails,
         item.category
       );
       toast.success(`${change > 0 ? 'Entrada' : 'Salida'} registrada: ${item.name}`);
@@ -494,9 +510,11 @@ export const InventoryProvider = ({ children }) => {
       const createdItem = await sbInsertItem(tableName, dbFields);
 
       if (createdItem) {
-        const details = facturaUrl
-          ? `Artículo agregado al inventario | factura_url:${facturaUrl}`
-          : 'Artículo agregado al inventario';
+        const details = [
+          'Artículo agregado al inventario',
+          createdItem.id ? `item_id:${createdItem.id}` : null,
+          facturaUrl ? `factura_url:${facturaUrl}` : null,
+        ].filter(Boolean).join(' | ');
         // Guardar factura_url en memoria para mostrar botón inmediatamente
         setItemsState(prev => [...prev, { ...createdItem, category: newItem.category, _tableName: tableName, factura_url: facturaUrl || undefined }]);
         addMovement('Alta', newItem.name || 'Sin nombre', parseInt(newItem.qty) || 0, userName, details, newItem.category || 'General');
