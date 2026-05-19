@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoriesContext';
-import { ArrowUpCircle, ArrowDownCircle, RefreshCw, ClipboardCheck, HandMetal, Calendar, Search, Loader2, X, Users, Activity, Download, AlertTriangle } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, RefreshCw, ClipboardCheck, HandMetal, Calendar, Loader2, X, Users, Activity, Download, AlertTriangle } from 'lucide-react';
 import Header from '../components/Header';
 import FlyPattern from '../components/FlyPattern';
 import { useNavigate } from 'react-router-dom';
@@ -54,7 +54,6 @@ const TransactionsView = () => {
 
   const todayStr = toLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [searchTerm, setSearchTerm] = useState('');
   const [dayMovements, setDayMovements] = useState([]);
   const [loadingDay, setLoadingDay] = useState(false);
 
@@ -80,13 +79,7 @@ const TransactionsView = () => {
     if (selectedDate === todayStr) loadDayMovements(todayStr);
   }, [movements.length, todayStr]);
 
-  const filteredMovements = useMemo(() => {
-    if (!searchTerm) return dayMovements;
-    const q = searchTerm.toLowerCase();
-    return dayMovements.filter(m =>
-      [m.item, m.action, m.details, m.user, m.category].some(v => (v || '').toLowerCase().includes(q))
-    );
-  }, [dayMovements, searchTerm]);
+  const filteredMovements = dayMovements;
 
   const handleArticleClick = (movement) => {
     const route = categoryToRoute(movement.category);
@@ -159,16 +152,6 @@ const TransactionsView = () => {
 
       {/* ═══ SEARCH & ACTIONS ═══ */}
       <section className="fly-inventory-actions" style={{ opacity: 1, visibility: 'visible' }}>
-        <div className="fly-search-wrapper">
-          <Search size={18} className="fly-search-icon" />
-          <input
-            type="text"
-            className="fly-search-input"
-            placeholder="Buscar movimiento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
         <div className="fly-action-buttons" style={{ opacity: 1, visibility: 'visible' }}>
           <div className="fly-btn fly-btn-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
             <Calendar size={16} />
