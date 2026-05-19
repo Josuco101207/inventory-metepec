@@ -1128,69 +1128,88 @@
     border-radius: 12px;
   }
 
-  /* ─── Movement cards — One UI feed style ─── */
+  /* ─── Movements — feed lista limpia ─── */
   .fly-mov-head { display: none !important; }
 
-  .fly-mov-list { gap: 0; }
+  .fly-mov-list { display: flex; flex-direction: column; gap: 0; }
 
+  /* Romper el grid del desktop y usar flex columna */
+  .fly-mov-head,
   .fly-mov-row {
     display: flex !important;
-    flex-direction: column;
-    gap: 0;
-    padding: 14px 16px !important;
-    border-bottom: 0.5px solid rgba(255,255,255,0.06) !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+  }
+
+  .fly-mov-row {
+    padding: 12px 0 !important;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07) !important;
     border-radius: 0 !important;
-    background: transparent;
+    background: transparent !important;
     transition: background 0.1s ease;
   }
 
+  .fly-mov-row:last-child { border-bottom: none !important; }
   .fly-mov-row:active { background: rgba(255,255,255,0.04) !important; }
 
-  /* Top row: badge + nombre + cantidad inline */
+  /* Fila 1: badge+nombre | cantidad */
   .fly-mov-top-row {
-    display: flex;
+    display: flex !important;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
+    gap: 10px;
+    margin-bottom: 5px;
   }
 
   .fly-mov-main {
-    flex: 1;
-    min-width: 0;
-    gap: 4px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+  }
+
+  .fly-mov-badge {
+    font-size: 0.58rem !important;
+    padding: 2px 8px !important;
+    width: fit-content;
   }
 
   .fly-mov-name {
-    font-size: 0.9rem !important;
+    font-size: 0.88rem !important;
     font-weight: 700 !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .fly-mov-cat {
-    font-size: 0.62rem !important;
-    opacity: 0.45 !important;
+    font-size: 0.6rem !important;
+    opacity: 0.4 !important;
+    letter-spacing: 0.04em;
   }
 
   .fly-mov-qty-wrap {
-    flex-shrink: 0;
-    display: flex;
+    flex-shrink: 0 !important;
+    display: flex !important;
     align-items: flex-start;
-    padding-top: 2px;
+    padding-top: 3px;
   }
 
   .fly-mov-qty {
-    min-width: 40px !important;
-    height: 24px !important;
-    font-size: 0.72rem !important;
-    border-radius: 7px !important;
+    min-width: 38px !important;
+    height: 22px !important;
+    font-size: 0.7rem !important;
+    border-radius: 6px !important;
+    padding: 0 6px !important;
   }
 
-  /* Bottom row: notas + thumbnail + meta */
+  /* Fila 2: texto + thumbnail | usuario + hora */
   .fly-mov-bottom-row {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
@@ -1198,41 +1217,57 @@
 
   .fly-mov-notes {
     display: flex !important;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-    font-size: 0.72rem !important;
-    color: rgba(255,255,255,0.4) !important;
-    white-space: nowrap;
+    align-items: center !important;
+    gap: 7px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    font-size: 0.7rem !important;
+    color: rgba(255,255,255,0.38) !important;
     overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  /* Thumbnail más compacto inline */
-  .fly-mov-notes a img {
-    width: 36px !important;
-    height: 28px !important;
-    border-radius: 6px !important;
-    flex-shrink: 0;
-    margin-top: 0 !important;
-    vertical-align: middle;
+  .fly-mov-notes > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .fly-mov-notes a {
     display: inline-flex !important;
+    flex-shrink: 0 !important;
     margin-top: 0 !important;
-    flex-shrink: 0;
+  }
+
+  .fly-mov-notes a img {
+    width: 32px !important;
+    height: 24px !important;
+    border-radius: 5px !important;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    display: block;
+    margin-top: 0 !important;
   }
 
   .fly-mov-meta {
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
     align-items: flex-end !important;
-    gap: 2px !important;
+    gap: 1px !important;
   }
 
-  .fly-mov-user { font-size: 0.62rem !important; opacity: 0.5; }
-  .fly-mov-time { font-size: 0.68rem !important; font-weight: 800 !important; }
+  .fly-mov-user {
+    font-size: 0.6rem !important;
+    opacity: 0.45 !important;
+  }
+
+  .fly-mov-time {
+    font-size: 0.66rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em;
+  }
 
   .fly-critical-modal {
     border-radius: 24px 24px 0 0 !important;
