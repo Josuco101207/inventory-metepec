@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { X, RefreshCw, ArrowUpCircle, ArrowDownCircle, FileText, AlertCircle } from 'lucide-react';
+import { X, RefreshCw, ArrowUpCircle, ArrowDownCircle, FileText, AlertCircle, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './ActionModal.css';
 
 const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
+  const navigate = useNavigate();
   const [qty, setQty] = useState(1);
-  const [action, setAction] = useState('Entrada');
+  const [action, setAction] = useState('Salida');
   const [details, setDetails] = useState('');
 
   if (!isOpen || !item) return null;
@@ -19,7 +21,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
     onConfirm(item.id, finalQty, detailText);
     setDetails('');
     setQty(1);
-    setAction('Entrada');
+    setAction('Salida');
     onClose();
   };
 
@@ -37,22 +39,29 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
         </header>
 
         <div className="flex flex-col gap-6">
-          {/* Toggle Entrada / Salida */}
+          {/* Solo Salida — las Entradas se manejan vía Carga IA de Facturas */}
           <div className="f-group">
             <label>Tipo de Operación</label>
             <div className="operation-toggle">
               <button
-                className={`op-btn ${action === 'Entrada' ? 'active-entrada' : ''}`}
-                onClick={() => { setAction('Entrada'); setDetails(''); }}
-              >
-                <ArrowUpCircle size={18} /> Entrada
-              </button>
-              <button
-                className={`op-btn ${action === 'Salida' ? 'active-salida' : ''}`}
-                onClick={() => setAction('Salida')}
+                className="op-btn active-salida"
+                style={{ flex: 1 }}
               >
                 <ArrowDownCircle size={18} /> Salida
               </button>
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              marginTop: 8, padding: '8px 12px', borderRadius: 10,
+              background: 'rgba(141, 198, 63, 0.1)',
+              fontSize: 11, fontWeight: 700, color: 'hsl(var(--primary))'
+            }}>
+              <Sparkles size={13} />
+              <span>Las entradas de inventario se realizan únicamente mediante <button
+                type="button"
+                onClick={() => { onClose(); navigate('/invoice-ai'); }}
+                style={{ background: 'none', border: 'none', color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit', padding: 0 }}
+              >Carga IA de Facturas</button>.</span>
             </div>
           </div>
 

@@ -11,12 +11,15 @@ import {
   Plus, Download, Upload, Search, Filter, Loader2, Trash2, Edit3, 
   ClipboardCheck, Activity, Layers, Printer, ChevronDown, Landmark,
   RotateCcw, HandMetal, Package, AlertTriangle, PenTool, Box,
-  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle
+  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle,
+  Sparkles
 } from 'lucide-react';
 import { exportToExcel } from '../utils/exportUtils';
-import { processInventoryExcel } from '../utils/importUtils';
+// Import de Excel deshabilitado: entradas solo vía Carga IA de Facturas
+// import { processInventoryExcel } from '../utils/importUtils';
 import { toast } from 'sonner';
 import { useCategories } from '../context/CategoriesContext';
+import { useNavigate } from 'react-router-dom';
 import './InventoryView.css';
 
 /**
@@ -124,10 +127,11 @@ const SECONDARY_BTN_STYLE = {
 };
 
 const InventoryView = ({ categoryTitle }) => {
-  const { items, personnel, updateStock, addItem, deleteItem, editItem, loanItem, returnItem, bulkAddItems, auditStock, loading } = useInventory();
+  const { items, personnel, updateStock, addItem, deleteItem, editItem, loanItem, returnItem, auditStock, loading } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
   const location = useLocation();
+  const navigate = useNavigate();
   const [visibleCount, setVisibleCount] = useState(40);
   const observerTarget = useRef(null);
   
@@ -347,33 +351,14 @@ const InventoryView = ({ categoryTitle }) => {
             <span>Exportar Todo</span>
           </button>
 
-          <button 
-            className="fly-btn fly-btn-secondary"
-            style={SECONDARY_BTN_STYLE}
-            onClick={() => document.getElementById('import-file-input').click()}
-          >
-            <Upload size={16} />
-            <span>Importar</span>
-          </button>
-          <input 
-            id="import-file-input"
-            type="file" 
-            className="hidden" 
-            accept=".xlsx,.xls" 
-            onChange={async (e) => {
-              const data = await processInventoryExcel(e.target.files[0]);
-              if (data) bulkAddItems(data, categoryTitle, userData?.name || 'Jonathan');
-            }}
-          />
-
           {canAddTo(categoryTitle) && (
             <button 
               className={`fly-btn fly-btn-primary fly-btn-${zoneColor}`} 
-              onClick={() => { setSelectedItem(null); setIsAddModalOpen(true); }}
+              onClick={() => navigate('/invoice-ai')}
               style={{ opacity: 1, visibility: 'visible', display: 'flex' }}
             >
-              <Plus size={16} />
-              <span>Nuevo Artículo</span>
+              <Sparkles size={16} />
+              <span>Entrada vía Factura IA</span>
             </button>
           )}
         </div>
