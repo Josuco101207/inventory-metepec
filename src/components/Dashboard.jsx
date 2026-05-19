@@ -382,40 +382,46 @@ const Dashboard = () => {
               const ts = mov.timestamp?.toDate ? mov.timestamp.toDate() : new Date(mov.timestamp);
               return (
                 <div key={mov.id} className="fly-mov-row">
-                  <div className="fly-mov-main">
-                    <span className="fly-mov-badge" style={{ color: cfg.color, borderColor: cfg.color }}>
-                      <Icon size={10} /> {cfg.label}
-                    </span>
-                    <div className="fly-mov-info">
-                      <span className="fly-mov-name">{mov.item}</span>
-                      <span className="fly-mov-cat">
-                        {mov.category || 'GRAL'} {mov.subcategory ? `· ${mov.subcategory}` : ''}
+                  {/* Fila superior: badge+nombre | cantidad */}
+                  <div className="fly-mov-top-row">
+                    <div className="fly-mov-main">
+                      <span className="fly-mov-badge" style={{ color: cfg.color, borderColor: cfg.color }}>
+                        <Icon size={10} /> {cfg.label}
                       </span>
+                      <div className="fly-mov-info">
+                        <span className="fly-mov-name">{mov.item}</span>
+                        <span className="fly-mov-cat">
+                          {mov.category || 'GRAL'} {mov.subcategory ? `· ${mov.subcategory}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="fly-mov-qty-wrap">
+                      <span className="fly-mov-qty">{mov.qty}</span>
                     </div>
                   </div>
-                  <div className="fly-mov-notes">
-                    {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (<>
-                      {text || '—'}
-                      {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
-                        <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6 }}>
-                          <img src={facturaUrl} alt="factura" style={{ width: 48, height: 36, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', verticalAlign: 'middle' }} />
-                        </a>
-                      )}
-                      {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
-                        <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
-                      )}
-                    </>); })()}
-                  </div>
-                  <div className="fly-mov-qty-wrap">
-                    <span className="fly-mov-qty">{mov.qty}</span>
-                  </div>
-                  <div className="fly-mov-meta">
-                    <span className="fly-mov-user">
-                      <User size={10} /> {mov.user || userData?.name || 'SISTEMA'}
-                    </span>
-                    <span className="fly-mov-time">
-                      {ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </span>
+                  {/* Fila inferior: detalle+thumbnail | usuario+hora */}
+                  <div className="fly-mov-bottom-row">
+                    <div className="fly-mov-notes">
+                      {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (<>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text || '—'}</span>
+                        {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer">
+                            <img src={facturaUrl} alt="factura" style={{ width: 36, height: 28, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
+                          </a>
+                        )}
+                        {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.68rem', color: '#a78bfa', textDecoration: 'none', flexShrink: 0 }}>📄 PDF</a>
+                        )}
+                      </>); })()}
+                    </div>
+                    <div className="fly-mov-meta">
+                      <span className="fly-mov-user">
+                        <User size={10} /> {mov.user || userData?.name || 'SISTEMA'}
+                      </span>
+                      <span className="fly-mov-time">
+                        {ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
