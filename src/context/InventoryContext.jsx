@@ -163,6 +163,9 @@ export const InventoryProvider = ({ children }) => {
           }
         }
       });
+      console.log('[Inventory] urlById:', urlById);
+      console.log('[Inventory] urlByName keys:', Object.keys(urlByName));
+      console.log('[Inventory] items con factura_url:', allItems.filter(i => i.factura_url).map(i => i.name));
 
       setItemsState(allItems);
     } catch (err) {
