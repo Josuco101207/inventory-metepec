@@ -20,7 +20,7 @@ const MatchBadge = ({ score, isExact, isNew }) => {
   return <span className="irf-badge irf-badge-low"><AlertTriangle size={12} /> Baja ({Math.round(score * 100)}%)</span>;
 };
 
-const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => {
+const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, facturaStorageUrl }) => {
   const { items: inventoryItems, addItem, updateStock } = useInventory();
   const { categories } = useCategories();
   const { userData } = useAuth();
@@ -168,13 +168,13 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl }) => 
             precioUnitario: item.precioUnitario,
             iva: item.iva,
             unidad: item.unidad,
-          }, userName);
+          }, userName, facturaStorageUrl || null);
         } else if (item.mappedItemId) {
           await updateStock(
             item.mappedItemId,
             Math.round(item.cantidad),
             userName,
-            `Ingreso Factura ${header.folio} | ${header.proveedor}${detallesStr}`
+            `Ingreso Factura ${header.folio} | ${header.proveedor}${detallesStr}${facturaStorageUrl ? ' | factura_url:' + facturaStorageUrl : ''}`
           );
         }
       }

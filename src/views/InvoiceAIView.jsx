@@ -3,6 +3,7 @@ import { Sparkles, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
 import InvoiceUploader from '../components/InvoiceUploader';
 import InvoiceReviewForm from '../components/InvoiceReviewForm';
 import { processInvoice } from '../services/invoiceAI';
+import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
 import './InvoiceAIView.css';
 
@@ -17,6 +18,7 @@ const InvoiceAIView = () => {
   const [step, setStep] = useState(STEPS.UPLOAD);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [facturaStorageUrl, setFacturaStorageUrl] = useState(null);
   const [extractedData, setExtractedData] = useState(null);
   const [result, setResult] = useState(null);
 
@@ -34,8 +36,13 @@ const InvoiceAIView = () => {
     }
     setStep(STEPS.PROCESSING);
     try {
-      const data = await processInvoice(file);
+      // Subir factura a Storage y procesar con IA en paralelo
+      const [data, storageUrl] = await Promise.all([
+        processInvoice(file),
+        uploadFactura(file).catch(e => { console.warn('Storage upload failed:', e.message); return null; }),
+      ]);
       setExtractedData(data);
+      setFacturaStorageUrl(storageUrl);
       setStep(STEPS.REVIEW);
       toast.success('Factura procesada exitosamente');
     } catch (err) {
@@ -65,6 +72,7 @@ const InvoiceAIView = () => {
     setStep(STEPS.UPLOAD);
     setFile(null);
     setPreviewUrl(null);
+    setFacturaStorageUrl(null);
     setExtractedData(null);
     setResult(null);
   }, []);
@@ -111,7 +119,8 @@ const InvoiceAIView = () => {
       {step === STEPS.REVIEW && extractedData && (
         <InvoiceReviewForm
           extractedData={extractedData}
-          previewUrl={previewUrl}
+          previewUrl={facturaStorageUrl || previewUrl}
+          facturaStorageUrl={facturaStorageUrl}
           onBack={() => setStep(STEPS.UPLOAD)}
           onConfirm={handleConfirm}
         />

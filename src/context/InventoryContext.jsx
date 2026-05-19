@@ -139,7 +139,7 @@ export const InventoryProvider = ({ children }) => {
       const movements = await sbFetchMovements(500);
       const urlMap = {};
       movements.forEach(m => {
-        if (m.action === 'Alta' && m.details && m.details.includes('factura_url:')) {
+        if (m.details && m.details.includes('factura_url:')) {
           const match = m.details.match(/factura_url:(https?:\/\/\S+)/);
           if (match) {
             const itemName = m.item;
@@ -286,9 +286,16 @@ export const InventoryProvider = ({ children }) => {
         const updates = mapToDbFields({ qty: newQty }, validColumns);
         await sbUpdateItem(tableName, itemId, updates);
       }
+      // Extraer factura_url del customDetails si viene incluida
+      const urlMatch = customDetails?.match(/factura_url:(https?:\/\/\S+)/);
+      const facturaUrl = urlMatch ? urlMatch[1] : null;
       setItemsState(prev => {
         const updated = [...prev];
-        updated[itemIndex] = { ...updated[itemIndex], qty: newQty };
+        updated[itemIndex] = {
+          ...updated[itemIndex],
+          qty: newQty,
+          ...(facturaUrl && !updated[itemIndex].factura_url ? { factura_url: facturaUrl } : {}),
+        };
         return updated;
       });
       
