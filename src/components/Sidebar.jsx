@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Package, PenTool, Cpu, Printer, Landmark,
   LayoutDashboard, Settings, User, LogOut, ShieldCheck, Users, Layers, Archive, History,
-  Menu, X, Database, Sparkles, PlusCircle
+  Menu, X, Database, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import FlyLogo from './FlyLogo';
@@ -136,12 +136,6 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
                   <NavLink to="/invoice-ai" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                     <Sparkles size={20} />
                     <span>Carga IA</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/manual-entry" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                    <PlusCircle size={20} />
-                    <span>Ingreso Manual</span>
                   </NavLink>
                 </li>
                 <li>

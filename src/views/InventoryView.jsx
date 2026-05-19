@@ -11,8 +11,7 @@ import {
   Plus, Download, Upload, Search, Filter, Loader2, Trash2, Edit3, 
   ClipboardCheck, Activity, Layers, Printer, ChevronDown, Landmark,
   RotateCcw, HandMetal, Package, AlertTriangle, PenTool, Box,
-  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle,
-  Sparkles
+  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle, PlusCircle
 } from 'lucide-react';
 import { exportToExcel } from '../utils/exportUtils';
 // Import de Excel deshabilitado: entradas solo vía Carga IA de Facturas
@@ -352,14 +351,24 @@ const InventoryView = ({ categoryTitle }) => {
           </button>
 
           {canAddTo(categoryTitle) && (
-            <button 
-              className={`fly-btn fly-btn-primary fly-btn-${zoneColor}`} 
-              onClick={() => navigate('/invoice-ai')}
-              style={{ opacity: 1, visibility: 'visible', display: 'flex' }}
-            >
-              <Sparkles size={16} />
-              <span>Entrada vía Factura IA</span>
-            </button>
+            <>
+              <button 
+                className={`fly-btn fly-btn-primary fly-btn-${zoneColor}`} 
+                onClick={() => navigate('/invoice-ai')}
+                style={{ opacity: 1, visibility: 'visible', display: 'flex' }}
+              >
+                <Sparkles size={16} />
+                <span>Entrada vía Factura IA</span>
+              </button>
+              <button 
+                className={`fly-btn fly-btn-primary fly-btn-${zoneColor}`} 
+                onClick={() => navigate('/manual-entry')}
+                style={{ opacity: 1, visibility: 'visible', display: 'flex' }}
+              >
+                <PlusCircle size={16} />
+                <span>Ingreso Manual</span>
+              </button>
+            </>
           )}
         </div>
       </section>
