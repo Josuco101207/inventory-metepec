@@ -185,9 +185,10 @@
   /* ─── Search & Actions ─── */
   .fly-inventory-actions {
     display: flex !important;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row !important;
+    gap: 8px;
     margin-bottom: 18px;
+    align-items: center;
   }
 
   .fly-search-wrapper {
