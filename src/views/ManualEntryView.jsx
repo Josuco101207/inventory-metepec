@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useCategories } from '../context/CategoriesContext';
 import { toast } from 'sonner';
+import { uploadFactura } from '../services/uploadFactura';
 import { Package, Plus, Trash2, Save, AlertCircle, Loader2, Upload, Camera, FileImage, X, CheckCircle2 } from 'lucide-react';
 import './ManualEntryView.css';
 
@@ -163,7 +164,17 @@ const ManualEntryView = () => {
     setSaving(true);
     try {
       const userName = userData?.name || userData?.email || 'Sistema';
-      
+
+      // Subir foto de factura a Supabase Storage (comprimida)
+      let facturaUrl = null;
+      try {
+        facturaUrl = await uploadFactura(facturaFile);
+      } catch (uploadErr) {
+        toast.error('No se pudo subir la foto de factura: ' + uploadErr.message);
+        setSaving(false);
+        return;
+      }
+
       for (const line of lines) {
         const schema = line.category ? getCategorySchema(line.category) : [];
         
@@ -175,8 +186,10 @@ const ManualEntryView = () => {
         });
         
         // Observaciones del ingreso (sólo si hay campo en la tabla o como metadata)
-        const noteStr = `Ingreso Manual${proveedor ? ' | Proveedor: ' + proveedor : ''}${observaciones ? ' | ' + observaciones : ''}`;
+        const noteStr = `Ingreso Manual${proveedor ? ' | Proveedor: ' + proveedor : ''}${observaciones ? ' | ' + observaciones : ''}${facturaUrl ? ' | Factura: ' + facturaUrl : ''}`;
         if (schema.find(f => f.name === 'observaciones')) productData.observaciones = noteStr;
+        // Guardar URL de factura si la tabla tiene ese campo
+        if (facturaUrl && schema.find(f => f.name === 'factura_url')) productData.factura_url = facturaUrl;
         
         // Buscar producto existente por nombre
         const productName = productData.name || '';

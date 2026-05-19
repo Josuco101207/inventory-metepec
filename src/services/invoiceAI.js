@@ -629,7 +629,7 @@ async function processWithMock() {
 /**
  * Compresses an image file to reduce size before sending to AI.
  */
-function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
+export function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const srcUrl = URL.createObjectURL(file);
