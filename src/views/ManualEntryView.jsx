@@ -49,7 +49,9 @@ const ManualEntryView = () => {
   // Helper para obtener el schema de una categoría
   const getCategorySchema = useCallback((categoryTitle) => {
     const cat = getCategoryByTitle(categoryTitle);
-    return cat?.schema || [];
+    const schema = cat?.schema || [];
+    console.log('Schema for', categoryTitle, ':', schema);
+    return schema;
   }, [getCategoryByTitle]);
 
   // Helper para mapear tipos de DB a tipos de input
@@ -299,7 +301,9 @@ const ManualEntryView = () => {
                 <th style={{ width: 80 }}>Cantidad</th>
                 <th style={{ width: 90 }}>U.M</th>
                 <th style={{ width: 150 }}>Categoría</th>
-                {lines[0]?.category && getCategorySchema(lines[0].category).map(field => (
+                {lines[0]?.category && getCategorySchema(lines[0].category).filter(field => 
+                  !['cantidad', 'um', 'precioUnitario', 'qty', 'id', 'created_at', 'updated_at', 'status', 'prestados', 'borrowedBy', 'lentBy', 'loanDate'].includes(field.name)
+                ).map(field => (
                   <th key={field.name} style={{ minWidth: 120 }}>
                     {field.label || field.name}
                   </th>
