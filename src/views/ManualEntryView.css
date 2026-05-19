@@ -422,3 +422,147 @@
     width: 100%;
   }
 }
+
+/* ─── Factura Upload Block ─── */
+.me-factura-card {
+  border: 2px solid hsl(var(--border-color));
+  transition: border-color 0.2s;
+}
+
+.me-card-error {
+  border-color: hsl(var(--danger)) !important;
+}
+
+.me-card-ok {
+  border-color: hsl(var(--success, 142 70% 45%)) !important;
+}
+
+.me-factura-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--text-primary));
+  margin-bottom: 1rem;
+}
+
+.me-badge-required {
+  margin-left: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  background: hsla(var(--danger), 0.15);
+  color: hsl(var(--danger));
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.me-factura-check {
+  margin-left: auto;
+  color: hsl(var(--success, 142 70% 45%));
+}
+
+.me-factura-dropzone {
+  border: 2px dashed hsl(var(--border-color));
+  border-radius: 10px;
+  padding: 2rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--text-secondary));
+}
+
+.me-factura-dropzone:hover,
+.me-factura-dropzone-active {
+  border-color: hsl(var(--primary));
+  background: hsla(var(--primary), 0.05);
+  color: hsl(var(--text-primary));
+}
+
+.me-factura-dropzone p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.me-factura-dropzone span {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.me-factura-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.me-factura-preview-img {
+  max-height: 220px;
+  max-width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.me-factura-pdf-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: hsla(var(--surface-2, 220 15% 18%), 1);
+  border-radius: 8px;
+  color: hsl(var(--text-secondary));
+  font-size: 0.85rem;
+}
+
+.me-factura-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.me-factura-filename {
+  font-size: 0.8rem;
+  color: hsl(var(--text-secondary));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.me-factura-clear {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid hsl(var(--danger));
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--danger));
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.me-factura-clear:hover {
+  background: hsla(var(--danger), 0.1);
+}
+
+.me-factura-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.me-factura-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}

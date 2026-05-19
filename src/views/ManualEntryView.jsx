@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useCategories } from '../context/CategoriesContext';
 import { toast } from 'sonner';
-import { Package, Plus, Trash2, Save, AlertCircle, Loader2 } from 'lucide-react';
+import { Package, Plus, Trash2, Save, AlertCircle, Loader2, Upload, Camera, FileImage, X, CheckCircle2 } from 'lucide-react';
 import './ManualEntryView.css';
 
 
@@ -33,6 +33,38 @@ const ManualEntryView = () => {
   const [lines, setLines] = useState([emptyLine()]);
   const [proveedor, setProveedor] = useState('');
   const [observaciones, setObservaciones] = useState('');
+  const [facturaFile, setFacturaFile] = useState(null);
+  const [facturaPreview, setFacturaPreview] = useState(null);
+  const [facturaDragOver, setFacturaDragOver] = useState(false);
+  const facturaFileRef = React.useRef(null);
+  const facturaCameraRef = React.useRef(null);
+
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
+
+  const handleFacturaFile = useCallback((file) => {
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error('Formato no soportado. Usa JPG, PNG, WebP o PDF.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('El archivo excede 10MB.');
+      return;
+    }
+    setFacturaFile(file);
+    if (file.type.startsWith('image/')) {
+      setFacturaPreview(URL.createObjectURL(file));
+    } else {
+      setFacturaPreview(null);
+    }
+  }, []);
+
+  const clearFactura = useCallback(() => {
+    setFacturaFile(null);
+    setFacturaPreview(null);
+    if (facturaFileRef.current) facturaFileRef.current.value = '';
+    if (facturaCameraRef.current) facturaCameraRef.current.value = '';
+  }, []);
 
 
   const categoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
@@ -86,6 +118,10 @@ const ManualEntryView = () => {
   // ─── Validation ───
   const validate = useCallback(() => {
     const e = {};
+
+    if (!facturaFile) {
+      e.factura = true;
+    }
     
     lines.forEach((line, idx) => {
       if (!line.category) {
@@ -110,7 +146,7 @@ const ManualEntryView = () => {
 
     setErrors(e);
     return Object.keys(e).length === 0;
-  }, [lines, getCategorySchema]);
+  }, [lines, getCategorySchema, facturaFile]);
 
   // ─── Save ───
   const handleSave = useCallback(async () => {
@@ -161,13 +197,14 @@ const ManualEntryView = () => {
       setObservaciones('');
       setLines([emptyLine()]);
       setErrors({});
+      clearFactura();
     } catch (err) {
       console.error('Error en ingreso manual:', err);
       toast.error('Error al procesar el ingreso manual: ' + err.message);
     } finally {
       setSaving(false);
     }
-  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName]);
+  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName, clearFactura]);
 
   if (authLoading) {
     return (
@@ -183,19 +220,69 @@ const ManualEntryView = () => {
       <div className="me-header">
         <div className="me-header-left">
           <div className="me-header-icon"><Package size={26} /></div>
-          <h1>Ingreso Manual de Productos<span>Registro sin factura</span></h1>
+          <h1>Ingreso Manual de Productos<span>Con evidencia de factura</span></h1>
         </div>
       </div>
 
-      {/* Info Section */}
-      <div className="me-card me-info-card">
-        <div className="me-info-content">
-          <AlertCircle size={20} className="me-info-icon" />
-          <div className="me-info-text">
-            <h3>Ingreso Manual</h3>
-            <p>Este modo permite ingresar productos sin factura. El sistema registrará el movimiento pero no validará cantidades contra ningún documento.</p>
-          </div>
+      {/* Foto de Factura - OBLIGATORIO */}
+      <div className={`me-card me-factura-card ${errors.factura ? 'me-card-error' : facturaFile ? 'me-card-ok' : ''}`}>
+        <div className="me-factura-header">
+          <FileImage size={18} />
+          <span>Foto / Archivo de Factura</span>
+          <span className="me-badge-required">REQUERIDO</span>
+          {facturaFile && <CheckCircle2 size={16} className="me-factura-check" />}
         </div>
+
+        {facturaFile ? (
+          <div className="me-factura-preview-wrap">
+            {facturaPreview ? (
+              <img src={facturaPreview} alt="Factura" className="me-factura-preview-img" />
+            ) : (
+              <div className="me-factura-pdf-badge">
+                <FileImage size={32} />
+                <span>{facturaFile.name}</span>
+              </div>
+            )}
+            <div className="me-factura-preview-actions">
+              <span className="me-factura-filename">{facturaFile.name}</span>
+              <button className="me-factura-clear" onClick={clearFactura} title="Quitar archivo">
+                <X size={16} /> Cambiar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`me-factura-dropzone ${facturaDragOver ? 'me-factura-dropzone-active' : ''}`}
+            onDragOver={(e) => { e.preventDefault(); setFacturaDragOver(true); }}
+            onDragLeave={() => setFacturaDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setFacturaDragOver(false); handleFacturaFile(e.dataTransfer.files?.[0]); }}
+            onClick={() => facturaFileRef.current?.click()}
+          >
+            <Upload size={28} />
+            <p>Arrastra la factura aquí o haz clic para seleccionar</p>
+            <span>JPG, PNG, WebP, PDF · Máx 10MB</span>
+          </div>
+        )}
+
+        <div className="me-factura-actions">
+          <button className="fly-btn fly-btn-secondary me-factura-btn" onClick={() => facturaFileRef.current?.click()}>
+            <FileImage size={16} /> Subir Archivo
+          </button>
+          <button className="fly-btn fly-btn-secondary me-factura-btn" onClick={() => facturaCameraRef.current?.click()}>
+            <Camera size={16} /> Tomar Foto
+          </button>
+        </div>
+
+        <input ref={facturaFileRef} type="file" accept={ACCEPTED_TYPES.join(',')} style={{ display: 'none' }}
+          onChange={(e) => handleFacturaFile(e.target.files?.[0])} />
+        <input ref={facturaCameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+          onChange={(e) => handleFacturaFile(e.target.files?.[0])} />
+
+        {errors.factura && (
+          <div className="me-validation-msg me-msg-error" style={{ marginTop: '0.5rem' }}>
+            <AlertCircle size={14} /> Debes adjuntar la foto o archivo de la factura para continuar.
+          </div>
+        )}
       </div>
 
       {/* Header Fields */}
