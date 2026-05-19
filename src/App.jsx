@@ -54,6 +54,7 @@ const AnalyticsView = lazy(() => import('./views/AnalyticsView'));
 const ToolsView = lazy(() => import('./views/ToolsView'));
 const InvoicesView = lazy(() => import('./views/InvoicesView'));
 const InvoiceAIView = lazy(() => import('./views/InvoiceAIView'));
+const ManualEntryView = lazy(() => import('./views/ManualEntryView'));
 
 import { InventoryProvider, useInventory } from './context/InventoryContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -165,6 +166,7 @@ const RootApp = () => {
               <Route path="/tools" element={isAdmin ? <ToolsView /> : <Navigate to="/" />} />
               <Route path="/invoices" element={isAdmin ? <InvoicesView /> : <Navigate to="/" />} />
               <Route path="/invoice-ai" element={<InvoiceAIView />} />
+              <Route path="/manual-entry" element={<ManualEntryView />} />
               <Route path="/settings" element={isAdmin ? <SettingsView /> : <Navigate to="/" />} />
               <Route path="/profile" element={<ProfileView />} />
               <Route path="/users" element={isAdmin ? <UserManagementView /> : <Navigate to="/" />} />
