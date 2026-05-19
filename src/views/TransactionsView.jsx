@@ -230,17 +230,17 @@ const TransactionsView = () => {
 
                   <div className="invt-cell-details">
                     {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (
-                      <>
-                        <span className="invt-detail-text">{text || 'Sin detalles adicionales'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                        <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
                         {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6 }}>
-                            <img src={facturaUrl} alt="factura" style={{ width: 52, height: 38, objectFit: 'cover', borderRadius: 7, border: '1px solid rgba(255,255,255,0.15)' }} />
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
+                            <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} />
                           </a>
                         )}
                         {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
                         )}
-                      </>
+                      </div>
                     ); })()}
                     <div className="invt-detail-meta">
                       <div className="invt-user-tag">
