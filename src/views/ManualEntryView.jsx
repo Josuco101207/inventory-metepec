@@ -93,6 +93,23 @@ const ManualEntryView = () => {
     return { subtotal, iva, total: subtotal + iva };
   }, [lines]);
 
+  // Helper para buscar producto por nombre y categoría (definido antes de handleSave)
+  const findProductByName = useCallback((name, category) => {
+    // Buscar producto exacto por nombre y categoría
+    const exactMatch = items.find(
+      item => item.name.toLowerCase() === name.toLowerCase() && item.category === category
+    );
+    
+    if (exactMatch) return exactMatch;
+    
+    // Si no hay coincidencia exacta, buscar solo por nombre (ignorando categoría)
+    const nameMatch = items.find(
+      item => item.name.toLowerCase() === name.toLowerCase()
+    );
+    
+    return nameMatch || null;
+  }, [items]);
+
   // ─── Validation ───
   const validate = useCallback(() => {
     const e = {};
@@ -210,23 +227,6 @@ const ManualEntryView = () => {
       setSaving(false);
     }
   }, [validate, lines, proveedor, observaciones, currency, tipoCambio, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName]);
-
-  // Helper para buscar producto por nombre y categoría
-  const findProductByName = (name, category) => {
-    // Buscar producto exacto por nombre y categoría
-    const exactMatch = items.find(
-      item => item.name.toLowerCase() === name.toLowerCase() && item.category === category
-    );
-    
-    if (exactMatch) return exactMatch;
-    
-    // Si no hay coincidencia exacta, buscar solo por nombre (ignorando categoría)
-    const nameMatch = items.find(
-      item => item.name.toLowerCase() === name.toLowerCase()
-    );
-    
-    return nameMatch || null;
-  };
 
   if (authLoading) {
     return (
