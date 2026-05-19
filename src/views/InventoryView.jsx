@@ -11,7 +11,7 @@ import {
   Plus, Download, Upload, Search, Filter, Loader2, Trash2, Edit3, 
   ClipboardCheck, Activity, Layers, Printer, ChevronDown, Landmark,
   RotateCcw, HandMetal, Package, AlertTriangle, PenTool, Box,
-  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle, PlusCircle
+  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle, PlusCircle, Sparkles
 } from 'lucide-react';
 import { exportToExcel } from '../utils/exportUtils';
 // Import de Excel deshabilitado: entradas solo vía Carga IA de Facturas
