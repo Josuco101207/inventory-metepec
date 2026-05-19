@@ -40,7 +40,18 @@ const InvoiceAIView = () => {
       toast.success('Factura procesada exitosamente');
     } catch (err) {
       console.error('Invoice processing error:', err);
-      toast.error('Error al procesar la factura: ' + err.message);
+      const msg = err.message || '';
+      let friendly = 'Ocurrió un error al procesar la factura. Intenta de nuevo.';
+      if (msg.toLowerCase().includes('high demand') || msg.toLowerCase().includes('overloaded') || msg.toLowerCase().includes('spike') || msg.toLowerCase().includes('503') || msg.toLowerCase().includes('429')) {
+        friendly = 'La IA está muy ocupada en este momento. Espera unos segundos y vuelve a intentarlo.';
+      } else if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('limit')) {
+        friendly = 'Se alcanzó el límite de uso de la IA. Intenta más tarde.';
+      } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('failed to fetch')) {
+        friendly = 'Sin conexión a internet. Verifica tu red y vuelve a intentarlo.';
+      } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('400')) {
+        friendly = 'El archivo no pudo ser leído por la IA. Intenta con una imagen más clara.';
+      }
+      toast.error(friendly, { duration: 6000 });
       setStep(STEPS.UPLOAD);
     }
   }, [file]);
