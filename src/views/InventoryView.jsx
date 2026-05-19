@@ -466,6 +466,9 @@ const InventoryView = ({ categoryTitle }) => {
                     </div>
                   </div>
                   <div className="fly-lr-actions">
+                    {item.factura_url && (
+                      <button className="fly-action-btn fly-action-purple" onClick={() => handlers.handleViewFactura(item)} title="Ver Factura"><FileImage size={14} /></button>
+                    )}
                     {(isStaff || canEditIn(categoryTitle)) && (
                       <>
                         <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>

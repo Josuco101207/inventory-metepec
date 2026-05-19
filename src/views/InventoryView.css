@@ -887,6 +887,17 @@
   box-shadow: 0 4px 20px rgba(255, 0, 150, 0.4);
 }
 
+.fly-action-purple {
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+.fly-action-purple:hover {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: var(--fly-white);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+}
+
 /* ═══ EMPTY STATE ═══ */
 .fly-inventory-empty {
   display: flex;
