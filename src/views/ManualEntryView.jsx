@@ -199,7 +199,7 @@ const ManualEntryView = () => {
         if (existingProduct && qty > 0) {
           await updateStock(existingProduct.id, qty, userName, noteStr);
         } else {
-          await addItem(productData, userName);
+          await addItem(productData, userName, facturaUrl);
         }
       }
 

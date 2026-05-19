@@ -134,6 +134,25 @@ export const InventoryProvider = ({ children }) => {
           allItems.push({ ...normalizedRow, category: cat.title, _tableName: cat.tableName });
         });
       }));
+
+      // Enriquecer items con factura_url extraída de los movements de "Alta"
+      const movements = await sbFetchMovements(500);
+      const urlMap = {};
+      movements.forEach(m => {
+        if (m.action === 'Alta' && m.details && m.details.includes('factura_url:')) {
+          const match = m.details.match(/factura_url:(https?:\/\/\S+)/);
+          if (match) {
+            const itemName = m.item;
+            if (itemName && !urlMap[itemName]) urlMap[itemName] = match[1];
+          }
+        }
+      });
+      allItems.forEach(item => {
+        if (!item.factura_url && item.name && urlMap[item.name]) {
+          item.factura_url = urlMap[item.name];
+        }
+      });
+
       setItemsState(allItems);
     } catch (err) {
       console.error('[Inventory] Load items error:', err);
@@ -451,7 +470,7 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [addMovement, getTableName]);
 
-  const addItem = useCallback(async (newItem, userName = 'Jonathan') => {
+  const addItem = useCallback(async (newItem, userName = 'Jonathan', facturaUrl = null) => {
     const tableName = getTableName(newItem.category);
     if (!tableName) {
       toast.error('No se encontró la tabla para esta categoría');
@@ -468,8 +487,12 @@ export const InventoryProvider = ({ children }) => {
       const createdItem = await sbInsertItem(tableName, dbFields);
 
       if (createdItem) {
-        setItemsState(prev => [...prev, { ...createdItem, category: newItem.category, _tableName: tableName }]);
-        addMovement('Alta', newItem.name || 'Sin nombre', parseInt(newItem.qty) || 0, userName, 'Artículo agregado al inventario', newItem.category || 'General');
+        const details = facturaUrl
+          ? `Artículo agregado al inventario | factura_url:${facturaUrl}`
+          : 'Artículo agregado al inventario';
+        // Guardar factura_url en memoria para mostrar botón inmediatamente
+        setItemsState(prev => [...prev, { ...createdItem, category: newItem.category, _tableName: tableName, factura_url: facturaUrl || undefined }]);
+        addMovement('Alta', newItem.name || 'Sin nombre', parseInt(newItem.qty) || 0, userName, details, newItem.category || 'General');
         toast.success(`Artículo creado: ${newItem.name || 'Sin nombre'}`);
       }
     } catch (err) {
