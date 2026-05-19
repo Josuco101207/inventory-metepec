@@ -32,6 +32,8 @@
   /* ─── Body baseline ─── */
   body {
     background: var(--m-bg) !important;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* ═══════════════════════════════════════════════════════════════

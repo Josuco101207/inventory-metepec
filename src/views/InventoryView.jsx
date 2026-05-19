@@ -20,6 +20,8 @@ import { exportToExcel } from '../utils/exportUtils';
 import { toast } from 'sonner';
 import { useCategories } from '../context/CategoriesContext';
 import { useNavigate } from 'react-router-dom';
+import useIsMobile from '../hooks/useIsMobile';
+import MobileInventoryCard from '../components/MobileInventoryCard';
 import './InventoryView.css';
 
 /**
@@ -135,6 +137,7 @@ const InventoryView = ({ categoryTitle }) => {
   const { items, personnel, updateStock, addItem, deleteItem, editItem, loanItem, returnItem, auditStock, loading } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
+  const { isMobile } = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
   const [visibleCount, setVisibleCount] = useState(40);
@@ -258,7 +261,8 @@ const InventoryView = ({ categoryTitle }) => {
 
   return (
     <div className="fly-inventory-view">
-      <Header />
+      {/* Desktop: Header. Mobile: provided by App layout */}
+      {!isMobile && <Header />}
 
       <FlyPattern fixed opacity={0.04} />
 
@@ -427,64 +431,85 @@ const InventoryView = ({ categoryTitle }) => {
       <section className="fly-inventory-list-wrap">
         {filteredItems.length > 0 ? (
           <>
-            <div className="fly-list-header">
-              <span className="fly-lh-name">ARTÍCULO</span>
-              <span className="fly-lh-sub">SUBCATEGORÍA</span>
-              <span className="fly-lh-brand">MARCA</span>
-              <span className="fly-lh-location">UBICACIÓN</span>
-              <span className="fly-lh-stock">STOCK</span>
-              <span className="fly-lh-min">MÍN</span>
-              <span className="fly-lh-bar">NIVEL</span>
-              <span className="fly-lh-actions">ACCIONES</span>
-            </div>
-
-            {filteredItems.slice(0, visibleCount).map((item) => {
-              const isCritical = (item.qty || 0) <= (item.threshold || 0);
-              const isLow = !isCritical && (item.qty || 0) <= (item.threshold || 0) * 2;
-              const statusClass = isCritical ? 'critical' : isLow ? 'low' : 'ok';
-              const barPct = Math.min(((item.qty || 0) / Math.max((item.threshold || 1) * 3, 1)) * 100, 100);
-
-              return (
-                <div key={item.id} className={`fly-list-row fly-list-row-${zoneColor} ${isCritical ? 'fly-row-critical' : ''}`}>
-                  <div className="fly-lr-name">
-                    <div className={`fly-lr-avatar fly-lravatar-${zoneColor}`}>
-                      {item.name ? item.name.charAt(0).toUpperCase() : '?'}
-                    </div>
-                    <span className="fly-lr-nametext">{item.name || 'Sin nombre'}</span>
-                  </div>
-                  <span className="fly-lr-sub">{item.subcategory || '—'}</span>
-                  <span className="fly-lr-brand">{item.marca || '—'}</span>
-                  <div className="fly-lr-location">
-                    <Landmark size={11} />
-                    <span>{item.location || 'General'}</span>
-                  </div>
-                  <span className={`fly-lr-stock ${statusClass}`}>{item.qty ?? 0} <em>{item.unit || 'pz'}</em></span>
-                  <span className="fly-lr-min">{item.threshold || 0}</span>
-                  <div className="fly-lr-bar">
-                    <div className="fly-stock-bar-bg">
-                      <div className={`fly-stock-bar ${statusClass}`} style={{ width: `${barPct}%` }} />
-                    </div>
-                  </div>
-                  <div className="fly-lr-actions">
-                    {item.factura_url && (
-                      <button className="fly-action-btn fly-action-purple" onClick={() => handlers.handleViewFactura(item)} title="Ver Factura"><FileImage size={14} /></button>
-                    )}
-                    {(isStaff || canEditIn(categoryTitle)) && (
-                      <>
-                        <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>
-                        <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={14} /></button>
-                      </>
-                    )}
-                    {(isAdmin || canEditIn(categoryTitle)) && (
-                      <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar"><Edit3 size={14} /></button>
-                    )}
-                    {isAdmin && (
-                      <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar"><Trash2 size={14} /></button>
-                    )}
-                  </div>
+            {isMobile ? (
+              /* ── MOBILE: Card layout ── */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {filteredItems.slice(0, visibleCount).map((item) => (
+                  <MobileInventoryCard
+                    key={item.id}
+                    item={item}
+                    zoneColor={zoneColor}
+                    isAdmin={isAdmin}
+                    isStaff={isStaff}
+                    canEditIn={canEditIn}
+                    categoryTitle={categoryTitle}
+                    handlers={handlers}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* ── DESKTOP: Table/List layout ── */
+              <>
+                <div className="fly-list-header">
+                  <span className="fly-lh-name">ARTÍCULO</span>
+                  <span className="fly-lh-sub">SUBCATEGORÍA</span>
+                  <span className="fly-lh-brand">MARCA</span>
+                  <span className="fly-lh-location">UBICACIÓN</span>
+                  <span className="fly-lh-stock">STOCK</span>
+                  <span className="fly-lh-min">MÍN</span>
+                  <span className="fly-lh-bar">NIVEL</span>
+                  <span className="fly-lh-actions">ACCIONES</span>
                 </div>
-              );
-            })}
+
+                {filteredItems.slice(0, visibleCount).map((item) => {
+                  const isCritical = (item.qty || 0) <= (item.threshold || 0);
+                  const isLow = !isCritical && (item.qty || 0) <= (item.threshold || 0) * 2;
+                  const statusClass = isCritical ? 'critical' : isLow ? 'low' : 'ok';
+                  const barPct = Math.min(((item.qty || 0) / Math.max((item.threshold || 1) * 3, 1)) * 100, 100);
+
+                  return (
+                    <div key={item.id} className={`fly-list-row fly-list-row-${zoneColor} ${isCritical ? 'fly-row-critical' : ''}`}>
+                      <div className="fly-lr-name">
+                        <div className={`fly-lr-avatar fly-lravatar-${zoneColor}`}>
+                          {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <span className="fly-lr-nametext">{item.name || 'Sin nombre'}</span>
+                      </div>
+                      <span className="fly-lr-sub">{item.subcategory || '—'}</span>
+                      <span className="fly-lr-brand">{item.marca || '—'}</span>
+                      <div className="fly-lr-location">
+                        <Landmark size={11} />
+                        <span>{item.location || 'General'}</span>
+                      </div>
+                      <span className={`fly-lr-stock ${statusClass}`}>{item.qty ?? 0} <em>{item.unit || 'pz'}</em></span>
+                      <span className="fly-lr-min">{item.threshold || 0}</span>
+                      <div className="fly-lr-bar">
+                        <div className="fly-stock-bar-bg">
+                          <div className={`fly-stock-bar ${statusClass}`} style={{ width: `${barPct}%` }} />
+                        </div>
+                      </div>
+                      <div className="fly-lr-actions">
+                        {item.factura_url && (
+                          <button className="fly-action-btn fly-action-purple" onClick={() => handlers.handleViewFactura(item)} title="Ver Factura"><FileImage size={14} /></button>
+                        )}
+                        {(isStaff || canEditIn(categoryTitle)) && (
+                          <>
+                            <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>
+                            <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={14} /></button>
+                          </>
+                        )}
+                        {(isAdmin || canEditIn(categoryTitle)) && (
+                          <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar"><Edit3 size={14} /></button>
+                        )}
+                        {isAdmin && (
+                          <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar"><Trash2 size={14} /></button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
 
             {visibleCount < filteredItems.length && (
               <div ref={observerTarget} className="fly-inventory-loadmore">

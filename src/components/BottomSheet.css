@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════════════
+   BOTTOM SHEET — Native-feel modal for mobile
+   Slide-up from bottom, drag-to-dismiss, snap points
+   ═══════════════════════════════════════════════════════════════ */
+
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: bs-fade-in 0.2s ease forwards;
+  touch-action: none;
+}
+
+.bottom-sheet-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 19, 18, 0.98);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  border-radius: 28px 28px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -10px 60px rgba(0, 0, 0, 0.5);
+  animation: bs-slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  will-change: transform;
+  touch-action: none;
+}
+
+.bottom-sheet-container.bs-closing {
+  animation: bs-slide-down 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Drag handle area */
+.bs-drag-area {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bs-drag-area:active {
+  cursor: grabbing;
+}
+
+.bs-drag-handle {
+  width: 48px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.bs-drag-area:active .bs-drag-handle {
+  background: rgba(255, 255, 255, 0.55);
+  width: 56px;
+}
+
+/* Header */
+.bs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bs-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.bs-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.bs-close-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Content */
+.bs-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom, 8px));
+}
+
+.bs-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Animations ─── */
+@keyframes bs-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bs-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes bs-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bs-slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.bottom-sheet-overlay.bs-closing {
+  animation: bs-fade-out 0.25s ease forwards;
+}

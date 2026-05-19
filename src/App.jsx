@@ -2,8 +2,10 @@ import React, { Suspense, lazy, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import MobileTabBar from './components/MobileTabBar';
+import MobileHeader from './components/MobileHeader';
 import Dashboard from './components/Dashboard';
 import FlyPattern from './components/FlyPattern';
+import useIsMobile from './hooks/useIsMobile';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -69,6 +71,7 @@ const RootApp = () => {
   const { categories, loading: catsLoading } = useCategories();
   const { loadError, loading: invLoading, syncInventory } = useInventory();
   const [sidebarOpen, setSidebarOpen] = useStateR(false);
+  const { isMobile } = useIsMobile();
 
   if (loading || catsLoading) {
     return (
@@ -130,8 +133,13 @@ const RootApp = () => {
     <Router>
       <FlyPattern fixed opacity={0.04} />
       <div className="app-container" style={{ position: 'relative', zIndex: 1 }}>
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="main-content">
+        {/* Desktop: full sidebar — Mobile: destroyed */}
+        {!isMobile && <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
+
+        <main className={`main-content ${isMobile ? 'main-content--mobile' : ''}`}>
+          {/* Mobile: compact sticky header — Desktop: destroyed */}
+          {isMobile && <MobileHeader />}
+
           {loadError && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '10px',
@@ -175,9 +183,11 @@ const RootApp = () => {
             </Routes>
           </Suspense>
         </main>
-        <MobileTabBar onMorePress={() => setSidebarOpen(true)} />
+
+        {/* Mobile: bottom tab bar — Desktop: destroyed */}
+        {isMobile && <MobileTabBar onMorePress={() => setSidebarOpen(true)} />}
       </div>
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position={isMobile ? 'top-center' : 'top-right'} richColors closeButton />
     </Router>
   );
 };

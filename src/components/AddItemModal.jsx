@@ -3,6 +3,8 @@ import { X, Save, Plus } from 'lucide-react';
 import { useCategories } from '../context/CategoriesContext';
 import './ActionModal.css';
 import './AddItemModal.css';
+import useIsMobile from '../hooks/useIsMobile';
+import BottomSheet from './BottomSheet';
 
 /**
  * Map DB column types to input types
@@ -55,6 +57,7 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
 
   const [formData, setFormData] = useState(blankForm);
   const [saving, setSaving] = useState(false);
+  const { isMobile } = useIsMobile();
 
   useEffect(() => {
     if (isOpen) {
@@ -91,6 +94,49 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
       setSaving(false);
     }
   };
+
+  if (isMobile) {
+    return (
+      <BottomSheet isOpen={isOpen} onClose={onClose} title={`${initialData ? 'Editar' : 'Nuevo'} Artículo`}>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1rem' }}>
+            {visibleFields.length === 0 ? (
+              <p style={{ padding: '2rem', textAlign: 'center', fontSize: '0.8rem', opacity: 0.5 }}>
+                Esta categoría no tiene columnas definidas.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {visibleFields.map(field => {
+                  const inputType = dbTypeToInput(field.type);
+                  return (
+                    <div className="f-group" key={field.name}>
+                      <label>{field.label || field.name}</label>
+                      {field.name === 'observaciones' ? (
+                        <textarea name={field.name} placeholder={`Ingresa ${field.label || field.name}...`} onChange={handleChange} value={formData[field.name] || ''} style={{ width: '100%', padding: '0.75rem', height: '5rem', resize: 'none' }} />
+                      ) : inputType === 'checkbox' ? (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                          <input type="checkbox" name={field.name} checked={!!formData[field.name]} onChange={handleChange} />
+                          <span>{formData[field.name] ? 'Sí' : 'No'}</span>
+                        </label>
+                      ) : (
+                        <input type={inputType} name={field.name} placeholder={`Ingresa ${field.label || field.name}...`} value={formData[field.name] ?? ''} onChange={handleChange} step={inputType === 'number' ? 'any' : undefined} required={field.name === 'name'} style={{ width: '100%' }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem' }}>
+            <button type="button" className="btn-apple-secondary flex-1" onClick={onClose}>Cancelar</button>
+            <button type="submit" className={`btn-fly-primary btn-fly-${zoneColor} flex-1`} disabled={saving || visibleFields.length === 0}>
+              {saving ? 'Guardando...' : (initialData ? 'Guardar' : 'Crear')}
+            </button>
+          </div>
+        </form>
+      </BottomSheet>
+    );
+  }
 
   return (
     <div className="modal-overlay">

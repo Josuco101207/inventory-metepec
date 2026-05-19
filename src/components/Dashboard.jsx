@@ -11,7 +11,7 @@ import {
   Warehouse, History, RotateCcw, RefreshCw, Search, Filter,
   LayoutDashboard, BarChart3, Settings, User, LogOut, Menu, X,
   Wrench, PenTool, Printer, Cpu, Layers, Archive, Landmark,
-  AlertCircle, XCircle, ClipboardCheck, Loader2
+  AlertCircle, XCircle, ClipboardCheck, Loader2, Zap
 } from 'lucide-react';
 import { CATEGORY_ICONS } from '../config/categories';
 import { useCategories } from '../context/CategoriesContext';
@@ -20,6 +20,8 @@ import FlyPattern from './FlyPattern';
 import FlyLogo from './FlyLogo';
 import Header from './Header';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
+import useIsMobile from '../hooks/useIsMobile';
+import BottomSheet from './BottomSheet';
 import './Dashboard.css';
 
 // Limpia item_id/factura_url del texto y extrae la URL de la factura
@@ -73,6 +75,7 @@ const Dashboard = () => {
   const [legacyCategoriesWarning, setLegacyCategoriesWarning] = useState(null);
   const [isCriticalModalOpen, setIsCriticalModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const { isMobile } = useIsMobile();
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -157,7 +160,7 @@ const Dashboard = () => {
 
   return (
     <div className="fly-dashboard">
-      <Header />
+      {!isMobile && <Header />}
 
       {/* ═══ LEGACY CATEGORY WARNING ═══ */}
       {legacyCategoriesWarning && (
@@ -431,63 +434,104 @@ const Dashboard = () => {
       </section>
 
       {/* ═══ MODAL STOCK CRITICO ═══ */}
-      {isCriticalModalOpen && (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setIsCriticalModalOpen(false)}>
-          <div className="modal-card fly-critical-modal">
-            <div className="fly-modal-header">
-              <div className="fly-modal-title-block">
-                <div className="fly-modal-icon">
-                  <AlertTriangle size={22} />
-                </div>
-                <div>
-                  <h3 className="fly-modal-title">STOCK CRITICO</h3>
-                  <p className="fly-modal-sub">{lowStockItems.length} ARTICULOS BAJO UMBRAL</p>
-                </div>
-              </div>
-              <button className="fly-modal-close" onClick={() => setIsCriticalModalOpen(false)}>
-                <X size={20} />
-              </button>
+      {isMobile ? (
+        <BottomSheet
+          isOpen={isCriticalModalOpen}
+          onClose={() => setIsCriticalModalOpen(false)}
+          title="STOCK CRÍTICO"
+        >
+          {lowStockItems.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 1rem', opacity: 0.6 }}>
+              <Zap size={32} style={{ margin: '0 auto 10px' }} />
+              <h4>TODO EN ORDEN</h4>
+              <p style={{ fontSize: '0.85rem' }}>No hay artículos con stock crítico</p>
             </div>
-
-            {lowStockItems.length === 0 ? (
-              <div className="fly-modal-empty">
-                <div className="fly-modal-empty-icon">
-                  <Zap size={32} />
-                </div>
-                <h4>TODO EN ORDEN</h4>
-                <p>No hay articulos con stock critico</p>
-              </div>
-            ) : (
-              <div className="fly-modal-list">
-                {lowStockItems.slice(0, 500).map(item => (
-                  <div key={item.id} className="fly-crit-row">
-                    <div className="fly-crit-info">
-                      <span className="fly-crit-name">{item.name}</span>
-                      <span className="fly-crit-cat">{item.category || 'GENERAL'}</span>
-                    </div>
-                    <div className="fly-crit-actions">
-                      <div className="fly-crit-stats">
-                        <span className="fly-crit-stats-label">STOCK / MIN</span>
-                        <div className="fly-crit-stats-values">
-                          <span className="fly-crit-qty">{item.qty || 0}</span>
-                          <span className="fly-crit-thresh">/ {item.threshold || 0}</span>
-                          <span className="fly-crit-unit">{item.unit || 'PZA'}</span>
-                        </div>
-                      </div>
-                      <button
-                        className="fly-crit-go"
-                        title="Ir a categoria"
-                        onClick={() => { setIsCriticalModalOpen(false); navigate(categoryToRoute(item.category)); }}
-                      >
-                        <Zap size={14} />
-                      </button>
-                    </div>
+          ) : (
+            <div className="fly-modal-list">
+              {lowStockItems.slice(0, 500).map(item => (
+                <div key={item.id} className="fly-crit-row" style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="fly-crit-info">
+                    <span className="fly-crit-name" style={{ fontSize: '0.95rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{item.name}</span>
+                    <span className="fly-crit-cat" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', display: 'block' }}>{item.category || 'GENERAL'}</span>
                   </div>
-                ))}
+                  <div className="fly-crit-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                    <div className="fly-crit-stats" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="fly-crit-qty" style={{ fontSize: '1.2rem', fontWeight: 900, color: '#ff3b30' }}>{item.qty || 0}</span>
+                      <span className="fly-crit-thresh" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>/ {item.threshold || 0}</span>
+                      <span className="fly-crit-unit" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>{item.unit || 'PZA'}</span>
+                    </div>
+                    <button
+                      className="fly-btn fly-btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.75rem', height: 'auto' }}
+                      onClick={() => { setIsCriticalModalOpen(false); navigate(categoryToRoute(item.category)); }}
+                    >
+                      <Zap size={14} style={{ marginRight: 4 }} /> Ver
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </BottomSheet>
+      ) : (
+        isCriticalModalOpen && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setIsCriticalModalOpen(false)}>
+            <div className="modal-card fly-critical-modal">
+              <div className="fly-modal-header">
+                <div className="fly-modal-title-block">
+                  <div className="fly-modal-icon">
+                    <AlertTriangle size={22} />
+                  </div>
+                  <div>
+                    <h3 className="fly-modal-title">STOCK CRITICO</h3>
+                    <p className="fly-modal-sub">{lowStockItems.length} ARTICULOS BAJO UMBRAL</p>
+                  </div>
+                </div>
+                <button className="fly-modal-close" onClick={() => setIsCriticalModalOpen(false)}>
+                  <X size={20} />
+                </button>
               </div>
-            )}
+
+              {lowStockItems.length === 0 ? (
+                <div className="fly-modal-empty">
+                  <div className="fly-modal-empty-icon">
+                    <Zap size={32} />
+                  </div>
+                  <h4>TODO EN ORDEN</h4>
+                  <p>No hay articulos con stock critico</p>
+                </div>
+              ) : (
+                <div className="fly-modal-list">
+                  {lowStockItems.slice(0, 500).map(item => (
+                    <div key={item.id} className="fly-crit-row">
+                      <div className="fly-crit-info">
+                        <span className="fly-crit-name">{item.name}</span>
+                        <span className="fly-crit-cat">{item.category || 'GENERAL'}</span>
+                      </div>
+                      <div className="fly-crit-actions">
+                        <div className="fly-crit-stats">
+                          <span className="fly-crit-stats-label">STOCK / MIN</span>
+                          <div className="fly-crit-stats-values">
+                            <span className="fly-crit-qty">{item.qty || 0}</span>
+                            <span className="fly-crit-thresh">/ {item.threshold || 0}</span>
+                            <span className="fly-crit-unit">{item.unit || 'PZA'}</span>
+                          </div>
+                        </div>
+                        <button
+                          className="fly-crit-go"
+                          title="Ir a categoria"
+                          onClick={() => { setIsCriticalModalOpen(false); navigate(categoryToRoute(item.category)); }}
+                        >
+                          <Zap size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );

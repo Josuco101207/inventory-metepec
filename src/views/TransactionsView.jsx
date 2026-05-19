@@ -8,6 +8,7 @@ import FlyPattern from '../components/FlyPattern';
 import { useNavigate } from 'react-router-dom';
 import { exportToExcel } from '../utils/exportUtils';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
+import useIsMobile from '../hooks/useIsMobile';
 import './TransactionsView.css';
 
 const parseMovDetails = (details) => {
@@ -51,6 +52,7 @@ const TransactionsView = () => {
   const { isAdmin, userData } = useAuth();
   const { categoryToRoute } = useCategories();
   const navigate = useNavigate();
+  const { isMobile } = useIsMobile();
 
   const todayStr = toLocalDateString(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -95,7 +97,7 @@ const TransactionsView = () => {
 
   return (
     <div className="fly-inventory-view">
-      <Header />
+      {!isMobile && <Header />}
       <FlyPattern fixed opacity={0.04} />
 
       {/* ═══ HERO SECTION ═══ */}
