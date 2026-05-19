@@ -824,59 +824,103 @@
   color: hsl(var(--text-main));
 }
 
-/* ─── Responsive ─── */
+/* ─── Responsive Mobile ─── */
 @media (max-width: 768px) {
-  .irf-split {
-    grid-template-columns: 1fr;
-  }
+
+  /* InvoiceUploader */
+  .iaiv-container { padding: 1rem 1rem 6rem; }
+  .iaiv-header { flex-direction: column; gap: 0.75rem; }
+  .iaiv-header-left { gap: 0.75rem; }
+  .iaiv-title { font-size: 1.5rem; }
+  .iaiv-subtitle { font-size: 0.82rem; }
+
+  .iu-drop-zone { padding: 2rem 1rem; min-height: 160px; }
+  .iu-actions { flex-direction: column; gap: 0.75rem; }
+  .iu-actions button { width: 100%; justify-content: center; }
+  .iu-file-ready { flex-direction: column; gap: 0.5rem; }
+
+  .iu-process-btn { width: 100%; justify-content: center; }
+
+  /* InvoiceReviewForm split layout */
+  .irf-split { grid-template-columns: 1fr; gap: 1rem; }
 
   .irf-preview-panel {
     position: static;
-    max-height: 250px;
+    max-height: 200px;
     overflow: hidden;
+    border-radius: 16px;
   }
 
-  .irf-item-fields {
-    grid-template-columns: repeat(3, 1fr);
+  .irf-topbar {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .irf-topbar h2 { font-size: 1.1rem; order: -1; }
+
+  .irf-header-meta { flex-wrap: wrap; gap: 0.5rem; }
+
+  .irf-header-meta input {
+    min-width: 0;
+    flex: 1 1 140px;
+    font-size: 0.85rem;
+  }
+
+  /* Items — stack fields vertically */
+  .irf-items-panel { padding: 0 0.75rem 0.75rem; }
+
+  .irf-item-card {
+    padding: 0.85rem;
+    border-radius: 16px;
+    gap: 0.6rem;
   }
 
   .irf-item-names {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.5rem;
   }
 
   .irf-item-arrow {
     text-align: center;
     transform: rotate(90deg);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    margin: 0;
   }
 
-  .irf-topbar {
-    flex-direction: column;
+  .irf-item-fields {
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
 
-  .irf-topbar h2 {
-    order: -1;
-    text-align: left;
+  .irf-item-field label { font-size: 0.62rem; }
+  .irf-item-field input,
+  .irf-item-field select { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+
+  .irf-item-footer { flex-wrap: wrap; gap: 0.4rem; }
+
+  /* Totals & footer */
+  .irf-totals { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+  .irf-confirm-btn {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    padding: 1.1rem calc(1.25rem + env(safe-area-inset-bottom, 0px)) calc(1.1rem + env(safe-area-inset-bottom, 0px));
+    font-size: 1rem;
+    z-index: 100;
   }
 
-  .iu-actions {
-    flex-direction: column;
-  }
-
-  .iaiv-done-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .iaiv-file-ready {
-    flex-direction: column;
-    text-align: center;
-  }
+  /* Done screen */
+  .iaiv-done-summary { grid-template-columns: 1fr; gap: 0.5rem; }
+  .iaiv-done-card { padding: 1.5rem 1rem; }
+  .iaiv-file-ready { flex-direction: column; text-align: center; }
 }
 
 @media (max-width: 480px) {
-  .irf-item-fields {
-    grid-template-columns: 1fr 1fr;
-  }
+  .irf-item-fields { grid-template-columns: 1fr 1fr; }
+  .irf-totals { grid-template-columns: 1fr; }
 }
