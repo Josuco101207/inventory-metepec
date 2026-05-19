@@ -11,7 +11,8 @@ import {
   Plus, Download, Upload, Search, Filter, Loader2, Trash2, Edit3, 
   ClipboardCheck, Activity, Layers, Printer, ChevronDown, Landmark,
   RotateCcw, HandMetal, Package, AlertTriangle, PenTool, Box,
-  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle, PlusCircle, Sparkles
+  ArrowUpCircle, ArrowDownCircle, TrendingUp, AlertCircle, XCircle, PlusCircle, Sparkles,
+  FileImage, X
 } from 'lucide-react';
 import { exportToExcel } from '../utils/exportUtils';
 // Import de Excel deshabilitado: entradas solo vía Carga IA de Facturas
@@ -28,7 +29,7 @@ import './InventoryView.css';
 const InventoryRow = React.memo(({ item, index, categoryTitle, isAdmin, isStaff, canEditIn, handlers }) => {
   if (!item) return null;
 
-  const { handleDelete, handleEdit, handleAction, handleAudit } = handlers;
+  const { handleDelete, handleEdit, handleAction, handleAudit, handleViewFactura } = handlers;
 
   const isCritical = (item.qty || 0) <= (item.threshold || 0);
   const isLow = !isCritical && (item.qty || 0) <= (item.threshold || 0) * 2;
@@ -76,6 +77,11 @@ const InventoryRow = React.memo(({ item, index, categoryTitle, isAdmin, isStaff,
 
       {/* Actions */}
       <div className="invt-cell-act">
+        {item.factura_url && (
+          <button className="invt-btn invt-btn-purple" onClick={() => handleViewFactura(item)} title="Ver Factura">
+            <FileImage size={15} />
+          </button>
+        )}
         {(isStaff || canEditIn(categoryTitle)) && (
           <>
             <button className="invt-btn invt-btn-blue" onClick={() => handleAction(item)} title="Movimiento">
@@ -138,6 +144,7 @@ const InventoryView = ({ categoryTitle }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [facturaModalItem, setFacturaModalItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState(location.state?.prefillSearch || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [activeSubcategory, setActiveSubcategory] = useState('TODAS');
@@ -218,7 +225,8 @@ const InventoryView = ({ categoryTitle }) => {
       }
     },
     handleLoan: (item) => { setSelectedItem(item); },
-    handleReturn: async (item) => { if (window.confirm(`¿Devolución de ${item.name}?`)) await returnItem(item.id, userData?.name || 'Admin'); }
+    handleReturn: async (item) => { if (window.confirm(`¿Devolución de ${item.name}?`)) await returnItem(item.id, userData?.name || 'Admin'); },
+    handleViewFactura: (item) => { setFacturaModalItem(item); },
   }), [deleteItem, returnItem, auditStock, userData]);
 
   const rowData = useMemo(() => ({
@@ -500,6 +508,59 @@ const InventoryView = ({ categoryTitle }) => {
         isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem}
         onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Jonathan'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Jonathan'); setIsAddModalOpen(false); }}
       />
+
+      {/* Modal Visor de Factura */}
+      {facturaModalItem && (
+        <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
+          <div
+            className="modal-card animate-scale-up"
+            style={{ maxWidth: 700, width: '95vw', padding: 0, overflow: 'hidden' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <header className="modal-header" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <FileImage size={20} />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1rem' }}>Factura vinculada</h3>
+                  <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.6 }}>{facturaModalItem.name}</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <a
+                  href={facturaModalItem.factura_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fly-btn fly-btn-primary"
+                  style={{ fontSize: '0.78rem', padding: '0.4rem 0.9rem', height: 'auto' }}
+                >
+                  Abrir en nueva pestaña
+                </a>
+                <button className="invt-btn invt-btn-gray" onClick={() => setFacturaModalItem(null)} title="Cerrar">
+                  <X size={18} />
+                </button>
+              </div>
+            </header>
+
+            <div style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
+              {facturaModalItem.factura_url?.toLowerCase().endsWith('.pdf') ||
+               facturaModalItem.factura_url?.includes('application/pdf') ? (
+                <iframe
+                  src={facturaModalItem.factura_url}
+                  title="Factura PDF"
+                  style={{ width: '100%', height: '60vh', border: 'none', borderRadius: 8 }}
+                />
+              ) : (
+                <img
+                  src={facturaModalItem.factura_url}
+                  alt="Factura"
+                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8, background: '#111' }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
