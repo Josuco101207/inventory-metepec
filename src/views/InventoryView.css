@@ -952,7 +952,7 @@
 
 @media (max-width: 1024px) {
   .fly-inventory-metrics {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .fly-inventory-actions {
