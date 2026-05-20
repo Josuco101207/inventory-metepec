@@ -133,8 +133,8 @@ const RootApp = () => {
     <Router>
       <FlyPattern fixed opacity={0.04} />
       <div className="app-container" style={{ position: 'relative', zIndex: 1 }}>
-        {/* Desktop: full sidebar — Mobile: destroyed */}
-        {!isMobile && <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
+        {/* Sidebar handles its own mobile visibility */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className={`main-content ${isMobile ? 'main-content--mobile' : ''}`}>
           {/* Mobile: compact sticky header — Desktop: destroyed */}
