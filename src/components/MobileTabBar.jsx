@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, Activity, Wrench, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, Package, Activity, MoreHorizontal } from 'lucide-react';
 import { useCategories } from '../context/CategoriesContext';
 import { CATEGORY_ICONS } from '../config/categories';
 import { useAuth } from '../context/AuthContext';
@@ -32,12 +32,7 @@ const MobileTabBar = ({ onMorePress }) => {
         <span>Historial</span>
       </NavLink>
 
-      {isAdmin && (
-        <NavLink to="/tools" className={({ isActive }) => `ios-tab ${isActive ? 'active' : ''}`}>
-          <div className="ios-tab-icon"><Wrench size={22} /></div>
-          <span>Herramientas</span>
-        </NavLink>
-      )}
+
 
       <button className="ios-tab" onClick={onMorePress}>
         <div className="ios-tab-icon"><MoreHorizontal size={22} /></div>
