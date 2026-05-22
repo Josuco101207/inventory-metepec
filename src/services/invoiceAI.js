@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Invoice AI Processing Service
  * 
  * Processes invoice images using:
@@ -16,19 +16,19 @@ const SYSTEM_PROMPT = `Eres un sistema de OCR inteligente para facturas mexicana
 
 Para CADA item, devuelve:
 - descripcion: nombre del producto tal como aparece en la factura
-- cantidad: número de unidades
+- cantidad: n├║mero de unidades
 - unidad: unidad de medida (PZA, KG, M, LT, CAJA, etc.)
 - precioUnitario: precio por unidad SIN IVA
-- iva: monto de IVA para ese item (si no se muestra por línea, calcula 16%)
+- iva: monto de IVA para ese item (si no se muestra por l├¡nea, calcula 16%)
 - detallesExtra: objeto JSON con los atributos adicionales del producto que encuentres (ej. marca, modelo, color, voltaje, dimensiones, etc.)
 
-También extrae los datos del encabezado:
-- folio: número de factura
+Tambi├®n extrae los datos del encabezado:
+- folio: n├║mero de factura
 - proveedor: nombre del proveedor/empresa emisora
-- fecha: fecha de emisión (formato YYYY-MM-DD)
+- fecha: fecha de emisi├│n (formato YYYY-MM-DD)
 - moneda: MXN o USD
 
-Responde SOLO en JSON válido con esta estructura exacta:
+Responde SOLO en JSON v├ílido con esta estructura exacta:
 {
   "header": { "folio": "", "proveedor": "", "fecha": "", "moneda": "MXN" },
   "items": [
@@ -43,11 +43,6 @@ function fileToBase64(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-}
-
-function isQuotaError(status, msg) {
-  return status === 429 || status === 503 ||
-    (msg && (msg.includes('quota') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('rate') || msg.includes('limit: 0')));
 }
 
 async function processWithOpenAI(base64, mimeType) {
@@ -86,7 +81,7 @@ async function processWithOpenAI(base64, mimeType) {
 
 async function processWithGemini(base64, mimeType) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${AI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,12 +99,7 @@ async function processWithGemini(base64, mimeType) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err.error?.message || '';
-    if (isQuotaError(res.status, msg)) {
-      console.warn('Gemini quota exceeded for processing, falling back to OCR');
-      return null;
-    }
-    throw new Error(msg || `Gemini API error: ${res.status}`);
+    throw new Error(err.error?.message || `Gemini API error: ${res.status}`);
   }
 
   const data = await res.json();
@@ -123,7 +113,7 @@ function parseAIResponse(content) {
   const parsed = JSON.parse(jsonMatch[0]);
 
   if (!parsed.header || !Array.isArray(parsed.items)) {
-    throw new Error('Formato de respuesta inválido');
+    throw new Error('Formato de respuesta inv├ílido');
   }
 
   return {
@@ -143,9 +133,9 @@ function parseAIResponse(content) {
   };
 }
 
-// ────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // Tesseract.js OCR Processing (Free, Local)
-// ────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 let onProgressCallback = null;
 
@@ -315,7 +305,7 @@ async function processWithTesseract(file) {
       urls.push(origUrl);
       const text3 = await runOCR(origUrl, 88, 10);
       if (!text3 || text3.trim().length < 20) {
-        throw new Error('No se pudo extraer texto legible de la imagen. Intenta con una foto más clara.');
+        throw new Error('No se pudo extraer texto legible de la imagen. Intenta con una foto m├ís clara.');
       }
       return parseInvoiceText(text3);
     }
@@ -371,7 +361,7 @@ function detectUnit(text) {
   if (/\bjgo\b|\bjuego/i.test(t)) return 'JGO';
   if (/\bbolsa/i.test(t)) return 'BOLSA';
   if (/\bpaquete\b|\bpaq\b/i.test(t)) return 'PAQUETE';
-  if (/\bmts2\b|\bm2\b|\bm²/i.test(t)) return 'M';
+  if (/\bmts2\b|\bm2\b|\bm┬▓/i.test(t)) return 'M';
   return 'PZA';
 }
 
@@ -380,7 +370,7 @@ function parseInvoiceText(rawText) {
   const fullText = lines.join('\n');
 
 
-  // ── Extract Header ──
+  // ÔöÇÔöÇ Extract Header ÔöÇÔöÇ
   const header = {
     folio: '',
     proveedor: '',
@@ -401,7 +391,7 @@ function parseInvoiceText(rawText) {
 
   // Proveedor
   const provPatterns = [
-    /(?:raz[oó]n\s*social|proveedor)\s*[:.]?\s*(.+)/i,
+    /(?:raz[o├│]n\s*social|proveedor)\s*[:.]?\s*(.+)/i,
     /([\w\s]+S\.?\s*A\.?\s*(?:de)?\s*(?:C\.?\s*V\.?|R\.?\s*L\.?))/i,
   ];
   for (const pat of provPatterns) {
@@ -419,17 +409,17 @@ function parseInvoiceText(rawText) {
     }
   }
 
-  // ── Find document total first (used for amount validation) ──
-  // OCR may garble "39,644.97" → "39.664 97" or "39,644 97" etc.
+  // ÔöÇÔöÇ Find document total first (used for amount validation) ÔöÇÔöÇ
+  // OCR may garble "39,644.97" ÔåÆ "39.664 97" or "39,644 97" etc.
   const totalMatch = fullText.match(/TOTAL\s*[:.]\s*\$?\s*([\d,.\s]+\d)/i);
   let docTotal = 0;
   if (totalMatch) {
     let raw = totalMatch[1].trim();
-    // "39.664 97" → treat period-before-3-digits as thousands sep, space as decimal
-    // "39,644.97" → standard format
+    // "39.664 97" ÔåÆ treat period-before-3-digits as thousands sep, space as decimal
+    // "39,644.97" ÔåÆ standard format
     raw = raw.replace(/\.(\d{3})/g, '$1'); // remove period used as thousands separator
     raw = raw.replace(/,(\d{3})/g, '$1');  // remove comma used as thousands separator
-    raw = raw.replace(/\s+/g, '.');        // space before last digits → decimal
+    raw = raw.replace(/\s+/g, '.');        // space before last digits ÔåÆ decimal
     docTotal = parseFloat(raw) || 0;
   }
 
@@ -437,7 +427,7 @@ function parseInvoiceText(rawText) {
   function fixAmount(n) {
     if (docTotal <= 0) return n;
     if (n <= docTotal) return n;
-    // Try inserting decimal point: 456450 → 4564.50
+    // Try inserting decimal point: 456450 ÔåÆ 4564.50
     const div100 = n / 100;
     if (div100 > 10 && div100 <= docTotal) return Math.round(div100 * 100) / 100;
     const div10 = n / 10;
@@ -445,12 +435,12 @@ function parseInvoiceText(rawText) {
     return n;
   }
 
-  // ── Extract Items ──
+  // ÔöÇÔöÇ Extract Items ÔöÇÔöÇ
   const items = [];
-  const skipLine = /sub\s*total|^impuesto|^iva\b|^total[:\s]|descuento|deacuent|cargo\s*mis|condicion|comentari|^pago|recib[ií]|firma|aceptaci/i;
-  const headerLine = /^(RFC|Tel[eé]|Nombre|Direcci|Cliente|Raz[oó]n|Orden|Fecha|CP\s|Chont|Rarar|masas|Procia|FACTURA|MANCO|amass|SANTA|Mawcan)/i;
+  const skipLine = /sub\s*total|^impuesto|^iva\b|^total[:\s]|descuento|deacuent|cargo\s*mis|condicion|comentari|^pago|recib[i├¡]|firma|aceptaci/i;
+  const headerLine = /^(RFC|Tel[e├®]|Nombre|Direcci|Cliente|Raz[o├│]n|Orden|Fecha|CP\s|Chont|Rarar|masas|Procia|FACTURA|MANCO|amass|SANTA|Mawcan)/i;
 
-  // Strategy 1: Find product lines — lines starting with line numbers (1-9, Y, I)
+  // Strategy 1: Find product lines ÔÇö lines starting with line numbers (1-9, Y, I)
   // followed by a product code/description with numbers
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -505,7 +495,7 @@ function parseInvoiceText(rawText) {
     let qty = qtyNums.length > 0 ? qtyNums[qtyNums.length - 1] : 1;
 
     // Clean description
-    let desc = rest.replace(/\d[\d,]*\.?\d*/g, ' ').replace(/[—-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    let desc = rest.replace(/\d[\d,]*\.?\d*/g, ' ').replace(/[ÔÇö-]+/g, ' ').replace(/\s+/g, ' ').trim();
     if (desc.length < 3) desc = codeWord;
     const fullDesc = (codeWord + ' ' + desc).substring(0, 80).trim();
 
@@ -522,7 +512,7 @@ function parseInvoiceText(rawText) {
 
   // Strategy 2: Product keyword lines not already found
   if (items.length < 2) {
-    const kwds = /malla|membrana|mega|rollo|tela|cable|pelota|cinta|tubo|perfil|lamina|plástico|plastico|vinilo|hule|sombra|somtza|sorexa|brill/i;
+    const kwds = /malla|membrana|mega|rollo|tela|cable|pelota|cinta|tubo|perfil|lamina|pl├ístico|plastico|vinilo|hule|sombra|somtza|sorexa|brill/i;
     for (const line of lines) {
       if (skipLine.test(line) || headerLine.test(line)) continue;
       if (!kwds.test(line) || line.length < 10) continue;
@@ -677,208 +667,6 @@ export function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality =
   });
 }
 
-const VALIDATION_PROMPT = `You are a document classifier. Look at this image and answer ONLY with a JSON object.
-Determine if this document is a commercial invoice, purchase order, receipt, or bill (factura, recibo, orden de compra).
-Respond ONLY with this exact JSON, no extra text:
-{"isInvoice": true, "confidence": 0.95}
-or
-{"isInvoice": false, "confidence": 0.95}`;
-
-async function validateWithOpenAI(base64, mimeType) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${AI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: VALIDATION_PROMPT },
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
-          ],
-        },
-      ],
-      max_tokens: 60,
-      temperature: 0,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `OpenAI validation error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const content = data.choices?.[0]?.message?.content || '';
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Invalid validation response');
-  return JSON.parse(match[0]);
-}
-
-async function validateWithGemini(base64, mimeType) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${AI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: VALIDATION_PROMPT },
-            { inline_data: { mime_type: mimeType, data: base64 } },
-          ],
-        }],
-        generationConfig: { temperature: 0, maxOutputTokens: 60 },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const msg = err.error?.message || '';
-    if (isQuotaError(res.status, msg)) {
-      console.warn('Gemini quota exceeded for validation, falling back to heuristics');
-      return null;
-    }
-    throw new Error(msg || `Gemini validation error: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
-}
-
-function validateWithHeuristics(file) {
-  return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/')) {
-      resolve({ isInvoice: true, confidence: 0.6 });
-      return;
-    }
-
-    const img = new Image();
-    const srcUrl = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(srcUrl);
-      const { width, height } = img;
-      const aspectRatio = width / height;
-
-      const canvas = document.createElement('canvas');
-      const scale = Math.min(1, 200 / Math.max(width, height));
-      canvas.width = Math.round(width * scale);
-      canvas.height = Math.round(height * scale);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      const pixels = canvas.width * canvas.height;
-
-      let brightCount = 0;
-      let darkCount = 0;
-      let totalSaturation = 0;
-
-      for (let i = 0; i < pixels; i++) {
-        const r = data[i * 4];
-        const g = data[i * 4 + 1];
-        const b = data[i * 4 + 2];
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        totalSaturation += (max - min) / 255;
-        if (lum > 200) brightCount++;
-        if (lum < 50) darkCount++;
-      }
-
-      const brightRatio = brightCount / pixels;
-      const darkRatio = darkCount / pixels;
-      const avgSaturation = totalSaturation / pixels;
-
-      // Heurísticas: facturas tienen fondo claro, texto oscuro, baja saturación
-      // Fotos naturales o memes tienen alta saturación y distribución desigual
-      let score = 0.5;
-
-      // Fondo claro es una señal positiva de documento
-      if (brightRatio > 0.4) score += 0.15;
-      if (brightRatio > 0.6) score += 0.1;
-
-      // Saturación baja es señal positiva de documento
-      if (avgSaturation < 0.12) score += 0.2;
-      else if (avgSaturation > 0.35) score -= 0.25;
-
-      // Proporción de aspecto: facturas suelen ser más altas que anchas
-      if (aspectRatio < 0.85) score += 0.1;
-      else if (aspectRatio > 1.8) score -= 0.1;
-
-      // Combinación de fondo claro + texto oscuro = documento
-      if (brightRatio > 0.5 && darkRatio > 0.05) score += 0.1;
-
-      score = Math.max(0, Math.min(1, score));
-      const isInvoice = score >= 0.5;
-
-      resolve({ isInvoice, confidence: Math.round(score * 100) / 100 });
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(srcUrl);
-      reject(new Error('Failed to load image for validation'));
-    };
-
-    img.src = srcUrl;
-  });
-}
-
-/**
- * Light pre-validation: determines if a file looks like an invoice before
- * running the expensive full extraction. Uses AI vision if a key is available,
- * otherwise falls back to local image heuristics (no API cost).
- * @param {File} file
- * @returns {Promise<{ isInvoice: boolean, confidence: number }>}
- */
-export async function validateInvoice(file) {
-  if (AI_PROVIDER === 'mock') {
-    await new Promise(r => setTimeout(r, 800));
-    return { isInvoice: true, confidence: 0.99 };
-  }
-
-  if (!AI_API_KEY) {
-    return validateWithHeuristics(file);
-  }
-
-  let fileToValidate = file;
-  let mimeType = file.type || 'image/jpeg';
-
-  if (file.type && file.type.startsWith('image/')) {
-    try {
-      fileToValidate = await compressImage(file, 800, 800, 0.7);
-      mimeType = 'image/jpeg';
-    } catch (e) {
-      console.warn('Compression failed for validation, using original:', e);
-    }
-  }
-
-  const base64 = await fileToBase64(fileToValidate);
-
-  if (AI_PROVIDER === 'openai') {
-    const result = await validateWithOpenAI(base64, mimeType);
-    if (result) return result;
-  }
-
-  if (AI_PROVIDER === 'gemini') {
-    const result = await validateWithGemini(base64, mimeType);
-    if (result) return result;
-    // null = quota exceeded, caemos a heurísticas sin costo
-  }
-
-  return validateWithHeuristics(file);
-}
-
 /**
  * Process an invoice file (image or PDF) and return extracted data.
  * @param {File} file - The invoice file to process
@@ -907,13 +695,11 @@ export async function processInvoice(file) {
       return processWithOpenAI(base64, mimeType);
     }
     if (AI_PROVIDER === 'gemini') {
-      const result = await processWithGemini(base64, mimeType);
-      if (result !== null) return result;
-      // null = quota agotada, fallback a OCR local
+      return processWithGemini(base64, mimeType);
     }
   }
 
-  // Default / fallback: use free Tesseract.js OCR
+  // Default: use free Tesseract.js OCR
   if (AI_PROVIDER !== 'mock') {
     return processWithTesseract(file);
   }

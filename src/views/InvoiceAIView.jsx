@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
+﻿import React, { useCallback } from 'react';
 import { Sparkles, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
 import InvoiceUploader from '../components/InvoiceUploader';
 import InvoiceReviewForm from '../components/InvoiceReviewForm';
-import { processInvoice, validateInvoice } from '../services/invoiceAI';
+import { processInvoice } from '../services/invoiceAI';
 import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
 import { useInvoiceAI } from '../context/InvoiceAIContext';
@@ -21,7 +21,6 @@ const InvoiceAIView = () => {
     setProcessedData,
     setFinalResult,
     backToUpload,
-    setValidating,
     setProcessing,
     reset,
   } = useInvoiceAI();
@@ -35,25 +34,6 @@ const InvoiceAIView = () => {
       toast.error('Selecciona un archivo primero');
       return;
     }
-
-    // ── Paso 1: Validación previa (ligera, sin consumo de tokens del parseo) ──
-    setValidating();
-    try {
-      const validation = await validateInvoice(file);
-      if (!validation.isInvoice) {
-        toast.error(
-          'El archivo seleccionado no parece ser una factura válida. Por favor, verifica e intenta de nuevo.',
-          { duration: 7000 }
-        );
-        backToUpload();
-        return;
-      }
-    } catch (validErr) {
-      console.warn('Validation check failed, proceeding anyway:', validErr);
-      // Si la validación falla por error de red u otro, dejamos pasar y procesamos
-    }
-
-    // ── Paso 2: Procesamiento completo ──
     setProcessing();
     try {
       // Subir factura a Storage y procesar con IA en paralelo
@@ -66,20 +46,20 @@ const InvoiceAIView = () => {
     } catch (err) {
       console.error('Invoice processing error:', err);
       const msg = err.message || '';
-      let friendly = 'Ocurrió un error al procesar la factura. Intenta de nuevo.';
+      let friendly = 'Ocurri├│ un error al procesar la factura. Intenta de nuevo.';
       if (msg.toLowerCase().includes('high demand') || msg.toLowerCase().includes('overloaded') || msg.toLowerCase().includes('spike') || msg.toLowerCase().includes('503') || msg.toLowerCase().includes('429')) {
-        friendly = 'La IA está muy ocupada en este momento. Espera unos segundos y vuelve a intentarlo.';
+        friendly = 'La IA est├í muy ocupada en este momento. Espera unos segundos y vuelve a intentarlo.';
       } else if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('limit')) {
-        friendly = 'Se alcanzó el límite de uso de la IA. Intenta más tarde.';
+        friendly = 'Se alcanz├│ el l├¡mite de uso de la IA. Intenta m├ís tarde.';
       } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('failed to fetch')) {
-        friendly = 'Sin conexión a internet. Verifica tu red y vuelve a intentarlo.';
+        friendly = 'Sin conexi├│n a internet. Verifica tu red y vuelve a intentarlo.';
       } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('400')) {
-        friendly = 'El archivo no pudo ser leído por la IA. Intenta con una imagen más clara.';
+        friendly = 'El archivo no pudo ser le├¡do por la IA. Intenta con una imagen m├ís clara.';
       }
       toast.error(friendly, { duration: 6000 });
       backToUpload();
     }
-  }, [file, setValidating, setProcessing, setProcessedData, backToUpload]);
+  }, [file, setProcessing, setProcessedData, backToUpload]);
 
   const handleConfirm = useCallback((confirmedData) => {
     setFinalResult(confirmedData);
@@ -100,20 +80,19 @@ const InvoiceAIView = () => {
             </div>
             <div>
               <h1 className="iaiv-title">Carga Inteligente</h1>
-              <p className="iaiv-subtitle">Sube una factura y la IA extraerá los productos automáticamente</p>
+              <p className="iaiv-subtitle">Sube una factura y la IA extraer├í los productos autom├íticamente</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Step: Upload / Validating / Processing */}
-      {(step === STEPS.UPLOAD || step === STEPS.VALIDATING || step === STEPS.PROCESSING) && (
+      {/* Step: Upload */}
+      {(step === STEPS.UPLOAD || step === STEPS.PROCESSING) && (
         <div className="iaiv-upload-section">
           <InvoiceUploader
             onFileSelected={handleFileSelected}
             processing={step === STEPS.PROCESSING}
-            validating={step === STEPS.VALIDATING}
-            disabled={step === STEPS.PROCESSING || step === STEPS.VALIDATING}
+            disabled={step === STEPS.PROCESSING}
             initialPreview={previewUrl}
             initialFile={file}
           />
@@ -125,12 +104,6 @@ const InvoiceAIView = () => {
                 <Sparkles size={18} />
                 Procesar con IA
               </button>
-            </div>
-          )}
-          {step === STEPS.VALIDATING && (
-            <div className="iaiv-file-ready iaiv-validating">
-              <div className="iaiv-validating-spinner" />
-              <span>Verificando que sea una factura válida...</span>
             </div>
           )}
         </div>

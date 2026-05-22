@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const STEPS = {
   UPLOAD: 'upload',
-  VALIDATING: 'validating',
   PROCESSING: 'processing',
   REVIEW: 'review',
   DONE: 'done',
@@ -84,7 +83,7 @@ export const InvoiceAIProvider = ({ children }) => {
     }
   }, []);
 
-  // Establecer datos extraídos
+  // Establecer datos extra├¡dos
   const setProcessedData = useCallback((data, storageUrl) => {
     setExtractedData(data);
     setFacturaStorageUrl(storageUrl);
@@ -100,11 +99,6 @@ export const InvoiceAIProvider = ({ children }) => {
   // Volver a paso de upload
   const backToUpload = useCallback(() => {
     setStep(STEPS.UPLOAD);
-  }, []);
-
-  // Ir a paso de validación
-  const setValidating = useCallback(() => {
-    setStep(STEPS.VALIDATING);
   }, []);
 
   // Volver a procesamiento
@@ -128,7 +122,6 @@ export const InvoiceAIProvider = ({ children }) => {
     setProcessedData,
     setFinalResult,
     backToUpload,
-    setValidating,
     setProcessing,
   };
 

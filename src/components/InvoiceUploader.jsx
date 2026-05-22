@@ -1,11 +1,11 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+﻿import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Upload, Camera, FileImage, X, AlertCircle, Cpu } from 'lucide-react';
 import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const MAX_SIZE_MB = 10;
 
-const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, initialPreview, initialFile }) => {
+const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview, initialFile }) => {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
@@ -73,20 +73,6 @@ const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, ini
     onFileSelected?.(null);
   }, [onFileSelected]);
 
-  if (validating) {
-    return (
-      <div className="iu-processing">
-        <div className="iu-processing-inner">
-          <div className="iu-spinner" />
-          <div className="iu-processing-text">
-            <h3>Verificando documento...</h3>
-            <p>Comprobando que el archivo sea una factura válida antes de procesarlo</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (processing) {
     return (
       <div className="iu-processing">
@@ -94,7 +80,7 @@ const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, ini
           <div className="iu-spinner" />
           <div className="iu-processing-text">
             <h3>Procesando factura...{aiStatus.provider === 'ocr' && ocrProgress > 0 ? ` ${ocrProgress}%` : ''}</h3>
-            <p>{aiStatus.provider === 'ocr' ? 'OCR analizando el documento (procesamiento local)' : 'La IA está extrayendo los datos del documento'}</p>
+            <p>{aiStatus.provider === 'ocr' ? 'OCR analizando el documento (procesamiento local)' : 'La IA est├í extrayendo los datos del documento'}</p>
             {aiStatus.provider === 'ocr' && ocrProgress > 0 && (
               <div className="iu-progress-bar">
                 <div className="iu-progress-fill" style={{ width: `${ocrProgress}%` }} />
@@ -128,10 +114,10 @@ const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, ini
         <Cpu size={14} />
         <span>
           {aiStatus.configured
-            ? `IA conectada · ${aiStatus.provider.toUpperCase()}`
+            ? `IA conectada ┬À ${aiStatus.provider.toUpperCase()}`
             : aiStatus.provider === 'ocr'
-              ? 'OCR Local · Tesseract.js'
-              : 'Modo Demo · Sin API Key'}
+              ? 'OCR Local ┬À Tesseract.js'
+              : 'Modo Demo ┬À Sin API Key'}
         </span>
       </div>
 
@@ -155,9 +141,9 @@ const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, ini
             <div className="iu-dropzone-icon">
               <Upload size={32} />
             </div>
-            <h3>Arrastra tu factura aquí</h3>
+            <h3>Arrastra tu factura aqu├¡</h3>
             <p>o haz clic para seleccionar archivo</p>
-            <p className="iu-formats">JPG, PNG, WebP, PDF · Máx {MAX_SIZE_MB}MB</p>
+            <p className="iu-formats">JPG, PNG, WebP, PDF ┬À M├íx {MAX_SIZE_MB}MB</p>
           </div>
         )}
       </div>
