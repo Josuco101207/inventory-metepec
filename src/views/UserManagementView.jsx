@@ -295,20 +295,18 @@ const UserManagementView = () => {
     try {
       const isSelf = currentUser?.id === changingPasswordUser.id;
       if (isSelf) {
-        // El propio usuario actualiza su contraseña
+        // El propio usuario actualiza su contraseña directamente
         const { error } = await supabase.auth.updateUser({ password: newPassword });
         if (error) throw error;
-        toast.success('Tu contraseña fue actualizada correctamente.');
       } else {
-        // Cambio de contraseña de otro usuario requiere service_role (Edge Function o panel Supabase).
-        // La anon key del cliente no tiene privilegios admin.updateUserById.
-        toast.error(
-          'Para cambiar la contraseña de otro usuario, usa el panel de Supabase Auth ' +
-          '(Authentication → Users) o implementa una Edge Function con service_role.',
-          { duration: 8000 }
-        );
-        return;
+        // Admin cambia contraseña de otro usuario via Edge Function con service_role
+        const { data, error } = await supabase.functions.invoke('admin-update-password', {
+          body: { userId: changingPasswordUser.id, password: newPassword },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
       }
+      toast.success(`Contraseña de ${changingPasswordUser.email} actualizada correctamente.`);
       setIsChangeModalOpen(false);
       setNewPassword('');
     } catch (err) {
