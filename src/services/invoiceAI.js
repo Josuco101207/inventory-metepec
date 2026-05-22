@@ -106,7 +106,8 @@ async function processWithGemini(base64, mimeType) {
     const err = await res.json().catch(() => ({}));
     const msg = err.error?.message || '';
     if (isQuotaError(res.status, msg)) {
-      throw new Error('429: Se alcanzó el límite de uso de la IA. Intenta más tarde.');
+      console.warn('Gemini quota exceeded for processing, falling back to OCR');
+      return null;
     }
     throw new Error(msg || `Gemini API error: ${res.status}`);
   }
@@ -906,11 +907,13 @@ export async function processInvoice(file) {
       return processWithOpenAI(base64, mimeType);
     }
     if (AI_PROVIDER === 'gemini') {
-      return processWithGemini(base64, mimeType);
+      const result = await processWithGemini(base64, mimeType);
+      if (result !== null) return result;
+      // null = quota agotada, fallback a OCR local
     }
   }
 
-  // Default: use free Tesseract.js OCR
+  // Default / fallback: use free Tesseract.js OCR
   if (AI_PROVIDER !== 'mock') {
     return processWithTesseract(file);
   }
