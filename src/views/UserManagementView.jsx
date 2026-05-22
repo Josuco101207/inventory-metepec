@@ -218,10 +218,19 @@ const UserManagementView = () => {
     const next = cycle[u.role] ?? 'user';
     if (window.confirm(`¿Cambiar rol de ${u.email} a ${next.toUpperCase()}?`)) {
       setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: next } : user));
-      const { error } = await supabase.from('profiles').update({ role: next }).eq('id', u.id);
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ role: next })
+        .eq('id', u.id)
+        .select('id, role');
       if (error) {
         setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
         toast.error(`Error al cambiar rol: ${error.message}`);
+        return;
+      }
+      if (!data || data.length === 0) {
+        setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
+        toast.error('Sin permiso para cambiar roles. Verifica las políticas RLS de la tabla profiles en Supabase.');
         return;
       }
       updateUser(u.id, { role: next });
