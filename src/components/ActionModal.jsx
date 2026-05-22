@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { X, RefreshCw, ArrowDownCircle, FileText, AlertCircle, Sparkles, Receipt, ShieldCheck, Loader2, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
+import { X, RefreshCw, ArrowDownCircle, FileText, AlertCircle, ShieldCheck, Loader2, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
-import { useSalidaAuth, SALIDA_METHODS } from '../context/SalidaAuthContext';
+import { useSalidaAuth } from '../context/SalidaAuthContext';
 import { validateSupervisorCredentials } from '../storage/supabaseStorage';
 import { toast } from 'sonner';
 import './ActionModal.css';
@@ -114,7 +114,6 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
 
   const [qty, setQty] = useState(1);
   const [motivo, setMotivo] = useState('');
-  const [authMethod, setAuthMethod] = useState(SALIDA_METHODS.NONE);
 
   const isValid =
     qty && parseInt(qty) > 0 &&
@@ -125,8 +124,8 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     if (!isValid) return;
 
     // Validación de seguridad en cliente: bloquear si no hay autorización
-    if (!authState.facturaId && !authState.autorizadoPorId) {
-      toast.error('Salida bloqueada: se requiere factura o autorización de supervisor.');
+    if (!authState.autorizadoPorId) {
+      toast.error('Salida bloqueada: se requiere autorización de supervisor.');
       return;
     }
 
@@ -136,17 +135,15 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     // Limpiar estado local
     setQty(1);
     setMotivo('');
-    setAuthMethod(SALIDA_METHODS.NONE);
     limpiarAuth();
     onClose();
-  }, [isValid, authState, buildAuthDetails, motivo, qty, item, onConfirm, limpiarAuth, onClose, SALIDA_METHODS]);
+  }, [isValid, authState, buildAuthDetails, motivo, qty, item, onConfirm, limpiarAuth, onClose]);
 
   const handleClose = useCallback(() => {
     setQty(1);
     setMotivo('');
-    setAuthMethod(SALIDA_METHODS.NONE);
     onClose();
-  }, [onClose, SALIDA_METHODS]);
+  }, [onClose]);
 
   if (!isOpen || !item) return null;
 
@@ -199,75 +196,19 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
       <div className="am-auth-section">
         <div className="am-auth-section-header">
           <ShieldCheck size={15} />
-          <span>Autorización obligatoria</span>
+          <span>Autorización de supervisor</span>
           {!isAutorizado && <span className="am-auth-required-badge">REQUERIDA</span>}
         </div>
 
         {isAutorizado ? (
           <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
         ) : (
-          <>
-            {/* Selector de método */}
-            <div className="am-method-toggle">
-              <button
-                className={`am-method-btn ${authMethod === SALIDA_METHODS.FACTURA ? 'am-method-active' : ''}`}
-                onClick={() => setAuthMethod(authMethod === SALIDA_METHODS.FACTURA ? SALIDA_METHODS.NONE : SALIDA_METHODS.FACTURA)}
-                type="button"
-              >
-                <Receipt size={16} />
-                Por Factura
-              </button>
-              <button
-                className={`am-method-btn ${authMethod === SALIDA_METHODS.SUPERVISOR ? 'am-method-active-sup' : ''}`}
-                onClick={() => setAuthMethod(authMethod === SALIDA_METHODS.SUPERVISOR ? SALIDA_METHODS.NONE : SALIDA_METHODS.SUPERVISOR)}
-                type="button"
-              >
-                <ShieldCheck size={16} />
-                Por Supervisor
-              </button>
-            </div>
-
-            {/* Panel de Factura */}
-            {authMethod === SALIDA_METHODS.FACTURA && (
-              <div className="am-factura-panel">
-                <div className="am-factura-icon"><Sparkles size={20} /></div>
-                <p className="am-factura-title">Vincula una Factura</p>
-                <p className="am-factura-sub">
-                  Procesa la factura en <strong>Carga IA</strong> primero. Una vez procesada y confirmada, la factura quedará vinculada automáticamente a esta salida.
-                </p>
-                {authState.method === SALIDA_METHODS.FACTURA ? (
-                  <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
-                ) : (
-                  <button
-                    className="btn-apple-primary"
-                    style={{ width: '100%', marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                    onClick={() => {
-                      toast.info('Ve a Carga IA, procesa la factura y confirma. Después regresa aquí para registrar la salida.');
-                    }}
-                  >
-                    <Receipt size={15} /> Ir a Carga IA de Facturas
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Panel de Supervisor */}
-            {authMethod === SALIDA_METHODS.SUPERVISOR && (
-              <SupervisorPanel
-                onAuthorized={(name, id) => {
-                  autorizarConSupervisor(name, id);
-                  toast.success(`Autorizado por ${name}`);
-                }}
-              />
-            )}
-
-            {authMethod === SALIDA_METHODS.NONE && (
-              <div className="am-auth-hint">
-                <AlertCircle size={14} />
-                Selecciona un método de autorización para continuar.
-              </div>
-            )}
-          </>
+          <SupervisorPanel
+            onAuthorized={(name, id) => {
+              autorizarConSupervisor(name, id);
+              toast.success(`Autorizado por ${name}`);
+            }}
+          />
         )}
       </div>
 
