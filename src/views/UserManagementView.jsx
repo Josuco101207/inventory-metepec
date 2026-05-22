@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   UserPlus, Trash2, Shield, ShieldCheck, Mail, Loader2,
   Warehouse, User, ChevronDown, ChevronUp, Lock, Edit3, X,
-  LayoutDashboard, History, Activity
+  LayoutDashboard, History, Activity, Eye, EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CATEGORY_ICONS } from '../config/categories';
