@@ -5,14 +5,21 @@ import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const MAX_SIZE_MB = 10;
 
-const InvoiceUploader = ({ onFileSelected, processing, disabled }) => {
+const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview, initialFile }) => {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(initialPreview || null);
   const [error, setError] = useState('');
   const [ocrProgress, setOcrProgress] = useState(0);
   const aiStatus = getAIStatus();
+
+  // Sincronizar preview con prop externa si cambia
+  useEffect(() => {
+    if (initialPreview !== undefined) {
+      setPreview(initialPreview);
+    }
+  }, [initialPreview]);
 
   useEffect(() => {
     if (processing && aiStatus.provider === 'ocr') {
@@ -63,7 +70,8 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled }) => {
     setError('');
     if (fileRef.current) fileRef.current.value = '';
     if (cameraRef.current) cameraRef.current.value = '';
-  }, []);
+    onFileSelected?.(null);
+  }, [onFileSelected]);
 
   if (processing) {
     return (

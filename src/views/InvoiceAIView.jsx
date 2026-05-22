@@ -1,49 +1,47 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Sparkles, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
 import InvoiceUploader from '../components/InvoiceUploader';
 import InvoiceReviewForm from '../components/InvoiceReviewForm';
 import { processInvoice } from '../services/invoiceAI';
 import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
+import { useInvoiceAI } from '../context/InvoiceAIContext';
 import './InvoiceAIView.css';
 
-const STEPS = {
-  UPLOAD: 'upload',
-  PROCESSING: 'processing',
-  REVIEW: 'review',
-  DONE: 'done',
-};
-
 const InvoiceAIView = () => {
-  const [step, setStep] = useState(STEPS.UPLOAD);
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [facturaStorageUrl, setFacturaStorageUrl] = useState(null);
-  const [extractedData, setExtractedData] = useState(null);
-  const [result, setResult] = useState(null);
+  const {
+    step,
+    file,
+    previewUrl,
+    facturaStorageUrl,
+    extractedData,
+    result,
+    STEPS,
+    setFileSelected,
+    setProcessedData,
+    setFinalResult,
+    backToUpload,
+    setProcessing,
+    reset,
+  } = useInvoiceAI();
 
   const handleFileSelected = useCallback(async (selectedFile) => {
-    setFile(selectedFile);
-    if (selectedFile.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    }
-  }, []);
+    setFileSelected(selectedFile);
+  }, [setFileSelected]);
 
   const handleProcess = useCallback(async () => {
     if (!file) {
       toast.error('Selecciona un archivo primero');
       return;
     }
-    setStep(STEPS.PROCESSING);
+    setProcessing();
     try {
       // Subir factura a Storage y procesar con IA en paralelo
       const [data, storageUrl] = await Promise.all([
         processInvoice(file),
         uploadFactura(file).catch(e => { console.warn('Storage upload failed:', e.message); return null; }),
       ]);
-      setExtractedData(data);
-      setFacturaStorageUrl(storageUrl);
-      setStep(STEPS.REVIEW);
+      setProcessedData(data, storageUrl);
       toast.success('Factura procesada exitosamente');
     } catch (err) {
       console.error('Invoice processing error:', err);
@@ -59,23 +57,17 @@ const InvoiceAIView = () => {
         friendly = 'El archivo no pudo ser leído por la IA. Intenta con una imagen más clara.';
       }
       toast.error(friendly, { duration: 6000 });
-      setStep(STEPS.UPLOAD);
+      backToUpload();
     }
-  }, [file]);
+  }, [file, setProcessing, setProcessedData, backToUpload]);
 
   const handleConfirm = useCallback((confirmedData) => {
-    setResult(confirmedData);
-    setStep(STEPS.DONE);
-  }, []);
+    setFinalResult(confirmedData);
+  }, [setFinalResult]);
 
   const handleReset = useCallback(() => {
-    setStep(STEPS.UPLOAD);
-    setFile(null);
-    setPreviewUrl(null);
-    setFacturaStorageUrl(null);
-    setExtractedData(null);
-    setResult(null);
-  }, []);
+    reset();
+  }, [reset]);
 
   return (
     <div className="iaiv-container">
@@ -101,6 +93,8 @@ const InvoiceAIView = () => {
             onFileSelected={handleFileSelected}
             processing={step === STEPS.PROCESSING}
             disabled={step === STEPS.PROCESSING}
+            initialPreview={previewUrl}
+            initialFile={file}
           />
           {step === STEPS.UPLOAD && file && (
             <div className="iaiv-file-ready">
@@ -121,7 +115,7 @@ const InvoiceAIView = () => {
           extractedData={extractedData}
           previewUrl={facturaStorageUrl || previewUrl}
           facturaStorageUrl={facturaStorageUrl}
-          onBack={() => setStep(STEPS.UPLOAD)}
+          onBack={backToUpload}
           onConfirm={handleConfirm}
         />
       )}
