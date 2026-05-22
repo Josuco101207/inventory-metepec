@@ -19,12 +19,14 @@
   background: hsl(var(--bg-card));
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
   padding: 3rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   border: 1px solid hsl(var(--border-color));
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: background-color 0.3s, border-color 0.3s;
 }
 
