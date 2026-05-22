@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 
 const STEPS = {
   UPLOAD: 'upload',
+  VALIDATING: 'validating',
   PROCESSING: 'processing',
   REVIEW: 'review',
   DONE: 'done',
@@ -101,6 +102,11 @@ export const InvoiceAIProvider = ({ children }) => {
     setStep(STEPS.UPLOAD);
   }, []);
 
+  // Ir a paso de validación
+  const setValidating = useCallback(() => {
+    setStep(STEPS.VALIDATING);
+  }, []);
+
   // Volver a procesamiento
   const setProcessing = useCallback(() => {
     setStep(STEPS.PROCESSING);
@@ -122,6 +128,7 @@ export const InvoiceAIProvider = ({ children }) => {
     setProcessedData,
     setFinalResult,
     backToUpload,
+    setValidating,
     setProcessing,
   };
 

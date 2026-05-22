@@ -667,6 +667,195 @@ export function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality =
   });
 }
 
+const VALIDATION_PROMPT = `You are a document classifier. Look at this image and answer ONLY with a JSON object.
+Determine if this document is a commercial invoice, purchase order, receipt, or bill (factura, recibo, orden de compra).
+Respond ONLY with this exact JSON, no extra text:
+{"isInvoice": true, "confidence": 0.95}
+or
+{"isInvoice": false, "confidence": 0.95}`;
+
+async function validateWithOpenAI(base64, mimeType) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${AI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: VALIDATION_PROMPT },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
+          ],
+        },
+      ],
+      max_tokens: 60,
+      temperature: 0,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `OpenAI validation error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  const match = content.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Invalid validation response');
+  return JSON.parse(match[0]);
+}
+
+async function validateWithGemini(base64, mimeType) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: VALIDATION_PROMPT },
+            { inline_data: { mime_type: mimeType, data: base64 } },
+          ],
+        }],
+        generationConfig: { temperature: 0, maxOutputTokens: 60 },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Gemini validation error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const match = content.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Invalid validation response');
+  return JSON.parse(match[0]);
+}
+
+function validateWithHeuristics(file) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      resolve({ isInvoice: true, confidence: 0.6 });
+      return;
+    }
+
+    const img = new Image();
+    const srcUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(srcUrl);
+      const { width, height } = img;
+      const aspectRatio = width / height;
+
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 200 / Math.max(width, height));
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      const pixels = canvas.width * canvas.height;
+
+      let brightCount = 0;
+      let darkCount = 0;
+      let totalSaturation = 0;
+
+      for (let i = 0; i < pixels; i++) {
+        const r = data[i * 4];
+        const g = data[i * 4 + 1];
+        const b = data[i * 4 + 2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        totalSaturation += (max - min) / 255;
+        if (lum > 200) brightCount++;
+        if (lum < 50) darkCount++;
+      }
+
+      const brightRatio = brightCount / pixels;
+      const darkRatio = darkCount / pixels;
+      const avgSaturation = totalSaturation / pixels;
+
+      // Heurísticas: facturas tienen fondo claro, texto oscuro, baja saturación
+      // Fotos naturales o memes tienen alta saturación y distribución desigual
+      let score = 0.5;
+
+      // Fondo claro es una señal positiva de documento
+      if (brightRatio > 0.4) score += 0.15;
+      if (brightRatio > 0.6) score += 0.1;
+
+      // Saturación baja es señal positiva de documento
+      if (avgSaturation < 0.12) score += 0.2;
+      else if (avgSaturation > 0.35) score -= 0.25;
+
+      // Proporción de aspecto: facturas suelen ser más altas que anchas
+      if (aspectRatio < 0.85) score += 0.1;
+      else if (aspectRatio > 1.8) score -= 0.1;
+
+      // Combinación de fondo claro + texto oscuro = documento
+      if (brightRatio > 0.5 && darkRatio > 0.05) score += 0.1;
+
+      score = Math.max(0, Math.min(1, score));
+      const isInvoice = score >= 0.5;
+
+      resolve({ isInvoice, confidence: Math.round(score * 100) / 100 });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(srcUrl);
+      reject(new Error('Failed to load image for validation'));
+    };
+
+    img.src = srcUrl;
+  });
+}
+
+/**
+ * Light pre-validation: determines if a file looks like an invoice before
+ * running the expensive full extraction. Uses AI vision if a key is available,
+ * otherwise falls back to local image heuristics (no API cost).
+ * @param {File} file
+ * @returns {Promise<{ isInvoice: boolean, confidence: number }>}
+ */
+export async function validateInvoice(file) {
+  if (AI_PROVIDER === 'mock') {
+    await new Promise(r => setTimeout(r, 800));
+    return { isInvoice: true, confidence: 0.99 };
+  }
+
+  if (!AI_API_KEY) {
+    return validateWithHeuristics(file);
+  }
+
+  let fileToValidate = file;
+  let mimeType = file.type || 'image/jpeg';
+
+  if (file.type && file.type.startsWith('image/')) {
+    try {
+      fileToValidate = await compressImage(file, 800, 800, 0.7);
+      mimeType = 'image/jpeg';
+    } catch (e) {
+      console.warn('Compression failed for validation, using original:', e);
+    }
+  }
+
+  const base64 = await fileToBase64(fileToValidate);
+
+  if (AI_PROVIDER === 'openai') return validateWithOpenAI(base64, mimeType);
+  if (AI_PROVIDER === 'gemini') return validateWithGemini(base64, mimeType);
+
+  return validateWithHeuristics(file);
+}
+
 /**
  * Process an invoice file (image or PDF) and return extracted data.
  * @param {File} file - The invoice file to process

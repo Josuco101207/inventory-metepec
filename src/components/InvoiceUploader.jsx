@@ -5,7 +5,7 @@ import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const MAX_SIZE_MB = 10;
 
-const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview, initialFile }) => {
+const InvoiceUploader = ({ onFileSelected, processing, validating, disabled, initialPreview, initialFile }) => {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
@@ -72,6 +72,20 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview,
     if (cameraRef.current) cameraRef.current.value = '';
     onFileSelected?.(null);
   }, [onFileSelected]);
+
+  if (validating) {
+    return (
+      <div className="iu-processing">
+        <div className="iu-processing-inner">
+          <div className="iu-spinner" />
+          <div className="iu-processing-text">
+            <h3>Verificando documento...</h3>
+            <p>Comprobando que el archivo sea una factura válida antes de procesarlo</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (processing) {
     return (

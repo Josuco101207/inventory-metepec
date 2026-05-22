@@ -76,6 +76,27 @@
   white-space: nowrap;
 }
 
+.iaiv-validating {
+  border-color: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.06);
+  color: hsl(var(--text-secondary));
+  font-weight: 500;
+}
+
+.iaiv-validating-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid hsl(var(--primary) / 0.25);
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: iaiv-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes iaiv-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ─── InvoiceUploader ─── */
 .iu-container {
   position: relative;
