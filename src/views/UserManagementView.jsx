@@ -412,7 +412,7 @@ const UserManagementView = () => {
                         <Shield size={14} />
                       </button>
                       <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} title="Cambiar contraseña" className="fly-action-btn fly-action-icon">
-                        <Key size={14} />
+                        <Lock size={14} />
                       </button>
                       <button onClick={() => handleDelete(u)} title="Eliminar" className="fly-action-btn fly-action-red fly-action-icon">
                         <Trash2 size={14} />
