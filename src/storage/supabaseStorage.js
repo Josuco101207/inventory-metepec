@@ -60,12 +60,10 @@ export const insertItem = async (tableName, item) => {
 export const updateItem = async (tableName, itemId, updates) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
   const { id, createdAt, created_at, ...rest } = updates;
-  console.log('[updateItem] Table:', tableName, 'ID:', itemId, 'Updates:', rest);
   const data = await restFetch(`${tableName}?id=eq.${itemId}`, {
     method: 'PATCH',
     body: JSON.stringify(rest),
   });
-  console.log('[updateItem] Response:', data);
   return data?.[0] || data;
 };
 
@@ -244,33 +242,39 @@ export const validateSupervisorCredentials = async (email, password) => {
     { auth: { persistSession: false, autoRefreshToken: false } }
   );
 
-  const { data, error } = await tempClient.auth.signInWithPassword({ email, password });
-  if (error || !data?.user) {
-    throw new Error('Credenciales incorrectas');
-  }
-
-  const profile = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${data.user.id}&select=name,role`,
-    {
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${data.session.access_token}`,
-        'Accept': 'application/vnd.pgrst.object+json',
-      },
+  let signedIn = false;
+  try {
+    const { data, error } = await tempClient.auth.signInWithPassword({ email, password });
+    if (error || !data?.user) {
+      throw new Error('Credenciales incorrectas');
     }
-  ).then(r => r.ok ? r.json() : null).catch(() => null);
+    signedIn = true;
 
-  await tempClient.auth.signOut();
+    const profile = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${data.user.id}&select=name,role`,
+      {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${data.session.access_token}`,
+          'Accept': 'application/vnd.pgrst.object+json',
+        },
+      }
+    ).then(r => r.ok ? r.json() : null).catch(() => null);
 
-  const role = profile?.role || 'user';
-  if (role !== 'admin' && role !== 'supervisor') {
-    throw new Error('El usuario no tiene permisos de supervisor');
+    const role = profile?.role || 'user';
+    if (role !== 'admin' && role !== 'supervisor') {
+      throw new Error('El usuario no tiene permisos de supervisor');
+    }
+
+    return {
+      success: true,
+      id: data.user.id,
+      name: profile?.name || email,
+      role,
+    };
+  } finally {
+    if (signedIn) {
+      await tempClient.auth.signOut().catch(() => {});
+    }
   }
-
-  return {
-    success: true,
-    id: data.user.id,
-    name: profile?.name || email,
-    role,
-  };
 };

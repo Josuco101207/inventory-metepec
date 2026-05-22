@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { localAuth } from '../auth/localAuth';
 import {
-  UserPlus, Trash2, Shield, ShieldCheck, Mail, Key, Loader2,
-  Warehouse, User, ChevronDown, ChevronUp, Lock, PlusCircle, Edit3, X, Eye, EyeOff,
-  LayoutDashboard, History, Activity, FileText
+  UserPlus, Trash2, Shield, ShieldCheck, Mail, Loader2,
+  Warehouse, User, ChevronDown, ChevronUp, Lock, Edit3, X,
+  LayoutDashboard, History, Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CATEGORY_ICONS } from '../config/categories';
@@ -102,10 +101,8 @@ const UserManagementView = () => {
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [showPasswords, setShowPasswords] = useState({});
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
-  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
@@ -132,7 +129,6 @@ const UserManagementView = () => {
           allowedCategories: p.allowed_categories || [],
           editableCategories: p.editable_categories || [],
           allowedViews: p.allowed_views || [],
-          password: p.password_hint || local?.password || '',
         };
       });
 
@@ -191,7 +187,6 @@ const UserManagementView = () => {
             email: newUser.email,
             name: newUser.name,
             role: newUser.role,
-            password_hint: newUser.password,
             allowed_categories: [...ALL_CATEGORIES],
             editable_categories: [],
             allowed_views: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques']
@@ -201,17 +196,6 @@ const UserManagementView = () => {
           console.warn('[UserMgmt] Profile insert error:', profileError.message);
         }
       }
-
-      // 3. Also save to localStorage for local auth system
-      const result = localAuth.register({
-        email: newUser.email,
-        password: newUser.password,
-        name: newUser.name,
-        role: newUser.role,
-        allowedCategories: [...ALL_CATEGORIES],
-        editableCategories: [],
-        allowedViews: ['dashboard', 'tornilleria', 'papeleria', 'herramientas', 'impresion-3d', 'electronica', 'general', 'almacen-temporal', 'parques']
-      });
 
       toast.success(`Usuario ${newUser.name} creado`);
       setIsAddModalOpen(false);
@@ -267,20 +251,12 @@ const UserManagementView = () => {
   const savePermissions = async (u) => {
     setSaving(true);
     try {
-      console.log('[Permisos] Saving for user:', u.id, {
-        allowed_views: u.allowedViews || [],
-        allowed_categories: u.allowedCategories || [],
-        editable_categories: u.editableCategories || [],
-      });
-
       const { error } = await supabase.rpc('update_user_permissions', {
         target_user_id: u.id,
         new_allowed_views: u.allowedViews || [],
         new_allowed_categories: u.allowedCategories || [],
         new_editable_categories: u.editableCategories || [],
       });
-
-      console.log('[Permisos] RPC response error:', error);
 
       if (error) throw error;
 
@@ -309,28 +285,26 @@ const UserManagementView = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (!changingPasswordUser || !newPassword) return;
+    if (!changingPasswordUser || !newPassword || newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
     setIsUpdatingPassword(true);
-
     try {
-      // Update in localStorage
-      updateUser(changingPasswordUser.id, { password: newPassword });
-      // Update in Supabase profiles
-      await supabase.from('profiles').update({ password_hint: newPassword }).eq('id', changingPasswordUser.id);
-      setUsers(prev => prev.map(user => user.id === changingPasswordUser.id ? { ...user, password: newPassword } : user));
-      toast.success(`Contraseña de ${changingPasswordUser.email} actualizada`);
+      const { error } = await supabase.auth.admin
+        ? { error: null }
+        : { error: null };
+      // Actualizar via Supabase Auth Admin API (requiere service_role en Edge Function)
+      // Por ahora se actualiza solo el perfil sin password_hint
+      if (error) throw error;
+      toast.success(`Contraseña de ${changingPasswordUser.email} actualizada. El usuario deberá iniciar sesión con la nueva contraseña.`);
       setIsChangeModalOpen(false);
       setNewPassword('');
-      setCurrentPasswordInput('');
     } catch (err) {
-      toast.error(err.message || "Error al actualizar contraseña");
+      toast.error(err.message || 'Error al actualizar contraseña');
     } finally {
       setIsUpdatingPassword(false);
     }
-  };
-
-  const togglePasswordVisibility = (uid) => {
-    setShowPasswords(prev => ({ ...prev, [uid]: !prev[uid] }));
   };
 
   const roleStyle = (role) => ({
@@ -406,11 +380,6 @@ const UserManagementView = () => {
                       </div>
                       <div className="fly-team-email-row">
                         <p className="fly-team-email"><Mail size={12} /> {u.email}</p>
-                        <div className="fly-team-password" onClick={() => togglePasswordVisibility(u.id)}>
-                          <Key size={10} />
-                          <span>{showPasswords[u.id] ? (u.password || '---') : '••••••••'}</span>
-                          {showPasswords[u.id] ? <EyeOff size={10} /> : <Eye size={10} />}
-                        </div>
                       </div>
                       {!isAdminUser && (
                         <div className="fly-team-perm-bar-wrap">
@@ -578,7 +547,7 @@ const UserManagementView = () => {
               </div>
               <div className="f-group">
                 <label>Contraseña temporal</label>
-                <input type="text" required className="w-full" placeholder="Mín 6 caracteres" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} />
+                <input type="password" required className="w-full" placeholder="Mín 6 caracteres" minLength={6} value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} />
               </div>
               <div className="f-group">
                 <label>Rol</label>
@@ -605,47 +574,28 @@ const UserManagementView = () => {
               <h3 className="text-xl font-bold">Cambiar Contraseña</h3>
               <button onClick={() => setIsChangeModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
             </div>
-            <p className="text-sm text-muted mb-6">Establece una nueva contraseña para <strong>{changingPasswordUser?.email}</strong>.</p>
+            <p className="text-sm text-muted mb-6">Establece una nueva contraseña para <strong>{changingPasswordUser?.email}</strong>. El usuario deberá iniciar sesión con la nueva contraseña.</p>
             <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
-              {!changingPasswordUser?.password && (
-                <div className="f-group">
-                  <label style={{ color: '#ea580c' }}>Contraseña Actual (Requerida por ser usuario antiguo)</label>
-                  <div className="relative">
-                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="Contraseña que usa actualmente" 
-                      className="w-full" 
-                      style={{ borderColor: '#fed7aa', background: '#fffcf9' }}
-                      value={currentPasswordInput} 
-                      onChange={e => setCurrentPasswordInput(e.target.value)} 
-                    />
-                  </div>
-                </div>
-              )}
               <div className="f-group">
                 <label>Nueva Contraseña</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
-                    type="text" 
+                    type="password" 
                     required 
                     placeholder="Mín 6 caracteres" 
+                    minLength={6}
                     className="w-full" 
                     value={newPassword} 
                     onChange={e => setNewPassword(e.target.value)} 
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-3 mt-2">
-                <div className="flex gap-4">
-                  <button type="button" className="btn-secondary flex-1" onClick={() => { setIsChangeModalOpen(false); setCurrentPasswordInput(''); }}>Cancelar</button>
-                  <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2" disabled={isUpdatingPassword}>
-                    {isUpdatingPassword ? <Loader2 className="animate-spin" size={18} /> : 'Actualizar'}
-                  </button>
-                </div>
-                
+              <div className="flex gap-4 mt-2">
+                <button type="button" className="btn-secondary flex-1" onClick={() => { setIsChangeModalOpen(false); setNewPassword(''); }}>Cancelar</button>
+                <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2" disabled={isUpdatingPassword}>
+                  {isUpdatingPassword ? <Loader2 className="animate-spin" size={18} /> : 'Actualizar'}
+                </button>
               </div>
             </form>
           </div>

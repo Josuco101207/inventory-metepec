@@ -177,8 +177,13 @@ const InventoryView = ({ categoryTitle }) => {
   useEffect(() => {
     workerRef.current = new Worker(new URL('../workers/filterWorker.js', import.meta.url));
     workerRef.current.onmessage = (e) => {
+      if (!Array.isArray(e.data)) {
+        console.error('[FilterWorker] Respuesta inesperada del worker:', e.data?.error || e.data);
+        setIsFiltering(false);
+        return;
+      }
       setFilteredItems(e.data);
-      setVisibleCount(40); // Reset al filtrar
+      setVisibleCount(40);
       setIsFiltering(false);
     };
     return () => workerRef.current.terminate();

@@ -106,9 +106,9 @@ const InvoicesView = () => {
       copy[idx] = { ...copy[idx], [field]: value };
       const qty = parseFloat(copy[idx].cantidad) || 0;
       const price = parseFloat(copy[idx].precioUnitario) || 0;
-      copy[idx].importeTotal = qty * price;
+      copy[idx].importeTotal = Math.round(qty * price * 100) / 100;
       const manIva = copy[idx].ivaManual;
-      copy[idx].ivaCalc = manIva !== '' ? parseFloat(manIva) || 0 : copy[idx].importeTotal * IVA_RATE;
+      copy[idx].ivaCalc = manIva !== '' ? Math.round((parseFloat(manIva) || 0) * 100) / 100 : Math.round(copy[idx].importeTotal * IVA_RATE * 100) / 100;
       return copy;
     });
   }, []);

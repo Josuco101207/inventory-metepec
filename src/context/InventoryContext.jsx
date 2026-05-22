@@ -113,62 +113,59 @@ export const InventoryProvider = ({ children }) => {
     }
   }, [user]);
 
+  // ─── Enriquecer items con factura_url extraída de los movements ───
+  const enrichItemsWithFacturaUrl = useCallback((allItems, movements) => {
+    const urlById = {};
+    const urlByName = {};
+    movements.forEach(m => {
+      if (m.details && m.details.includes('factura_url:')) {
+        const urlMatch = m.details.match(/factura_url:(https?:\/\/\S+)/);
+        if (!urlMatch) return;
+        const url = urlMatch[1];
+        const idMatch = m.details.match(/item_id:([\w-]+)/);
+        if (idMatch && !urlById[idMatch[1]]) urlById[idMatch[1]] = url;
+        if (m.item && !urlByName[m.item.toLowerCase().trim()]) urlByName[m.item.toLowerCase().trim()] = url;
+      }
+    });
+    allItems.forEach(item => {
+      if (!item.factura_url) {
+        if (item.id && urlById[item.id]) {
+          item.factura_url = urlById[item.id];
+        } else if (item.name && urlByName[item.name.toLowerCase().trim()]) {
+          item.factura_url = urlByName[item.name.toLowerCase().trim()];
+        }
+      }
+    });
+    return allItems;
+  }, []);
+
   // ─── Cargar items de TODAS las tablas de categorías en Supabase ───
-  const loadAllItems = useCallback(async () => {
+  // Acepta movements opcionales para enriquecer con factura_url sin fetch duplicado.
+  const loadAllItems = useCallback(async (cachedMovements = null) => {
     if (!categories.length) return;
     try {
       const allItems = [];
       await Promise.all(categories.map(async (cat) => {
         if (!cat.tableName) return;
         const rows = await sbFetchItems(cat.tableName);
-        // Tag each row with category info so the rest of the app works
         rows.forEach(row => {
           const normalizedRow = { ...row };
-          // Normalizar nombre si viene en español
           if (row.nombre && !row.name) normalizedRow.name = row.nombre;
-          // Normalizar cantidad si viene en español
           if (row.cantidad !== undefined && row.qty === undefined) normalizedRow.qty = row.cantidad;
-          // Normalizar observaciones si viene como detalles
           if (row.detalles && !row.observaciones) normalizedRow.observaciones = row.detalles;
-          
           allItems.push({ ...normalizedRow, category: cat.title, _tableName: cat.tableName });
         });
       }));
 
-      // Enriquecer items con factura_url extraída de los movements
-      const movements = await sbFetchMovements(500);
-      // Dos mapas: por item_id (preciso) y por nombre (fallback)
-      const urlById = {};
-      const urlByName = {};
-      movements.forEach(m => {
-        if (m.details && m.details.includes('factura_url:')) {
-          const urlMatch = m.details.match(/factura_url:(https?:\/\/\S+)/);
-          if (!urlMatch) return;
-          const url = urlMatch[1];
-          // Extraer item_id si viene en details
-          const idMatch = m.details.match(/item_id:([\w-]+)/);
-          if (idMatch && !urlById[idMatch[1]]) urlById[idMatch[1]] = url;
-          // También indexar por nombre como fallback
-          if (m.item && !urlByName[m.item.toLowerCase().trim()]) urlByName[m.item.toLowerCase().trim()] = url;
-        }
-      });
-      allItems.forEach(item => {
-        if (!item.factura_url) {
-          // Primero buscar por ID exacto
-          if (item.id && urlById[item.id]) {
-            item.factura_url = urlById[item.id];
-          // Luego por nombre (case-insensitive)
-          } else if (item.name && urlByName[item.name.toLowerCase().trim()]) {
-            item.factura_url = urlByName[item.name.toLowerCase().trim()];
-          }
-        }
-      });
+      // Si no se pasaron movements, hacer fetch (solo en syncInventory manual)
+      const movementsToUse = cachedMovements ?? await sbFetchMovements(500);
+      enrichItemsWithFacturaUrl(allItems, movementsToUse);
 
       setItemsState(allItems);
     } catch (err) {
       console.error('[Inventory] Load items error:', err);
     }
-  }, [categories]);
+  }, [categories, enrichItemsWithFacturaUrl]);
 
   // ─── Cargar datos ───
   useEffect(() => {
@@ -188,14 +185,16 @@ export const InventoryProvider = ({ children }) => {
     const init = async () => {
       setLoadError(null);
       try {
-        // Load all data from Supabase in parallel
-        const [, sbMovements, sbPersonnel, sbBrands, sbLocations] = await Promise.all([
-          loadAllItems(),
+        // Load all data from Supabase in parallel — movements se carga una sola vez
+        const [sbMovements, sbPersonnel, sbBrands, sbLocations] = await Promise.all([
           sbFetchMovements(500),
           sbFetchPersonnel(),
           sbFetchBrands(),
           sbFetchLocations(),
         ]);
+
+        // Pasar movements ya cargados para evitar fetch duplicado dentro de loadAllItems
+        await loadAllItems(sbMovements);
 
         setMovementsState(sbMovements.length > 0 ? sbMovements : getMovements());
         setPersonnelState(sbPersonnel.length > 0 ? sbPersonnel : getPersonnel());

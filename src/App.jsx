@@ -99,6 +99,10 @@ const RootApp = () => {
 
   const hasViewAccess = (viewId) => {
     if (isAdmin) return true;
+    const role = userData?.role;
+    // almacenista y supervisor tienen acceso a carga de facturas y entradas manuales
+    const staffViews = ['invoice-ai', 'manual-entry'];
+    if (staffViews.includes(viewId) && (role === 'almacenista' || role === 'supervisor')) return true;
     const defaultAllowed = ['dashboard', 'profile'];
     if (defaultAllowed.includes(viewId)) return true;
     if (!userData) return false;
@@ -175,8 +179,8 @@ const RootApp = () => {
               <Route path="/analytics" element={isAdmin ? <AnalyticsView /> : <Navigate to="/" />} />
               <Route path="/tools" element={isAdmin ? <ToolsView /> : <Navigate to="/" />} />
               <Route path="/invoices" element={isAdmin ? <InvoicesView /> : <Navigate to="/" />} />
-              <Route path="/invoice-ai" element={<InvoiceAIView />} />
-              <Route path="/manual-entry" element={<ManualEntryView />} />
+              <Route path="/invoice-ai" element={<ViewProtectedRoute viewId="invoice-ai"><InvoiceAIView /></ViewProtectedRoute>} />
+              <Route path="/manual-entry" element={<ViewProtectedRoute viewId="manual-entry"><ManualEntryView /></ViewProtectedRoute>} />
               <Route path="/settings" element={isAdmin ? <SettingsView /> : <Navigate to="/" />} />
               <Route path="/profile" element={<ProfileView />} />
               <Route path="/users" element={isAdmin ? <UserManagementView /> : <Navigate to="/" />} />
