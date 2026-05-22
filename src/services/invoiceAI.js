@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Invoice AI Processing Service
  * 
  * Processes invoice images using:
@@ -16,19 +16,19 @@ const SYSTEM_PROMPT = `Eres un sistema de OCR inteligente para facturas mexicana
 
 Para CADA item, devuelve:
 - descripcion: nombre del producto tal como aparece en la factura
-- cantidad: n├║mero de unidades
+- cantidad: número de unidades
 - unidad: unidad de medida (PZA, KG, M, LT, CAJA, etc.)
 - precioUnitario: precio por unidad SIN IVA
-- iva: monto de IVA para ese item (si no se muestra por l├¡nea, calcula 16%)
+- iva: monto de IVA para ese item (si no se muestra por línea, calcula 16%)
 - detallesExtra: objeto JSON con los atributos adicionales del producto que encuentres (ej. marca, modelo, color, voltaje, dimensiones, etc.)
 
-Tambi├®n extrae los datos del encabezado:
-- folio: n├║mero de factura
+También extrae los datos del encabezado:
+- folio: número de factura
 - proveedor: nombre del proveedor/empresa emisora
-- fecha: fecha de emisi├│n (formato YYYY-MM-DD)
+- fecha: fecha de emisión (formato YYYY-MM-DD)
 - moneda: MXN o USD
 
-Responde SOLO en JSON v├ílido con esta estructura exacta:
+Responde SOLO en JSON válido con esta estructura exacta:
 {
   "header": { "folio": "", "proveedor": "", "fecha": "", "moneda": "MXN" },
   "items": [
@@ -113,7 +113,7 @@ function parseAIResponse(content) {
   const parsed = JSON.parse(jsonMatch[0]);
 
   if (!parsed.header || !Array.isArray(parsed.items)) {
-    throw new Error('Formato de respuesta inv├ílido');
+    throw new Error('Formato de respuesta inválido');
   }
 
   return {
@@ -133,9 +133,9 @@ function parseAIResponse(content) {
   };
 }
 
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ────────────────────────────────────────────
 // Tesseract.js OCR Processing (Free, Local)
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ────────────────────────────────────────────
 
 let onProgressCallback = null;
 
@@ -305,7 +305,7 @@ async function processWithTesseract(file) {
       urls.push(origUrl);
       const text3 = await runOCR(origUrl, 88, 10);
       if (!text3 || text3.trim().length < 20) {
-        throw new Error('No se pudo extraer texto legible de la imagen. Intenta con una foto m├ís clara.');
+        throw new Error('No se pudo extraer texto legible de la imagen. Intenta con una foto más clara.');
       }
       return parseInvoiceText(text3);
     }
@@ -361,7 +361,7 @@ function detectUnit(text) {
   if (/\bjgo\b|\bjuego/i.test(t)) return 'JGO';
   if (/\bbolsa/i.test(t)) return 'BOLSA';
   if (/\bpaquete\b|\bpaq\b/i.test(t)) return 'PAQUETE';
-  if (/\bmts2\b|\bm2\b|\bm┬▓/i.test(t)) return 'M';
+  if (/\bmts2\b|\bm2\b|\bm²/i.test(t)) return 'M';
   return 'PZA';
 }
 
@@ -370,7 +370,7 @@ function parseInvoiceText(rawText) {
   const fullText = lines.join('\n');
 
 
-  // ÔöÇÔöÇ Extract Header ÔöÇÔöÇ
+  // ── Extract Header ──
   const header = {
     folio: '',
     proveedor: '',
@@ -391,7 +391,7 @@ function parseInvoiceText(rawText) {
 
   // Proveedor
   const provPatterns = [
-    /(?:raz[o├│]n\s*social|proveedor)\s*[:.]?\s*(.+)/i,
+    /(?:raz[oó]n\s*social|proveedor)\s*[:.]?\s*(.+)/i,
     /([\w\s]+S\.?\s*A\.?\s*(?:de)?\s*(?:C\.?\s*V\.?|R\.?\s*L\.?))/i,
   ];
   for (const pat of provPatterns) {
@@ -409,17 +409,17 @@ function parseInvoiceText(rawText) {
     }
   }
 
-  // ÔöÇÔöÇ Find document total first (used for amount validation) ÔöÇÔöÇ
-  // OCR may garble "39,644.97" ÔåÆ "39.664 97" or "39,644 97" etc.
+  // ── Find document total first (used for amount validation) ──
+  // OCR may garble "39,644.97" → "39.664 97" or "39,644 97" etc.
   const totalMatch = fullText.match(/TOTAL\s*[:.]\s*\$?\s*([\d,.\s]+\d)/i);
   let docTotal = 0;
   if (totalMatch) {
     let raw = totalMatch[1].trim();
-    // "39.664 97" ÔåÆ treat period-before-3-digits as thousands sep, space as decimal
-    // "39,644.97" ÔåÆ standard format
+    // "39.664 97" → treat period-before-3-digits as thousands sep, space as decimal
+    // "39,644.97" → standard format
     raw = raw.replace(/\.(\d{3})/g, '$1'); // remove period used as thousands separator
     raw = raw.replace(/,(\d{3})/g, '$1');  // remove comma used as thousands separator
-    raw = raw.replace(/\s+/g, '.');        // space before last digits ÔåÆ decimal
+    raw = raw.replace(/\s+/g, '.');        // space before last digits → decimal
     docTotal = parseFloat(raw) || 0;
   }
 
@@ -427,7 +427,7 @@ function parseInvoiceText(rawText) {
   function fixAmount(n) {
     if (docTotal <= 0) return n;
     if (n <= docTotal) return n;
-    // Try inserting decimal point: 456450 ÔåÆ 4564.50
+    // Try inserting decimal point: 456450 → 4564.50
     const div100 = n / 100;
     if (div100 > 10 && div100 <= docTotal) return Math.round(div100 * 100) / 100;
     const div10 = n / 10;
@@ -435,12 +435,12 @@ function parseInvoiceText(rawText) {
     return n;
   }
 
-  // ÔöÇÔöÇ Extract Items ÔöÇÔöÇ
+  // ── Extract Items ──
   const items = [];
-  const skipLine = /sub\s*total|^impuesto|^iva\b|^total[:\s]|descuento|deacuent|cargo\s*mis|condicion|comentari|^pago|recib[i├¡]|firma|aceptaci/i;
-  const headerLine = /^(RFC|Tel[e├®]|Nombre|Direcci|Cliente|Raz[o├│]n|Orden|Fecha|CP\s|Chont|Rarar|masas|Procia|FACTURA|MANCO|amass|SANTA|Mawcan)/i;
+  const skipLine = /sub\s*total|^impuesto|^iva\b|^total[:\s]|descuento|deacuent|cargo\s*mis|condicion|comentari|^pago|recib[ií]|firma|aceptaci/i;
+  const headerLine = /^(RFC|Tel[eé]|Nombre|Direcci|Cliente|Raz[oó]n|Orden|Fecha|CP\s|Chont|Rarar|masas|Procia|FACTURA|MANCO|amass|SANTA|Mawcan)/i;
 
-  // Strategy 1: Find product lines ÔÇö lines starting with line numbers (1-9, Y, I)
+  // Strategy 1: Find product lines — lines starting with line numbers (1-9, Y, I)
   // followed by a product code/description with numbers
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -495,7 +495,7 @@ function parseInvoiceText(rawText) {
     let qty = qtyNums.length > 0 ? qtyNums[qtyNums.length - 1] : 1;
 
     // Clean description
-    let desc = rest.replace(/\d[\d,]*\.?\d*/g, ' ').replace(/[ÔÇö-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    let desc = rest.replace(/\d[\d,]*\.?\d*/g, ' ').replace(/[—-]+/g, ' ').replace(/\s+/g, ' ').trim();
     if (desc.length < 3) desc = codeWord;
     const fullDesc = (codeWord + ' ' + desc).substring(0, 80).trim();
 
@@ -512,7 +512,7 @@ function parseInvoiceText(rawText) {
 
   // Strategy 2: Product keyword lines not already found
   if (items.length < 2) {
-    const kwds = /malla|membrana|mega|rollo|tela|cable|pelota|cinta|tubo|perfil|lamina|pl├ístico|plastico|vinilo|hule|sombra|somtza|sorexa|brill/i;
+    const kwds = /malla|membrana|mega|rollo|tela|cable|pelota|cinta|tubo|perfil|lamina|plástico|plastico|vinilo|hule|sombra|somtza|sorexa|brill/i;
     for (const line of lines) {
       if (skipLine.test(line) || headerLine.test(line)) continue;
       if (!kwds.test(line) || line.length < 10) continue;
