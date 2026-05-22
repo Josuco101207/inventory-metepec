@@ -45,6 +45,11 @@ function fileToBase64(file) {
   });
 }
 
+function isQuotaError(status, msg) {
+  return status === 429 || status === 503 ||
+    (msg && (msg.includes('quota') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('rate') || msg.includes('limit: 0')));
+}
+
 async function processWithOpenAI(base64, mimeType) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -81,7 +86,7 @@ async function processWithOpenAI(base64, mimeType) {
 
 async function processWithGemini(base64, mimeType) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${AI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -99,7 +104,11 @@ async function processWithGemini(base64, mimeType) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Gemini API error: ${res.status}`);
+    const msg = err.error?.message || '';
+    if (isQuotaError(res.status, msg)) {
+      throw new Error('429: Se alcanzó el límite de uso de la IA. Intenta más tarde.');
+    }
+    throw new Error(msg || `Gemini API error: ${res.status}`);
   }
 
   const data = await res.json();
@@ -711,7 +720,7 @@ async function validateWithOpenAI(base64, mimeType) {
 
 async function validateWithGemini(base64, mimeType) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${AI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -729,13 +738,18 @@ async function validateWithGemini(base64, mimeType) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Gemini validation error: ${res.status}`);
+    const msg = err.error?.message || '';
+    if (isQuotaError(res.status, msg)) {
+      console.warn('Gemini quota exceeded for validation, falling back to heuristics');
+      return null;
+    }
+    throw new Error(msg || `Gemini validation error: ${res.status}`);
   }
 
   const data = await res.json();
   const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   const match = content.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Invalid validation response');
+  if (!match) return null;
   return JSON.parse(match[0]);
 }
 
@@ -850,8 +864,16 @@ export async function validateInvoice(file) {
 
   const base64 = await fileToBase64(fileToValidate);
 
-  if (AI_PROVIDER === 'openai') return validateWithOpenAI(base64, mimeType);
-  if (AI_PROVIDER === 'gemini') return validateWithGemini(base64, mimeType);
+  if (AI_PROVIDER === 'openai') {
+    const result = await validateWithOpenAI(base64, mimeType);
+    if (result) return result;
+  }
+
+  if (AI_PROVIDER === 'gemini') {
+    const result = await validateWithGemini(base64, mimeType);
+    if (result) return result;
+    // null = quota exceeded, caemos a heurísticas sin costo
+  }
 
   return validateWithHeuristics(file);
 }
