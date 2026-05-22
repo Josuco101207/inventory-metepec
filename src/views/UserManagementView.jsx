@@ -214,12 +214,18 @@ const UserManagementView = () => {
   };
 
   const toggleRole = async (u) => {
-    const next = u.role === 'admin' ? 'almacenista' : u.role === 'almacenista' ? 'user' : 'admin';
+    const cycle = { admin: 'almacenista', almacenista: 'supervisor', supervisor: 'user', user: 'admin' };
+    const next = cycle[u.role] ?? 'user';
     if (window.confirm(`¿Cambiar rol de ${u.email} a ${next.toUpperCase()}?`)) {
-      updateUser(u.id, { role: next });
-      await supabase.from('profiles').update({ role: next }).eq('id', u.id);
       setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: next } : user));
-      toast.success(`Rol cambiado a ${next}`);
+      const { error } = await supabase.from('profiles').update({ role: next }).eq('id', u.id);
+      if (error) {
+        setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
+        toast.error(`Error al cambiar rol: ${error.message}`);
+        return;
+      }
+      updateUser(u.id, { role: next });
+      toast.success(`Rol de ${u.email} cambiado a ${next.toUpperCase()}`);
     }
   };
 
@@ -319,11 +325,13 @@ const UserManagementView = () => {
   const roleStyle = (role) => ({
     admin:       { bg: '#f0f7ff', color: '#0071e3', border: '#bfdbfe' },
     almacenista: { bg: '#fff8f0', color: '#ea580c', border: '#fed7aa' },
+    supervisor:  { bg: '#f0fff4', color: '#16a34a', border: '#bbf7d0' },
     user:        { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' },
   }[role] || { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' });
 
   const summaryText = (u) => {
     if (u.role === 'admin') return { text: 'Acceso ilimitado', color: '#0071e3', bg: '#f0f7ff', border: '#bfdbfe' };
+    if (u.role === 'supervisor') return { text: 'Supervisor de salidas', color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
     const a = (u.allowedCategories || []).length;
     const e = (u.editableCategories || []).length;
     if (a === 0 && e === 0) return { text: 'Sin permisos', color: '#dc2626', bg: '#fff1f1', border: '#fecaca' };
@@ -383,6 +391,7 @@ const UserManagementView = () => {
                         <span className={`fly-role-pill ${u.role}`}>
                           {u.role === 'admin' && <Shield size={10} />}
                           {u.role === 'almacenista' && <Warehouse size={10} />}
+                          {u.role === 'supervisor' && <ShieldCheck size={10} />}
                           {u.role === 'user' && <User size={10} />}
                           {(u.role || 'user').toUpperCase()}
                         </span>
