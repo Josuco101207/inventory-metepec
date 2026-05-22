@@ -272,8 +272,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
-  const isAdmin = userData?.role === 'admin';
-  const isStaff = userData?.role === 'admin' || userData?.role === 'almacenista';
+  const { isAdmin, isStaff } = useMemo(() => {
+    const admin = userData?.role === 'admin';
+    const staff = admin || userData?.role === 'almacenista' || userData?.role === 'supervisor';
+    return { isAdmin: admin, isStaff: staff };
+  }, [userData]);
 
   // Returns true if the current user can add items to the given category
   const canAddTo = useCallback((category) => {
@@ -292,11 +295,11 @@ export const AuthProvider = ({ children }) => {
   }, [isAdmin, userData?.editableCategories]);
 
   const contextValue = useMemo(() => ({
-    user, 
-    userData, 
-    loading, 
-    login, 
-    signup, 
+    user,
+    userData,
+    loading,
+    login,
+    signup,
     logout,
     isAdmin,
     isStaff,

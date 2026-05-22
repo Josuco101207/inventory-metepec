@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import {
   UserPlus, Trash2, Shield, ShieldCheck, Mail, Loader2,
   Warehouse, User, ChevronDown, ChevronUp, Lock, Edit3, X,
@@ -82,6 +83,7 @@ const PermToggle = ({ active, onClick, color, disabled }) => (
 );
 
 const UserManagementView = () => {
+  const { user: currentUser } = useAuth();
   const { categories, categoryToViewId } = useCategories();
   const ALL_CATEGORIES = categories.map(cat => cat.title);
   const ALL_VIEWS = [
@@ -291,13 +293,22 @@ const UserManagementView = () => {
     }
     setIsUpdatingPassword(true);
     try {
-      const { error } = await supabase.auth.admin
-        ? { error: null }
-        : { error: null };
-      // Actualizar via Supabase Auth Admin API (requiere service_role en Edge Function)
-      // Por ahora se actualiza solo el perfil sin password_hint
-      if (error) throw error;
-      toast.success(`Contraseña de ${changingPasswordUser.email} actualizada. El usuario deberá iniciar sesión con la nueva contraseña.`);
+      const isSelf = currentUser?.id === changingPasswordUser.id;
+      if (isSelf) {
+        // El propio usuario actualiza su contraseña
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+        toast.success('Tu contraseña fue actualizada correctamente.');
+      } else {
+        // Cambio de contraseña de otro usuario requiere service_role (Edge Function o panel Supabase).
+        // La anon key del cliente no tiene privilegios admin.updateUserById.
+        toast.error(
+          'Para cambiar la contraseña de otro usuario, usa el panel de Supabase Auth ' +
+          '(Authentication → Users) o implementa una Edge Function con service_role.',
+          { duration: 8000 }
+        );
+        return;
+      }
       setIsChangeModalOpen(false);
       setNewPassword('');
     } catch (err) {

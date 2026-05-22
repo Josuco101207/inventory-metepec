@@ -115,8 +115,12 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const [qty, setQty] = useState(1);
   const [motivo, setMotivo] = useState('');
 
+  const parsedQty = parseInt(qty) || 0;
+  const stockDisponible = item?.qty ?? 0;
+
   const isValid =
-    qty && parseInt(qty) > 0 &&
+    parsedQty > 0 &&
+    parsedQty <= stockDisponible &&
     motivo.trim().length > 0 &&
     isAutorizado;
 
@@ -130,14 +134,14 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     }
 
     const authDetails = buildAuthDetails(`Motivo: ${motivo.trim()}`);
-    onConfirm(item.id, -parseInt(qty), authDetails);
+    onConfirm(item.id, -parsedQty, authDetails);
 
     // Limpiar estado local
     setQty(1);
     setMotivo('');
     limpiarAuth();
     onClose();
-  }, [isValid, authState, buildAuthDetails, motivo, qty, item, onConfirm, limpiarAuth, onClose]);
+  }, [isValid, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose]);
 
   const handleClose = useCallback(() => {
     setQty(1);
@@ -171,8 +175,8 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
           min={1}
           max={item.qty || 9999}
         />
-        {parseInt(qty) > (item.qty || 0) && (
-          <div className="am-warn"><AlertCircle size={13} /> Cantidad mayor al stock disponible.</div>
+        {parsedQty > stockDisponible && parsedQty > 0 && (
+          <div className="am-warn"><AlertCircle size={13} /> Cantidad mayor al stock disponible ({stockDisponible} {item?.unit || 'pzas'}). Ajusta el valor.</div>
         )}
       </div>
 
