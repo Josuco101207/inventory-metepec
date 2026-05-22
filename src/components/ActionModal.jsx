@@ -1,118 +1,286 @@
-import React, { useState } from 'react';
-import { X, RefreshCw, ArrowUpCircle, ArrowDownCircle, FileText, AlertCircle, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { X, RefreshCw, ArrowDownCircle, FileText, AlertCircle, Sparkles, Receipt, ShieldCheck, Loader2, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
+import { useSalidaAuth, SALIDA_METHODS } from '../context/SalidaAuthContext';
+import { validateSupervisorCredentials } from '../storage/supabaseStorage';
+import { toast } from 'sonner';
 import './ActionModal.css';
 
-const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
-  const navigate = useNavigate();
-  const { isMobile } = useIsMobile();
-  const [qty, setQty] = useState(1);
-  const [action, setAction] = useState('Salida');
-  const [details, setDetails] = useState('');
+// ─── Sub-panel: Autorización por Supervisor ───────────────────────────────────
+const SupervisorPanel = ({ onAuthorized }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  if (!isOpen || !item) return null;
+  const handleValidate = useCallback(async () => {
+    if (!email.trim() || !password) { setError('Completa correo y contraseña.'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      const result = await validateSupervisorCredentials(email.trim(), password);
+      onAuthorized(result.name, result.id);
+    } catch (err) {
+      setError(err.message || 'Error al validar credenciales');
+    } finally {
+      setLoading(false);
+    }
+  }, [email, password, onAuthorized]);
 
-  const isSalida = action === 'Salida';
-  const isValid = qty && parseInt(qty) > 0 && (!isSalida || details.trim().length > 0);
+  return (
+    <div className="am-auth-panel">
+      <div className="am-auth-panel-icon">
+        <Lock size={22} />
+      </div>
+      <p className="am-auth-panel-title">Credenciales de Supervisor</p>
+      <p className="am-auth-panel-sub">Solo usuarios con rol <strong>admin</strong> o <strong>supervisor</strong> pueden autorizar.</p>
 
-  const handleConfirm = () => {
-    if (!isValid) return;
-    const finalQty = isSalida ? -parseInt(qty) : parseInt(qty);
-    const detailText = details.trim() ? (isSalida ? `Motivo: ${details.trim()}` : details.trim()) : '';
-    onConfirm(item.id, finalQty, detailText);
-    setDetails('');
-    setQty(1);
-    setAction('Salida');
-    onClose();
-  };
+      <div className="f-group" style={{ marginTop: '1rem' }}>
+        <label>Correo del supervisor</label>
+        <input
+          type="email"
+          className="f-input"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="supervisor@empresa.com"
+          autoComplete="off"
+          disabled={loading}
+        />
+      </div>
 
-  const content = (
-    <div className="flex flex-col gap-6">
-      {/* Solo Salida — las Entradas se manejan vía Carga IA de Facturas */}
-      <div className="f-group">
-        <label>Tipo de Operación</label>
-        <div className="operation-toggle">
+      <div className="f-group" style={{ marginTop: '0.75rem', position: 'relative' }}>
+        <label>Contraseña</label>
+        <div style={{ position: 'relative' }}>
+          <input
+            type={showPw ? 'text' : 'password'}
+            className="f-input"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            disabled={loading}
+            onKeyDown={e => e.key === 'Enter' && handleValidate()}
+            style={{ paddingRight: '3rem' }}
+          />
           <button
-            className="op-btn active-salida"
-            style={{ flex: 1 }}
-          >
-            <ArrowDownCircle size={18} /> Salida
-          </button>
-        </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          marginTop: 8, padding: '8px 12px', borderRadius: 10,
-          background: 'rgba(141, 198, 63, 0.1)',
-          fontSize: 11, fontWeight: 700, color: 'hsl(var(--primary))'
-        }}>
-          <Sparkles size={13} />
-          <span>Las entradas de inventario se realizan únicamente mediante <button
             type="button"
-            onClick={() => { onClose(); navigate('/invoice-ai'); }}
-            style={{ background: 'none', border: 'none', color: 'inherit', textDecoration: 'underline', cursor: 'pointer', font: 'inherit', padding: 0 }}
-          >Carga IA de Facturas</button>.</span>
+            onClick={() => setShowPw(v => !v)}
+            style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--text-muted))' }}
+          >
+            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
         </div>
       </div>
 
-      {/* Quantity */}
+      {error && (
+        <div className="am-auth-error">
+          <AlertCircle size={13} /> {error}
+        </div>
+      )}
+
+      <button
+        className="btn-apple-primary"
+        style={{ width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+        onClick={handleValidate}
+        disabled={loading || !email || !password}
+      >
+        {loading ? <><Loader2 size={16} className="am-spin" /> Verificando...</> : <><ShieldCheck size={16} /> Validar Autorización</>}
+      </button>
+    </div>
+  );
+};
+
+// ─── Badge de autorización activa ─────────────────────────────────────────────
+const AuthBadge = ({ authState, onClear, SALIDA_METHODS }) => (
+  <div className="am-auth-badge">
+    <CheckCircle2 size={16} />
+    <span>
+      {authState.method === SALIDA_METHODS.FACTURA
+        ? `Factura vinculada`
+        : `Autorizado por ${authState.autorizadoPor}`}
+    </span>
+    <button type="button" className="am-auth-badge-clear" onClick={onClear}>
+      <X size={13} />
+    </button>
+  </div>
+);
+
+// ─── ActionModal principal ────────────────────────────────────────────────────
+const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
+  const { isMobile } = useIsMobile();
+  const { authState, isAutorizado, autorizarConSupervisor, limpiarAuth, buildAuthDetails, SALIDA_METHODS } = useSalidaAuth();
+
+  const [qty, setQty] = useState(1);
+  const [motivo, setMotivo] = useState('');
+  const [authMethod, setAuthMethod] = useState(SALIDA_METHODS.NONE);
+
+  const isValid =
+    qty && parseInt(qty) > 0 &&
+    motivo.trim().length > 0 &&
+    isAutorizado;
+
+  const handleConfirm = useCallback(() => {
+    if (!isValid) return;
+
+    // Validación de seguridad en cliente: bloquear si no hay autorización
+    if (!authState.facturaId && !authState.autorizadoPorId) {
+      toast.error('Salida bloqueada: se requiere factura o autorización de supervisor.');
+      return;
+    }
+
+    const authDetails = buildAuthDetails(`Motivo: ${motivo.trim()}`);
+    onConfirm(item.id, -parseInt(qty), authDetails);
+
+    // Limpiar estado local
+    setQty(1);
+    setMotivo('');
+    setAuthMethod(SALIDA_METHODS.NONE);
+    limpiarAuth();
+    onClose();
+  }, [isValid, authState, buildAuthDetails, motivo, qty, item, onConfirm, limpiarAuth, onClose, SALIDA_METHODS]);
+
+  const handleClose = useCallback(() => {
+    setQty(1);
+    setMotivo('');
+    setAuthMethod(SALIDA_METHODS.NONE);
+    onClose();
+  }, [onClose, SALIDA_METHODS]);
+
+  if (!isOpen || !item) return null;
+
+  const content = (
+    <div className="flex flex-col gap-6">
+
+      {/* Info del artículo */}
+      <div className="am-item-info">
+        <ArrowDownCircle size={18} style={{ color: 'hsl(var(--danger))', flexShrink: 0 }} />
+        <div>
+          <span className="am-item-name">{item.name}</span>
+          <span className="am-item-stock">Stock actual: <strong>{item.qty ?? '—'} {item.unit || 'pzas'}</strong></span>
+        </div>
+      </div>
+
+      {/* Cantidad */}
       <div className="f-group">
-        <label>Cantidad ({item?.unit || 'Piezas'})</label>
+        <label>Cantidad a retirar ({item?.unit || 'Piezas'})</label>
         <input
           type="number"
           className="f-input text-lg font-bold"
           value={qty}
-          onChange={(e) => setQty(e.target.value)}
+          onChange={e => setQty(e.target.value)}
           placeholder="0"
-          autoFocus
           min={1}
+          max={item.qty || 9999}
         />
-      </div>
-
-      {/* Reason — shown for both, REQUIRED for Salida */}
-      <div className="f-group">
-        <label>
-          <FileText size={14} style={{ marginRight: 6 }} />
-          {isSalida ? 'Motivo de salida (OBLIGATORIO)' : 'Notas (Opcional)'}
-        </label>
-
-        <div style={{ position: 'relative' }}>
-          <input
-            type="text"
-            className="f-input"
-            value={details}
-            onChange={(e) => setDetails(e.target.value)}
-            placeholder={isSalida ? 'Ej: uso en evento, consumo diario, préstamo...' : 'Notas adicionales (opcional)...'}
-            style={{
-              borderColor: isSalida && details.trim().length === 0 ? 'hsl(var(--danger))' : undefined,
-            }}
-          />
-        </div>
-
-        {/* Warning message when Salida and empty */}
-        {isSalida && details.trim().length === 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            marginTop: 8, padding: '8px 12px', borderRadius: 10,
-            background: 'hsla(var(--danger), 0.1)',
-            fontSize: 11, fontWeight: 700, color: 'hsl(var(--danger))'
-          }}>
-            <AlertCircle size={13} />
-            Debes indicar el motivo de la salida para continuar.
-          </div>
+        {parseInt(qty) > (item.qty || 0) && (
+          <div className="am-warn"><AlertCircle size={13} /> Cantidad mayor al stock disponible.</div>
         )}
       </div>
 
-      {/* Buttons */}
+      {/* Motivo */}
+      <div className="f-group">
+        <label><FileText size={13} style={{ marginRight: 5 }} />Motivo de salida <span style={{ color: 'hsl(var(--danger))' }}>*</span></label>
+        <input
+          type="text"
+          className="f-input"
+          value={motivo}
+          onChange={e => setMotivo(e.target.value)}
+          placeholder="Ej: obra norte, evento, consumo diario..."
+          style={{ borderColor: motivo.trim().length === 0 ? 'hsl(var(--danger))' : undefined }}
+        />
+        {motivo.trim().length === 0 && (
+          <div className="am-warn"><AlertCircle size={13} /> Campo obligatorio.</div>
+        )}
+      </div>
+
+      {/* ── Sección de Autorización Obligatoria ── */}
+      <div className="am-auth-section">
+        <div className="am-auth-section-header">
+          <ShieldCheck size={15} />
+          <span>Autorización obligatoria</span>
+          {!isAutorizado && <span className="am-auth-required-badge">REQUERIDA</span>}
+        </div>
+
+        {isAutorizado ? (
+          <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
+        ) : (
+          <>
+            {/* Selector de método */}
+            <div className="am-method-toggle">
+              <button
+                className={`am-method-btn ${authMethod === SALIDA_METHODS.FACTURA ? 'am-method-active' : ''}`}
+                onClick={() => setAuthMethod(authMethod === SALIDA_METHODS.FACTURA ? SALIDA_METHODS.NONE : SALIDA_METHODS.FACTURA)}
+                type="button"
+              >
+                <Receipt size={16} />
+                Por Factura
+              </button>
+              <button
+                className={`am-method-btn ${authMethod === SALIDA_METHODS.SUPERVISOR ? 'am-method-active-sup' : ''}`}
+                onClick={() => setAuthMethod(authMethod === SALIDA_METHODS.SUPERVISOR ? SALIDA_METHODS.NONE : SALIDA_METHODS.SUPERVISOR)}
+                type="button"
+              >
+                <ShieldCheck size={16} />
+                Por Supervisor
+              </button>
+            </div>
+
+            {/* Panel de Factura */}
+            {authMethod === SALIDA_METHODS.FACTURA && (
+              <div className="am-factura-panel">
+                <div className="am-factura-icon"><Sparkles size={20} /></div>
+                <p className="am-factura-title">Vincula una Factura</p>
+                <p className="am-factura-sub">
+                  Procesa la factura en <strong>Carga IA</strong> primero. Una vez procesada y confirmada, la factura quedará vinculada automáticamente a esta salida.
+                </p>
+                {authState.method === SALIDA_METHODS.FACTURA ? (
+                  <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
+                ) : (
+                  <button
+                    className="btn-apple-primary"
+                    style={{ width: '100%', marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    onClick={() => {
+                      toast.info('Ve a Carga IA, procesa la factura y confirma. Después regresa aquí para registrar la salida.');
+                    }}
+                  >
+                    <Receipt size={15} /> Ir a Carga IA de Facturas
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Panel de Supervisor */}
+            {authMethod === SALIDA_METHODS.SUPERVISOR && (
+              <SupervisorPanel
+                onAuthorized={(name, id) => {
+                  autorizarConSupervisor(name, id);
+                  toast.success(`Autorizado por ${name}`);
+                }}
+              />
+            )}
+
+            {authMethod === SALIDA_METHODS.NONE && (
+              <div className="am-auth-hint">
+                <AlertCircle size={14} />
+                Selecciona un método de autorización para continuar.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Botones */}
       <div className="flex gap-4">
-        <button className="btn-apple-secondary flex-1" onClick={onClose}>Cancelar</button>
+        <button className="btn-apple-secondary flex-1" onClick={handleClose}>Cancelar</button>
         <button
-          className={`flex-1 ${isSalida ? 'btn-apple-danger' : 'btn-apple-primary'}`}
+          className="flex-1 btn-apple-danger"
           onClick={handleConfirm}
           disabled={!isValid}
+          title={!isValid ? 'Completa todos los campos y la autorización' : ''}
         >
-          {isSalida ? 'Confirmar Salida' : 'Confirmar Entrada'}
+          Confirmar Salida
         </button>
       </div>
     </div>
@@ -120,10 +288,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
 
   if (isMobile) {
     return (
-      <BottomSheet isOpen={isOpen} onClose={onClose} title="Movimiento de Stock">
-        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1.25rem' }}>
-          Artículo: <strong style={{ color: 'rgba(255,255,255,0.96)' }}>{item?.name}</strong>
-        </p>
+      <BottomSheet isOpen={isOpen} onClose={handleClose} title="Salida de Material">
         {content}
       </BottomSheet>
     );
@@ -131,17 +296,13 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm, personnel = [] }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-card animate-scale-up">
+      <div className="modal-card animate-scale-up" style={{ maxWidth: 520 }}>
         <header className="modal-header">
-          <h3>
-            <RefreshCw className="text-blue-500" size={28} />
-            Movimiento de Stock
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <RefreshCw size={24} style={{ color: 'hsl(var(--danger))' }} />
+            Salida de Material
           </h3>
-          <p>
-            Artículo: <strong>{item?.name}</strong>
-          </p>
         </header>
-
         {content}
       </div>
     </div>

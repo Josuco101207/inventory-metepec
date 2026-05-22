@@ -6,6 +6,7 @@ import { processInvoice } from '../services/invoiceAI';
 import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
 import { useInvoiceAI } from '../context/InvoiceAIContext';
+import { useSalidaAuth } from '../context/SalidaAuthContext';
 import './InvoiceAIView.css';
 
 const InvoiceAIView = () => {
@@ -61,9 +62,15 @@ const InvoiceAIView = () => {
     }
   }, [file, setProcessing, setProcessedData, backToUpload]);
 
+  const { autorizarConFactura } = useSalidaAuth();
+
   const handleConfirm = useCallback((confirmedData) => {
     setFinalResult(confirmedData);
-  }, [setFinalResult]);
+    // Autorizar salidas automáticamente con la factura recién confirmada
+    const facturaId = confirmedData?.header?.folio || facturaStorageUrl || `factura_${Date.now()}`;
+    autorizarConFactura(facturaId, facturaStorageUrl);
+    toast.success('Factura vinculada — puedes registrar salidas autorizadas con esta factura durante 15 min.');
+  }, [setFinalResult, autorizarConFactura, facturaStorageUrl]);
 
   const handleReset = useCallback(() => {
     reset();

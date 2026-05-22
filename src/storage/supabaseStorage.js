@@ -228,3 +228,49 @@ export const deleteLocation = async (id) => {
     return false;
   }
 };
+
+// ─── SUPERVISOR VALIDATION ───
+
+/**
+ * Validates supervisor credentials by signing in temporarily via Supabase Auth
+ * and verifying that the resulting profile has role 'admin' or 'supervisor'.
+ * Returns { success, id, name, role } or throws on failure.
+ */
+export const validateSupervisorCredentials = async (email, password) => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const tempClient = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+
+  const { data, error } = await tempClient.auth.signInWithPassword({ email, password });
+  if (error || !data?.user) {
+    throw new Error('Credenciales incorrectas');
+  }
+
+  const profile = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${data.user.id}&select=name,role`,
+    {
+      headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${data.session.access_token}`,
+        'Accept': 'application/vnd.pgrst.object+json',
+      },
+    }
+  ).then(r => r.ok ? r.json() : null).catch(() => null);
+
+  await tempClient.auth.signOut();
+
+  const role = profile?.role || 'user';
+  if (role !== 'admin' && role !== 'supervisor') {
+    throw new Error('El usuario no tiene permisos de supervisor');
+  }
+
+  return {
+    success: true,
+    id: data.user.id,
+    name: profile?.name || email,
+    role,
+  };
+};

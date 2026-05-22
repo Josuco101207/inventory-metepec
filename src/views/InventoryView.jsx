@@ -526,9 +526,8 @@ const InventoryView = ({ categoryTitle }) => {
         )}
       </section>
 
-      <ActionModal 
+      <ActionModal
         isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem}
-        personnel={personnel}
         onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Jonathan', details); setIsStockModalOpen(false); }}
       />
 
