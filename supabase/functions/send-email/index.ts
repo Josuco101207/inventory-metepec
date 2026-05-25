@@ -45,7 +45,7 @@ serve(async (req) => {
     // 3. Configuración de email (puedes usar Resend, SendGrid, etc.)
     // Por ahora, simulamos el envío para desarrollo
     const emailConfig = {
-      from: Deno.env.get('EMAIL_FROM') || 'noreply@dicrejart.com',
+      from: Deno.env.get('EMAIL_FROM') || 'onboarding@resend.dev',
       to,
       subject,
       html,
@@ -58,31 +58,39 @@ serve(async (req) => {
     let messageId = null;
 
     try {
-      // Ejemplo con Resend (comentado - requiere configuración)
-      /*
-      const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-      const { data, error } = await resend.emails.send({
-        from: emailConfig.from,
-        to: [emailConfig.to],
-        subject: emailConfig.subject,
-        html: emailConfig.html,
-      });
+      // Configuración de Resend
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
       
-      if (error) throw error;
-      messageId = data?.id;
-      emailSent = true;
-      */
+      if (!resendApiKey) {
+        console.warn('[Send-Email] No RESEND_API_KEY configured, simulating email');
+        messageId = `sim_${Date.now()}`;
+        emailSent = true;
+      } else {
+        const resendResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: emailConfig.from,
+            to: [emailConfig.to],
+            subject: emailConfig.subject,
+            html: emailConfig.html,
+            text: emailConfig.text,
+          }),
+        });
 
-      // SIMULACIÓN para desarrollo
-      console.log('[Send-Email] Email would be sent:', {
-        to: emailConfig.to,
-        subject: emailConfig.subject,
-        from: emailConfig.from,
-        timestamp: new Date().toISOString()
-      });
-      
-      messageId = `sim_${Date.now()}`;
-      emailSent = true;
+        if (!resendResponse.ok) {
+          const errorData = await resendResponse.json();
+          throw new Error(errorData.message || 'Error sending email via Resend');
+        }
+
+        const responseData = await resendResponse.json();
+        messageId = responseData?.id;
+        emailSent = true;
+        console.log('[Send-Email] Email sent successfully via Resend:', messageId);
+      }
 
     } catch (err) {
       emailError = err.message;

@@ -18,16 +18,10 @@ export const APPROVAL_STATUS = {
   COMPLETED: 'completed'
 };
 
-// ─── FUNCIÓN PARA ENVIAR EMAIL DE APROBACIÓN ───
+// ─── FUNCIÓN PARA ENVIAR EMAIL DE APROBACIÓN (Vía Edge Function) ───
 const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, request, motivo) => {
-  const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
-  const emailFrom = import.meta.env.VITE_EMAIL_FROM || 'noreply@dicrejart.com';
+  const emailFrom = import.meta.env.VITE_EMAIL_FROM || 'onboarding@resend.dev';
   const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-
-  if (!resendApiKey) {
-    console.warn('[Approval] No RESEND_API_KEY configured, skipping email');
-    return;
-  }
 
   const approveUrl = `${appUrl}/approve/${request.id}`;
   const rejectUrl = `${appUrl}/reject/${request.id}`;
@@ -81,14 +75,18 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
   `;
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    // Llamar a Edge Function de Supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
+        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: emailFrom,
         to: supervisorEmail,
         subject: 'Nueva solicitud de aprobación de salida',
         html: emailHtml,
@@ -97,15 +95,16 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Error enviando email');
+      throw new Error(error.error || 'Error enviando email via Edge Function');
     }
 
     const data = await response.json();
-    console.log('[Approval] Email sent successfully:', data);
+    console.log('[Approval] Email sent successfully via Edge Function:', data);
     return data;
   } catch (error) {
-    console.error('[Approval] Error sending email:', error);
-    throw error;
+    console.error('[Approval] Error sending email via Edge Function:', error);
+    // No lanzar error para no bloquear la creación de la solicitud
+    return { success: false, error: error.message };
   }
 };
 
@@ -314,70 +313,198 @@ export const ApprovalProvider = ({ children }) => {
     }
   }, []);
 
-  // ─── Aprobar solicitud (para supervisores) ───
-  const approveRequest = useCallback(async (requestId, notes = '') => {
+  // ─── Polling inteligente con backoff ───
+  const startPolling = useCallback((requestId) => {
+    if (pollingActive && currentRequestId === requestId) return;
+    
+    setPollingActive(true);
+    setCurrentRequestId(requestId);
+    
+    let pollCount = 0;
+    const intervals = [5000, 10000, 20000, 30000]; // 5s, 10s, 20s, 30s
+    
+    const poll = async () => {
+      if (!pollingActive || currentRequestId !== requestId) return;
+      
+      const request = await checkRequestStatus(requestId);
+      
+      if (request && request.status !== APPROVAL_STATUS.PENDING) {
+        setPollingActive(false);
+        return;
+      }
+      
+      pollCount++;
+      const nextInterval = intervals[Math.min(pollCount, intervals.length - 1)];
+      setTimeout(poll, nextInterval);
+    };
+    
+    poll();
+  }, [pollingActive, currentRequestId, checkRequestStatus]);
+
+  const stopPolling = useCallback(() => {
+    setPollingActive(false);
+    setCurrentRequestId(null);
+  }, []);
+
+  // ─── Reactivar solicitud ───
+  const reactivateRequest = useCallback(async (requestId) => {
     try {
       setLoading(true);
-
-      // Obtener usuario actual
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuario no autenticado');
-
-      // Obtener la solicitud
-      const { data: request, error: requestError } = await supabase
-        .from('approval_requests')
-        .select('*')
-        .eq('id', requestId)
-        .single();
-
-      if (requestError || !request) throw new Error('Solicitud no encontrada');
-
-      // Verificar que esté pendiente
-      if (request.status !== 'pending') {
-        throw new Error('La solicitud ya fue procesada');
-      }
-
-      // Verificar que no haya expirado
-      if (new Date(request.timeout_at) < new Date()) {
-        throw new Error('La solicitud ha expirado');
-      }
-
-      // Actualizar la solicitud
-      const { data: updatedRequest, error: updateError } = await supabase
+      
+      const newTimeout = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      
+      const { data: request, error } = await supabase
         .from('approval_requests')
         .update({
-          status: 'approved',
-          completed_at: new Date().toISOString(),
-          rejection_reason: notes,
-          metadata: {
-            ...request.metadata,
-            approved_by: user.id,
-            approved_at: new Date().toISOString()
-          }
+          status: 'pending',
+          timeout_at: newTimeout,
+          notification_status: 'pending'
         })
         .eq('id', requestId)
         .select()
         .single();
-
-      if (updateError) throw updateError;
-
-      // Actualizar el movimiento
-      await supabase
-        .from('movements')
-        .update({
-          approval_status: 'approved',
-          supervisor_id: user.id,
-          approval_completed_at: new Date().toISOString(),
-          approval_notes: notes
-        })
-        .eq('id', request.movement_id);
-
+        
+      if (error) throw error;
+      
       setRequests(prev => prev.map(req => 
-        req.id === requestId ? updatedRequest : req
+        req.id === requestId ? request : req
       ));
       
-      toast.success('Solicitud aprobada exitosamente');
-      return updatedRequest;
+      toast.success('Solicitud reactivada', {
+        description: 'El tiempo ha sido extendido por 30 minutos'
+      });
+      
+      startPolling(requestId);
+      return request;
+    } catch (err) {
+      console.error('[Approval] Error reactivating request:', err);
+      toast.error('Error al reactivar solicitud', {
+        description: err.message
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [startPolling]);
+
+  // ─── Cancelar solicitud ───
+  const cancelRequest = useCallback(async (requestId) => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('approval_requests')
+        .update({
+          status: 'cancelled',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+        
+      if (error) throw error;
+      
+      setRequests(prev => prev.map(req => 
+        req.id === requestId ? { ...req, status: 'cancelled' } : req
+      ));
+      
+      stopPolling();
+      
+      toast.success('Solicitud cancelada');
+      return true;
+    } catch (err) {
+      console.error('[Approval] Error cancelling request:', err);
+      toast.error('Error al cancelar solicitud', {
+        description: err.message
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [stopPolling]);
+
+  // ─── Obtener solicitudes del usuario ───
+  const fetchUserRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+      
+      const { data: requests, error } = await supabase
+        .from('approval_requests')
+        .select('*')
+        .eq('requester_id', user.id)
+        .order('requested_at', { ascending: false })
+        .limit(20);
+        
+      if (error) throw error;
+      
+      setRequests(requests || []);
+      return requests;
+    } catch (err) {
+      console.error('[Approval] Error fetching requests:', err);
+      setError(err.message);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ─── Obtener solicitudes para aprobar (para supervisores) ───
+  const fetchPendingApprovals = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+      
+      const { data: requests, error } = await supabase
+        .from('approval_requests')
+        .select('*')
+        .eq('supervisor_id', user.id)
+        .eq('status', 'pending')
+        .order('requested_at', { ascending: false });
+        
+      if (error) throw error;
+      
+      return requests || [];
+    } catch (err) {
+      console.error('[Approval] Error fetching pending approvals:', err);
+      setError(err.message);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ─── Aprobar solicitud (para supervisores) ───
+  const approveRequest = useCallback(async (requestId, message = '') => {
+    try {
+      setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+      
+      const { data: request, error } = await supabase
+        .from('approval_requests')
+        .update({
+          status: 'approved',
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+          response_message: message
+        })
+        .eq('id', requestId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      setRequests(prev => prev.map(req => 
+        req.id === requestId ? request : req
+      ));
+      
+      toast.success('Solicitud aprobada');
+      return request;
     } catch (err) {
       console.error('[Approval] Error approving request:', err);
       toast.error('Error al aprobar solicitud', {
@@ -390,68 +517,34 @@ export const ApprovalProvider = ({ children }) => {
   }, []);
 
   // ─── Rechazar solicitud (para supervisores) ───
-  const rejectRequest = useCallback(async (requestId, reason) => {
+  const rejectRequest = useCallback(async (requestId, reason = '') => {
     try {
       setLoading(true);
-
-      // Obtener usuario actual
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
-
-      // Obtener la solicitud
-      const { data: request, error: requestError } = await supabase
-        .from('approval_requests')
-        .select('*')
-        .eq('id', requestId)
-        .single();
-
-      if (requestError || !request) throw new Error('Solicitud no encontrada');
-
-      // Verificar que esté pendiente
-      if (request.status !== 'pending') {
-        throw new Error('La solicitud ya fue procesada');
-      }
-
-      if (!reason || reason.trim().length === 0) {
-        throw new Error('El motivo de rechazo es requerido');
-      }
-
-      // Actualizar la solicitud
-      const { data: updatedRequest, error: updateError } = await supabase
+      
+      const { data: request, error } = await supabase
         .from('approval_requests')
         .update({
           status: 'rejected',
+          rejected_by: user.id,
+          rejected_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
-          rejection_reason: reason.trim(),
-          metadata: {
-            ...request.metadata,
-            rejected_by: user.id,
-            rejected_at: new Date().toISOString()
-          }
+          rejection_reason: reason
         })
         .eq('id', requestId)
         .select()
         .single();
-
-      if (updateError) throw updateError;
-
-      // Actualizar el movimiento
-      await supabase
-        .from('movements')
-        .update({
-          approval_status: 'rejected',
-          supervisor_id: user.id,
-          approval_completed_at: new Date().toISOString(),
-          approval_notes: reason.trim()
-        })
-        .eq('id', request.movement_id);
-
+        
+      if (error) throw error;
+      
       setRequests(prev => prev.map(req => 
-        req.id === requestId ? updatedRequest : req
+        req.id === requestId ? request : req
       ));
       
       toast.success('Solicitud rechazada');
-      return updatedRequest;
+      return request;
     } catch (err) {
       console.error('[Approval] Error rejecting request:', err);
       toast.error('Error al rechazar solicitud', {
@@ -463,102 +556,33 @@ export const ApprovalProvider = ({ children }) => {
     }
   }, []);
 
-  // ─── Polling inteligente para verificar estado ───
-  const startPolling = useCallback((requestId, intervalMs = 5000) => {
-    if (pollingActive) return;
-    
-    setPollingActive(true);
-    setCurrentRequestId(requestId);
-    
-    let pollInterval = intervalMs;
-    const poll = async () => {
-      const request = await checkRequestStatus(requestId);
-      
-      if (request && request.status !== APPROVAL_STATUS.PENDING) {
-        setPollingActive(false);
-        return;
-      }
-
-      // Backoff exponencial: aumentar intervalo gradualmente
-      pollInterval = Math.min(pollInterval * 1.5, 30000); // Máximo 30s
-      
-      if (pollingActive) {
-        setTimeout(poll, pollInterval);
-      }
-    };
-
-    poll();
-  }, [pollingActive, checkRequestStatus]);
-
-  const stopPolling = useCallback(() => {
-    setPollingActive(false);
-    setCurrentRequestId(null);
-  }, []);
-
-  // ─── Obtener solicitudes del usuario actual ───
-  const fetchMyRequests = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('approval_requests')
-        .select('*')
-        .eq('requester_id', user.id)
-        .order('requested_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setRequests(data || []);
-      return data || [];
-    } catch (err) {
-      console.error('[Approval] Error fetching requests:', err);
-      setError(err.message);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // ─── Limpiar estado ───
-  const clearRequests = useCallback(() => {
-    setRequests([]);
-    setCurrentRequestId(null);
-    stopPolling();
-  }, [stopPolling]);
-
-  // ─── Cargar supervisores al montar ───
+  // Cargar supervisores al montar el provider
   useEffect(() => {
     fetchSupervisors();
   }, [fetchSupervisors]);
 
-  // ─── Limpiar polling al desmontar ───
-  useEffect(() => {
-    return () => {
-      stopPolling();
-    };
-  }, [stopPolling]);
+  const value = {
+    requests,
+    supervisors,
+    loading,
+    error,
+    pollingActive,
+    currentRequestId,
+    fetchSupervisors,
+    createApprovalRequest,
+    checkRequestStatus,
+    startPolling,
+    stopPolling,
+    reactivateRequest,
+    cancelRequest,
+    fetchUserRequests,
+    fetchPendingApprovals,
+    approveRequest,
+    rejectRequest
+  };
 
   return (
-    <ApprovalContext.Provider value={{
-      requests,
-      supervisors,
-      loading,
-      error,
-      pollingActive,
-      currentRequestId,
-      fetchSupervisors,
-      createApprovalRequest,
-      checkRequestStatus,
-      approveRequest,
-      rejectRequest,
-      startPolling,
-      stopPolling,
-      fetchMyRequests,
-      clearRequests,
-      APPROVAL_STATUS
-    }}>
+    <ApprovalContext.Provider value={value}>
       {children}
     </ApprovalContext.Provider>
   );
