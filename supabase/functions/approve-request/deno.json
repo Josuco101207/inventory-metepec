@@ -1,0 +1,8 @@
+{
+  "functions": [
+    {
+      "name": "approve-request",
+      "runtime": "deno"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ export const SALIDA_METHODS = {
   NONE: 'none',
   FACTURA: 'factura',
   SUPERVISOR: 'supervisor',
+  APPROVAL: 'approval', // Nuevo método para flujo de aprobación
 };
 
 const EMPTY_STATE = {
@@ -24,6 +25,8 @@ const EMPTY_STATE = {
   autorizadoPor: null,
   autorizadoPorId: null,
   autorizadoAt: null,
+  approvalId: null, // Nuevo campo para flujo de aprobación
+  approvalStatus: null, // Estado de la aprobación
 };
 
 const isExpired = (timestamp) => {
@@ -88,6 +91,20 @@ export const SalidaAuthProvider = ({ children }) => {
     });
   }, []);
 
+  // Autorizar vía aprobación (nuevo método)
+  const autorizarConAprobacion = useCallback((approvalId, supervisorId, supervisorName) => {
+    setAuthState({
+      method: SALIDA_METHODS.APPROVAL,
+      facturaId: null,
+      facturaUrl: null,
+      autorizadoPor: supervisorName,
+      autorizadoPorId: supervisorId,
+      autorizadoAt: new Date().toISOString(),
+      approvalId: approvalId,
+      approvalStatus: 'approved'
+    });
+  }, []);
+
   // Limpiar autorización
   const limpiarAuth = useCallback(() => {
     setAuthState(EMPTY_STATE);
@@ -107,6 +124,9 @@ export const SalidaAuthProvider = ({ children }) => {
     if (authState.method === SALIDA_METHODS.SUPERVISOR) {
       return `${motivoBase} | autorizado_por:${authState.autorizadoPor} | supervisor_id:${authState.autorizadoPorId}`;
     }
+    if (authState.method === SALIDA_METHODS.APPROVAL) {
+      return `${motivoBase} | approval_id:${authState.approvalId} | supervisor_id:${authState.autorizadoPorId} | autorizado_por:${authState.autorizadoPor}`;
+    }
     return null;
   }, [isAutorizado, authState]);
 
@@ -116,6 +136,7 @@ export const SalidaAuthProvider = ({ children }) => {
       isAutorizado,
       autorizarConFactura,
       autorizarConSupervisor,
+      autorizarConAprobacion,
       limpiarAuth,
       buildAuthDetails,
       SALIDA_METHODS,

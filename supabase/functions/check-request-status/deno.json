@@ -1,0 +1,8 @@
+{
+  "functions": [
+    {
+      "name": "check-request-status",
+      "runtime": "deno"
+    }
+  ]
+}

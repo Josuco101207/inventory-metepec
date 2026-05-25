@@ -63,6 +63,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { InvoiceAIProvider } from './context/InvoiceAIContext';
 import { SalidaAuthProvider } from './context/SalidaAuthContext';
+import { ApprovalProvider } from './context/ApprovalContext';
 import { Toaster, toast } from 'sonner';
 import { Loader2, Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState as useStateR } from 'react';
@@ -207,7 +208,9 @@ function App() {
             <InventoryProvider>
               <InvoiceAIProvider>
                 <SalidaAuthProvider>
-                  <RootApp />
+                  <ApprovalProvider>
+                    <RootApp />
+                  </ApprovalProvider>
                 </SalidaAuthProvider>
               </InvoiceAIProvider>
             </InventoryProvider>
