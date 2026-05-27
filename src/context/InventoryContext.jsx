@@ -118,7 +118,7 @@ export const InventoryProvider = ({ children }) => {
     const urlById = {};
     const urlByName = {};
     movements.forEach(m => {
-      if (m.details && m.details.includes('factura_url:')) {
+      if (m.action === 'Entrada' && m.details && m.details.includes('factura_url:')) {
         const urlMatch = m.details.match(/factura_url:(https?:\/\/\S+)/);
         if (!urlMatch) return;
         const url = urlMatch[1];
@@ -304,7 +304,7 @@ export const InventoryProvider = ({ children }) => {
         updated[itemIndex] = {
           ...updated[itemIndex],
           qty: newQty,
-          ...(facturaUrl && !updated[itemIndex].factura_url ? { factura_url: facturaUrl } : {}),
+          ...(change > 0 && facturaUrl && !updated[itemIndex].factura_url ? { factura_url: facturaUrl } : {}),
         };
         return updated;
       });
