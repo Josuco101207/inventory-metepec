@@ -142,56 +142,47 @@ export const CategoriesProvider = ({ children }) => {
     loadCategories();
   }, [loadCategories]);
 
-  // Helper functions (same API as before)
-  const allCategoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
-  const allCategoryViewIds = useMemo(() => categories.map(c => c.viewId), [categories]);
+  // Helper functions and state value in a single optimized useMemo
+  const providerValue = useMemo(() => {
+    const allCategoryTitles = categories.map(cat => cat.title);
+    const allCategoryViewIds = categories.map(cat => cat.viewId);
 
-  const categoryToRoute = useCallback((categoryTitle) => {
-    const cat = categories.find(c => c.title === categoryTitle);
-    return cat?.route || '/';
-  }, [categories]);
+    const categoryToRoute = (categoryTitle) => {
+      const cat = categories.find(c => c.title === categoryTitle);
+      return cat?.route || '/';
+    };
 
-  const categoryToViewId = useCallback((categoryTitle) => {
-    const cat = categories.find(c => c.title === categoryTitle);
-    return cat?.viewId || null;
-  }, [categories]);
+    const categoryToViewId = (categoryTitle) => {
+      const cat = categories.find(c => c.title === categoryTitle);
+      return cat?.viewId || null;
+    };
 
-  const getCategoryByViewId = useCallback((viewId) => {
-    return categories.find(c => c.viewId === viewId) || null;
-  }, [categories]);
+    const getCategoryByViewId = (viewId) => {
+      return categories.find(c => c.viewId === viewId) || null;
+    };
 
-  const getCategoryByTitle = useCallback((title) => {
-    return categories.find(c => c.title === title) || null;
-  }, [categories]);
+    const getCategoryByTitle = (title) => {
+      return categories.find(c => c.title === title) || null;
+    };
 
-  const getCategoryBySlug = useCallback((slug) => {
-    return categories.find(c => c.id === slug) || null;
-  }, [categories]);
+    const getCategoryBySlug = (slug) => {
+      return categories.find(c => c.id === slug) || null;
+    };
 
-  const providerValue = useMemo(() => ({
-    categories,
-    loading,
-    reload: loadCategories,
-    allCategoryTitles,
-    allCategoryViewIds,
-    categoryToRoute,
-    categoryToViewId,
-    getCategoryByViewId,
-    getCategoryByTitle,
-    getCategoryBySlug,
-    ICON_NAMES,
-  }), [
-    categories,
-    loading,
-    loadCategories,
-    allCategoryTitles,
-    allCategoryViewIds,
-    categoryToRoute,
-    categoryToViewId,
-    getCategoryByViewId,
-    getCategoryByTitle,
-    getCategoryBySlug,
-  ]);
+    return {
+      categories,
+      loading,
+      reload: loadCategories,
+      allCategoryTitles,
+      allCategoryViewIds,
+      categoryToRoute,
+      categoryToViewId,
+      getCategoryByViewId,
+      getCategoryByTitle,
+      getCategoryBySlug,
+      ICON_NAMES,
+    };
+  }, [categories, loading, loadCategories]);
 
   return (
     <CategoriesContext.Provider value={providerValue}>
