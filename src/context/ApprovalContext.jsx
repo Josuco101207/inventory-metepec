@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
@@ -115,6 +115,7 @@ export const ApprovalProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [pollingActive, setPollingActive] = useState(false);
   const [currentRequestId, setCurrentRequestId] = useState(null);
+  const pollingRef = useRef({ active: false, requestId: null });
 
   // ─── Cargar supervisores disponibles ───
   const fetchSupervisors = useCallback(async () => {
@@ -315,8 +316,9 @@ export const ApprovalProvider = ({ children }) => {
 
   // ─── Polling inteligente con backoff ───
   const startPolling = useCallback((requestId) => {
-    if (pollingActive && currentRequestId === requestId) return;
+    if (pollingRef.current.active && pollingRef.current.requestId === requestId) return;
     
+    pollingRef.current = { active: true, requestId };
     setPollingActive(true);
     setCurrentRequestId(requestId);
     
@@ -324,11 +326,12 @@ export const ApprovalProvider = ({ children }) => {
     const intervals = [5000, 10000, 20000, 30000]; // 5s, 10s, 20s, 30s
     
     const poll = async () => {
-      if (!pollingActive || currentRequestId !== requestId) return;
+      if (!pollingRef.current.active || pollingRef.current.requestId !== requestId) return;
       
       const request = await checkRequestStatus(requestId);
       
       if (request && request.status !== APPROVAL_STATUS.PENDING) {
+        pollingRef.current.active = false;
         setPollingActive(false);
         return;
       }
@@ -339,9 +342,10 @@ export const ApprovalProvider = ({ children }) => {
     };
     
     poll();
-  }, [pollingActive, currentRequestId, checkRequestStatus]);
+  }, [checkRequestStatus]);
 
   const stopPolling = useCallback(() => {
+    pollingRef.current = { active: false, requestId: null };
     setPollingActive(false);
     setCurrentRequestId(null);
   }, []);
