@@ -37,7 +37,6 @@ const ApprovalActionView = ({ action }) => {
           setErrorMsg('Esta solicitud ya expiró.');
         } else {
           setStatus('confirming');
-          if (action === 'reject') setShowRejectForm(true);
         }
       } catch (err) {
         setStatus('error');
