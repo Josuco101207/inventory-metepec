@@ -68,6 +68,12 @@ export const SalidaAuthProvider = ({ children }) => {
     }
   }, [authState]);
 
+  // Limpiar autorización
+  const limpiarAuth = useCallback(() => {
+    setAuthState(EMPTY_STATE);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
   // Temporizador para invalidar automáticamente la sesión temporal expirada
   useEffect(() => {
     if (authState.method === SALIDA_METHODS.NONE || !authState.autorizadoAt) return;
@@ -128,11 +134,7 @@ export const SalidaAuthProvider = ({ children }) => {
     });
   }, []);
 
-  // Limpiar autorización
-  const limpiarAuth = useCallback(() => {
-    setAuthState(EMPTY_STATE);
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
+
 
   // Verificar si la autorización actual sigue vigente
   const isAutorizado = authState.method !== SALIDA_METHODS.NONE &&
