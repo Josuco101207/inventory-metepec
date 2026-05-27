@@ -55,9 +55,8 @@ const ApprovalActionView = ({ action }) => {
         .from('approval_requests')
         .update({
           status: 'approved',
-          approved_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
-          response_message: 'Aprobado por supervisor via email',
+          metadata: { ...request.metadata, response_message: 'Aprobado por supervisor via email', approved_at: new Date().toISOString() }
         })
         .eq('id', id)
         .eq('status', 'pending');
@@ -80,9 +79,9 @@ const ApprovalActionView = ({ action }) => {
         .from('approval_requests')
         .update({
           status: 'rejected',
-          rejected_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
           rejection_reason: rejectReason.trim(),
+          metadata: { ...request.metadata, rejected_at: new Date().toISOString() }
         })
         .eq('id', id)
         .eq('status', 'pending');

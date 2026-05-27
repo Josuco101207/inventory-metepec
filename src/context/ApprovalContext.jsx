@@ -484,14 +484,15 @@ export const ApprovalProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
       
+      const reqToUpdate = requests.find(r => r.id === requestId);
+      const currentMeta = reqToUpdate?.metadata || {};
+
       const { data: request, error } = await supabase
         .from('approval_requests')
         .update({
           status: 'approved',
-          approved_by: user.id,
-          approved_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
-          response_message: message
+          metadata: { ...currentMeta, approved_by: user.id, response_message: message, approved_at: new Date().toISOString() }
         })
         .eq('id', requestId)
         .select()
@@ -524,14 +525,16 @@ export const ApprovalProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
       
+      const reqToUpdate = requests.find(r => r.id === requestId);
+      const currentMeta = reqToUpdate?.metadata || {};
+
       const { data: request, error } = await supabase
         .from('approval_requests')
         .update({
           status: 'rejected',
-          rejected_by: user.id,
-          rejected_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
-          rejection_reason: reason
+          rejection_reason: reason,
+          metadata: { ...currentMeta, rejected_by: user.id, rejected_at: new Date().toISOString() }
         })
         .eq('id', requestId)
         .select()
