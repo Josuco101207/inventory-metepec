@@ -165,7 +165,7 @@ export const InventoryProvider = ({ children }) => {
           if (!urlMatch) return;
           const url = urlMatch[1];
 
-          const isEntrada = m.action === 'Entrada';
+          const isEntrada = m.action === 'Entrada' || m.action === 'Alta' || m.action === 'Devolución';
           const typeLabel = isEntrada ? 'Compra' : 'Salida';
           const folioMatch = m.details.match(/(?:Factura|Folio|id):\s*([\w-]+)/i);
           const folioStr = folioMatch ? ` - Folio: ${folioMatch[1]}` : '';
@@ -187,7 +187,7 @@ export const InventoryProvider = ({ children }) => {
 
       // Respaldo en memoria: si no tiene factura_url, usar la primera de compra o cualquiera disponible
       if (!item.factura_url && itemInvoices.length > 0) {
-        const purchaseInv = itemInvoices.find(inv => inv.type === 'Compra' || inv.type === 'Entrada');
+        const purchaseInv = itemInvoices.find(inv => inv.type === 'Compra' || inv.type === 'Entrada' || inv.type === 'Alta');
         item.factura_url = purchaseInv ? purchaseInv.url : itemInvoices[0].url;
       }
     });
@@ -588,8 +588,23 @@ export const InventoryProvider = ({ children }) => {
           createdItem.id ? `item_id:${createdItem.id}` : null,
           facturaUrl ? `factura_url:${facturaUrl}` : null,
         ].filter(Boolean).join(' | ');
+        const initialInvoices = [];
+        if (facturaUrl) {
+          initialInvoices.push({
+            url: facturaUrl,
+            type: 'Alta',
+            label: 'Factura de Compra (Original)',
+            timestamp: new Date().toISOString()
+          });
+        }
         // Guardar factura_url en memoria para mostrar botón inmediatamente
-        setItemsState(prev => [...prev, { ...createdItem, category: newItem.category, _tableName: tableName, factura_url: facturaUrl || undefined }]);
+        setItemsState(prev => [...prev, { 
+          ...createdItem, 
+          category: newItem.category, 
+          _tableName: tableName, 
+          factura_url: facturaUrl || undefined,
+          invoices: initialInvoices
+        }]);
         addMovement('Alta', newItem.name || 'Sin nombre', parseInt(newItem.qty) || 0, userName, details, newItem.category || 'General');
         toast.success(`Artículo creado: ${newItem.name || 'Sin nombre'}`);
       }
