@@ -97,7 +97,7 @@ const SupervisorPanel = ({ onAuthorized }) => {
 };
 
 // ─── Sub-panel: Selección de Supervisor (Nuevo Flujo de Aprobación) ─────────────
-const SupervisorSelectionPanel = ({ onRequestCreated, currentRequest, motivo }) => {
+const SupervisorSelectionPanel = ({ onRequestCreated, currentRequest, motivo, item, qty }) => {
   const { createApprovalRequest, loading } = useApproval();
   const [selectedSupervisorId, setSelectedSupervisorId] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -116,7 +116,9 @@ const SupervisorSelectionPanel = ({ onRequestCreated, currentRequest, motivo }) 
       const request = await createApprovalRequest(tempMovementId, selectedSupervisorId, {
         notificationMethod: 'email',
         reason: motivo,
-        timeoutMinutes: 30
+        timeoutMinutes: 30,
+        item: item ? { id: item.id, name: item.name, unit: item.unit } : null,
+        qty: qty
       });
 
       if (request) {
@@ -128,7 +130,7 @@ const SupervisorSelectionPanel = ({ onRequestCreated, currentRequest, motivo }) 
     } finally {
       setCreating(false);
     }
-  }, [selectedSupervisorId, createApprovalRequest, onRequestCreated]);
+  }, [selectedSupervisorId, createApprovalRequest, onRequestCreated, motivo, item, qty]);
 
   if (currentRequest) {
     return (
@@ -255,7 +257,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
         toast.error('Salida bloqueada: la solicitud debe estar aprobada.');
         return;
       }
-      authDetails = `Motivo: ${motivo.trim()} | approval_id:${currentRequest.id} | supervisor_id:${currentRequest.supervisor_id}`;
+      authDetails = `Motivo: ${motivo.trim()} | approval_id:${currentRequest.id} | supervisor_id:${currentRequest.supervisor_id} | autorizado_por:${currentRequest.metadata?.supervisor_name || 'Supervisor'}`;
     }
 
     onConfirm(item.id, -parsedQty, authDetails);
@@ -377,6 +379,8 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
             onRequestCreated={handleRequestCreated}
             currentRequest={currentRequest}
             motivo={motivo}
+            item={item}
+            qty={parsedQty}
           />
         )}
       </div>

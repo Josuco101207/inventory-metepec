@@ -53,6 +53,8 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
         <div class="info-box">
           <p><strong>Solicitante:</strong> ${requester.user_metadata?.name || requester.email}</p>
           <p><strong>Email:</strong> ${requester.email}</p>
+          ${request.metadata?.item_name ? `<p><strong>Material:</strong> ${request.metadata.item_name}</p>` : ''}
+          ${request.metadata?.quantity !== undefined ? `<p><strong>Cantidad:</strong> ${request.metadata.quantity} ${request.metadata.item_unit || ''}</p>` : ''}
           <p><strong>Motivo:</strong> ${motivo || 'Salida de inventario'}</p>
           <p><strong>Fecha:</strong> ${new Date(request.requested_at).toLocaleString('es-MX')}</p>
           <p><strong>Expira:</strong> ${new Date(request.timeout_at).toLocaleString('es-MX')}</p>
@@ -198,7 +200,11 @@ export const ApprovalProvider = ({ children }) => {
             supervisor_email: supervisor.email,
             supervisor_name: supervisor.name,
             temp_movement_id: movementId,
-            motivo: options.reason || 'Salida de inventario'
+            motivo: options.reason || 'Salida de inventario',
+            item_id: options.item?.id,
+            item_name: options.item?.name,
+            item_unit: options.item?.unit,
+            quantity: options.qty
           }
         })
         .select()

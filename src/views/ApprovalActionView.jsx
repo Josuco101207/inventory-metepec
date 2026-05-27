@@ -333,6 +333,20 @@ const ApprovalActionView = ({ action }) => {
             <span style={styles.infoLabel}>Solicitante</span>
             <span style={styles.infoValue}>{requesterName}</span>
           </div>
+          {request?.metadata?.item_name && (
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Material</span>
+              <span style={styles.infoValue}>{request.metadata.item_name}</span>
+            </div>
+          )}
+          {request?.metadata?.quantity !== undefined && (
+            <div style={styles.infoRow}>
+              <span style={styles.infoLabel}>Cantidad</span>
+              <span style={styles.infoValue}>
+                {request.metadata.quantity} {request.metadata.item_unit || ''}
+              </span>
+            </div>
+          )}
           <div style={styles.infoRow}>
             <span style={styles.infoLabel}>Motivo</span>
             <span style={styles.infoValue}>{motivoText}</span>
