@@ -134,7 +134,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS approval_audit_trigger ON public.approval_requests;
 CREATE TRIGGER approval_audit_trigger
