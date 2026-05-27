@@ -12,15 +12,23 @@ import useIsMobile from '../hooks/useIsMobile';
 import './TransactionsView.css';
 
 const parseMovDetails = (details) => {
-  if (!details) return { text: null, facturaUrl: null };
+  if (!details) return { text: null, facturaUrl: null, supervisorName: null, isApproval: false };
   const urlMatch = details.match(/factura_url:(https?:\/\/\S+)/);
   const facturaUrl = urlMatch ? urlMatch[1] : null;
+  const supervisorMatch = details.match(/autorizado_por:([^|]+)/);
+  const supervisorName = supervisorMatch ? supervisorMatch[1].trim() : null;
+  const isApproval = /approval_id:/.test(details);
   const text = details
     .replace(/\s*\|?\s*item_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*factura_url:https?:\/\/\S+/g, '')
+    .replace(/\s*\|?\s*factura_id:[\w-]+/g, '')
+    .replace(/\s*\|?\s*approval_id:[\w-]+/g, '')
+    .replace(/\s*\|?\s*supervisor_id:[\w-]+/g, '')
+    .replace(/\s*\|?\s*autorizado_por:[^|]+/g, '')
     .replace(/^\s*\|\s*|\s*\|\s*$/g, '')
+    .replace(/\s*\|\s*\|\s*/g, ' | ')
     .trim() || null;
-  return { text, facturaUrl };
+  return { text, facturaUrl, supervisorName, isApproval };
 };
 
 const actionConfig = {
@@ -202,9 +210,19 @@ const TransactionsView = () => {
                   </div>
 
                   <div className="invt-cell-details">
-                    {(() => { const { text, facturaUrl } = parseMovDetails(mov.details); return (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                    {(() => { const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details); return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                         <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
+                        {supervisorName && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.03em' }}>
+                            👤 {supervisorName}
+                          </span>
+                        )}
+                        {isApproval && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.6rem', fontWeight: 800, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                            ✓ Aprobado
+                          </span>
+                        )}
                         {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
                             <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
