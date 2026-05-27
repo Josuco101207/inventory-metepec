@@ -322,9 +322,6 @@ export const ApprovalProvider = ({ children }) => {
     setPollingActive(true);
     setCurrentRequestId(requestId);
     
-    let pollCount = 0;
-    const intervals = [5000, 10000, 20000, 30000]; // 5s, 10s, 20s, 30s
-    
     const poll = async () => {
       if (!pollingRef.current.active || pollingRef.current.requestId !== requestId) return;
       
@@ -336,9 +333,7 @@ export const ApprovalProvider = ({ children }) => {
         return;
       }
       
-      pollCount++;
-      const nextInterval = intervals[Math.min(pollCount, intervals.length - 1)];
-      setTimeout(poll, nextInterval);
+      setTimeout(poll, 3000); // Check every 3 seconds
     };
     
     poll();

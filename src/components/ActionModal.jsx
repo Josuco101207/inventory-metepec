@@ -214,11 +214,11 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   useEffect(() => {
     if (currentRequestId && requests?.length > 0) {
       const updatedReq = requests.find(req => req.id === currentRequestId);
-      if (updatedReq && updatedReq.status !== currentRequest?.status) {
+      if (updatedReq) {
         setCurrentRequest(updatedReq);
       }
     }
-  }, [requests, currentRequestId, currentRequest?.status]);
+  }, [requests, currentRequestId]);
 
   const parsedQty = parseInt(qty) || 0;
   const stockDisponible = item?.qty ?? 0;
