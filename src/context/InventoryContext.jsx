@@ -115,27 +115,83 @@ export const InventoryProvider = ({ children }) => {
 
   // ─── Enriquecer items con factura_url extraída de los movements ───
   const enrichItemsWithFacturaUrl = useCallback((allItems, movements) => {
-    const urlById = {};
-    const urlByName = {};
+    // 1. Agrupar movimientos por id de item y nombre de item
+    const movementsByItemId = {};
+    const movementsByItemName = {};
+
     movements.forEach(m => {
-      if (m.action === 'Entrada' && m.details && m.details.includes('factura_url:')) {
-        const urlMatch = m.details.match(/factura_url:(https?:\/\/\S+)/);
-        if (!urlMatch) return;
-        const url = urlMatch[1];
-        const idMatch = m.details.match(/item_id:([\w-]+)/);
-        if (idMatch && !urlById[idMatch[1]]) urlById[idMatch[1]] = url;
-        if (m.item && !urlByName[m.item.toLowerCase().trim()]) urlByName[m.item.toLowerCase().trim()] = url;
+      const idMatch = m.details?.match(/item_id:([\w-]+)/);
+      if (idMatch) {
+        const itemId = idMatch[1];
+        if (!movementsByItemId[itemId]) movementsByItemId[itemId] = [];
+        movementsByItemId[itemId].push(m);
+      }
+      if (m.item) {
+        const key = m.item.toLowerCase().trim();
+        if (!movementsByItemName[key]) movementsByItemName[key] = [];
+        movementsByItemName[key].push(m);
       }
     });
+
+    // 2. Enriquecer cada item con su lista de facturas
     allItems.forEach(item => {
-      if (!item.factura_url) {
-        if (item.id && urlById[item.id]) {
-          item.factura_url = urlById[item.id];
-        } else if (item.name && urlByName[item.name.toLowerCase().trim()]) {
-          item.factura_url = urlByName[item.name.toLowerCase().trim()];
+      const itemInvoices = [];
+
+      // Factura de compra original de la tabla del item (si tiene)
+      if (item.factura_url) {
+        itemInvoices.push({
+          url: item.factura_url,
+          type: 'Compra',
+          label: 'Factura de Compra (Original)',
+          timestamp: item.created_at || item.createdAt || null
+        });
+      }
+
+      // Buscar movimientos asociados a este item
+      const relatedMovements = [
+        ...(item.id ? (movementsByItemId[item.id] || []) : []),
+        ...(item.name ? (movementsByItemName[item.name.toLowerCase().trim()] || []) : [])
+      ];
+
+      // Eliminar movimientos duplicados y ordenar del más reciente al más antiguo
+      const uniqueMovements = Array.from(new Set(relatedMovements.map(m => m.id)))
+        .map(id => relatedMovements.find(m => m.id === id))
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      // Extraer facturas de los movimientos
+      uniqueMovements.forEach(m => {
+        if (m.details && (m.details.includes('factura_url:') || m.details.toLowerCase().includes('factura:'))) {
+          const urlMatch = m.details.match(/(?:factura_url:|factura:\s*)(https?:\/\/\S+)/i);
+          if (!urlMatch) return;
+          const url = urlMatch[1];
+
+          const isEntrada = m.action === 'Entrada';
+          const typeLabel = isEntrada ? 'Compra' : 'Salida';
+          const folioMatch = m.details.match(/(?:Factura|Folio|id):\s*([\w-]+)/i);
+          const folioStr = folioMatch ? ` - Folio: ${folioMatch[1]}` : '';
+          const dateStr = new Date(m.timestamp).toLocaleDateString('es-MX');
+
+          if (!itemInvoices.some(inv => inv.url === url)) {
+            itemInvoices.push({
+              url,
+              type: m.action,
+              label: `Factura de ${typeLabel} (${dateStr}${folioStr})`,
+              timestamp: m.timestamp,
+              user: m.user
+            });
+          }
         }
+      });
+
+      item.invoices = itemInvoices;
+
+      // Respaldo en memoria: si no tiene factura_url, usar la primera de compra o cualquiera disponible
+      if (!item.factura_url && itemInvoices.length > 0) {
+        const purchaseInv = itemInvoices.find(inv => inv.type === 'Compra' || inv.type === 'Entrada');
+        item.factura_url = purchaseInv ? purchaseInv.url : itemInvoices[0].url;
       }
     });
+
     return allItems;
   }, []);
 
@@ -297,14 +353,32 @@ export const InventoryProvider = ({ children }) => {
         await sbUpdateItem(tableName, itemId, updates);
       }
       // Extraer factura_url del customDetails si viene incluida
-      const urlMatch = customDetails?.match(/factura_url:(https?:\/\/\S+)/);
+      const urlMatch = customDetails?.match(/(?:factura_url:|factura:\s*)(https?:\/\/\S+)/i);
       const facturaUrl = urlMatch ? urlMatch[1] : null;
       setItemsState(prev => {
         const updated = [...prev];
+        const currentItem = updated[itemIndex];
+        
+        const newInvoices = currentItem.invoices ? [...currentItem.invoices] : [];
+        if (facturaUrl && !newInvoices.some(inv => inv.url === facturaUrl)) {
+          const isEntrada = change > 0;
+          const typeLabel = isEntrada ? 'Compra' : 'Salida';
+          const dateStr = new Date().toLocaleDateString('es-MX');
+          
+          newInvoices.push({
+            url: facturaUrl,
+            type: isEntrada ? 'Entrada' : 'Salida',
+            label: `Factura de ${typeLabel} (${dateStr} - Nueva)`,
+            timestamp: new Date().toISOString(),
+            user: userName
+          });
+        }
+
         updated[itemIndex] = {
-          ...updated[itemIndex],
+          ...currentItem,
           qty: newQty,
-          ...(change > 0 && facturaUrl && !updated[itemIndex].factura_url ? { factura_url: facturaUrl } : {}),
+          invoices: newInvoices,
+          ...(!currentItem.factura_url && facturaUrl ? { factura_url: facturaUrl } : {}),
         };
         return updated;
       });

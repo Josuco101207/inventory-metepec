@@ -13,14 +13,14 @@ import './TransactionsView.css';
 
 const parseMovDetails = (details) => {
   if (!details) return { text: null, facturaUrl: null, supervisorName: null, isApproval: false };
-  const urlMatch = details.match(/factura_url:(https?:\/\/\S+)/);
+  const urlMatch = details.match(/(?:factura_url:|factura:\s*)(https?:\/\/\S+)/i);
   const facturaUrl = urlMatch ? urlMatch[1] : null;
   const supervisorMatch = details.match(/autorizado_por:([^|]+)/);
   const supervisorName = supervisorMatch ? supervisorMatch[1].trim() : null;
   const isApproval = /approval_id:/.test(details);
   const text = details
     .replace(/\s*\|?\s*item_id:[\w-]+/g, '')
-    .replace(/\s*\|?\s*factura_url:https?:\/\/\S+/g, '')
+    .replace(/\s*\|?\s*(?:factura_url:|factura:\s*)https?:\/\/\S+/gi, '')
     .replace(/\s*\|?\s*factura_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*approval_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*supervisor_id:[\w-]+/g, '')
@@ -223,12 +223,12 @@ const TransactionsView = () => {
                             ✓ Aprobado
                           </span>
                         )}
-                        {facturaUrl && !facturaUrl.toLowerCase().endsWith('.pdf') && (
+                        {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
                             <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
                           </a>
                         )}
-                        {facturaUrl && facturaUrl.toLowerCase().endsWith('.pdf') && (
+                        {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
                         )}
                       </div>

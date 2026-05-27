@@ -148,6 +148,12 @@ const InventoryView = ({ categoryTitle }) => {
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [facturaModalItem, setFacturaModalItem] = useState(null);
+  const [activeInvoiceIndex, setActiveInvoiceIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [facturaModalItem, activeInvoiceIndex]);
   const [searchTerm, setSearchTerm] = useState(location.state?.prefillSearch || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [activeSubcategory, setActiveSubcategory] = useState('TODAS');
@@ -234,8 +240,11 @@ const InventoryView = ({ categoryTitle }) => {
     },
     handleLoan: (item) => { setSelectedItem(item); },
     handleReturn: async (item) => { if (window.confirm(`¿Devolución de ${item.name}?`)) await returnItem(item.id, userData?.name || 'Admin'); },
-    handleViewFactura: (item) => { setFacturaModalItem(item); },
-  }), [deleteItem, returnItem, auditStock, userData]);
+    handleViewFactura: (item) => {
+      setActiveInvoiceIndex(0);
+      setFacturaModalItem(item);
+    },
+  }), [deleteItem, returnItem, auditStock, userData, setActiveInvoiceIndex]);
 
   const rowData = useMemo(() => ({
     items: filteredItems,
@@ -542,57 +551,102 @@ const InventoryView = ({ categoryTitle }) => {
       />
 
       {/* Modal Visor de Factura */}
-      {facturaModalItem && (
-        <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
-          <div
-            className="modal-card animate-scale-up"
-            style={{ maxWidth: 700, width: '95vw', padding: 0, overflow: 'hidden' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <header className="modal-header" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <FileImage size={20} />
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1rem' }}>Factura vinculada</h3>
-                  <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.6 }}>{facturaModalItem.name}</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <a
-                  href={facturaModalItem.factura_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="fly-btn fly-btn-primary"
-                  style={{ fontSize: '0.78rem', padding: '0.4rem 0.9rem', height: 'auto' }}
-                >
-                  Abrir en nueva pestaña
-                </a>
-                <button className="invt-btn invt-btn-gray" onClick={() => setFacturaModalItem(null)} title="Cerrar">
-                  <X size={18} />
-                </button>
-              </div>
-            </header>
+      {facturaModalItem && (() => {
+        const activeInvoice = facturaModalItem.invoices?.[activeInvoiceIndex] || { url: facturaModalItem.factura_url, label: 'Factura vinculada' };
+        const isPdf = activeInvoice.url?.toLowerCase().split('?')[0].endsWith('.pdf') || activeInvoice.url?.includes('application/pdf');
 
-            <div style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
-              {facturaModalItem.factura_url?.toLowerCase().endsWith('.pdf') ||
-               facturaModalItem.factura_url?.includes('application/pdf') ? (
-                <iframe
-                  src={facturaModalItem.factura_url}
-                  title="Factura PDF"
-                  style={{ width: '100%', height: '60vh', border: 'none', borderRadius: 8 }}
-                />
-              ) : (
-                <img
-                  src={facturaModalItem.factura_url}
-                  alt="Factura"
-                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8, background: '#111' }}
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
-              )}
+        return (
+          <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
+            <div
+              className="modal-card animate-scale-up"
+              style={{ maxWidth: 700, width: '95vw', padding: 0, overflow: 'hidden' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <header className="modal-header" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <FileImage size={20} />
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>Visor de Documentos</h3>
+                    <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.6 }}>{facturaModalItem.name}</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {facturaModalItem.invoices && facturaModalItem.invoices.length > 1 && (
+                    <select
+                      value={activeInvoiceIndex}
+                      onChange={(e) => setActiveInvoiceIndex(Number(e.target.value))}
+                      style={{
+                        fontSize: '0.78rem',
+                        padding: '0.4rem 1.8rem 0.4rem 0.6rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: 'var(--radius-button, 8px)',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        height: 'auto',
+                      }}
+                    >
+                      {facturaModalItem.invoices.map((inv, idx) => (
+                        <option key={idx} value={idx} style={{ background: '#1e1e2e', color: '#fff' }}>
+                          {inv.label || `Documento ${idx + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <a
+                    href={activeInvoice.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="fly-btn fly-btn-primary"
+                    style={{ fontSize: '0.78rem', padding: '0.4rem 0.9rem', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    Abrir en nueva pestaña
+                  </a>
+                  <button className="invt-btn invt-btn-gray" onClick={() => setFacturaModalItem(null)} title="Cerrar">
+                    <X size={18} />
+                  </button>
+                </div>
+              </header>
+
+              <div style={{ padding: '0.75rem 1.25rem 1.25rem', position: 'relative' }}>
+                {imageError ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh', gap: '1rem', background: '#111', borderRadius: 8, padding: '2rem', textAlign: 'center' }}>
+                    <AlertCircle size={32} style={{ color: 'var(--fly-magenta, #ff007f)' }} />
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#fff', fontWeight: 600 }}>No se puede previsualizar esta factura en el navegador.</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.6)' }}>
+                      El archivo podría estar protegido, ser muy pesado o no ser compatible. Usa el botón "Abrir en nueva pestaña" para verlo o descargarlo.
+                    </p>
+                    <a
+                      href={activeInvoice.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="fly-btn fly-btn-primary"
+                      style={{ fontSize: '0.78rem', padding: '0.5rem 1rem', marginTop: '0.5rem' }}
+                    >
+                      Ver en pestaña nueva
+                    </a>
+                  </div>
+                ) : isPdf ? (
+                  <iframe
+                    src={activeInvoice.url}
+                    title="Factura PDF"
+                    style={{ width: '100%', height: '60vh', border: 'none', borderRadius: 8 }}
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <img
+                    src={activeInvoice.url}
+                    alt="Factura"
+                    style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8, background: '#111' }}
+                    onError={() => setImageError(true)}
+                  />
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

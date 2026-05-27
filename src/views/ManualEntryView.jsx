@@ -186,7 +186,7 @@ const ManualEntryView = () => {
         });
         
         // Observaciones del ingreso (sólo si hay campo en la tabla o como metadata)
-        const noteStr = `Ingreso Manual${proveedor ? ' | Proveedor: ' + proveedor : ''}${observaciones ? ' | ' + observaciones : ''}${facturaUrl ? ' | Factura: ' + facturaUrl : ''}`;
+        const noteStr = `Ingreso Manual${proveedor ? ' | Proveedor: ' + proveedor : ''}${observaciones ? ' | ' + observaciones : ''}${facturaUrl ? ' | factura_url:' + facturaUrl : ''}`;
         if (schema.find(f => f.name === 'observaciones')) productData.observaciones = noteStr;
         // Guardar URL de factura si la tabla tiene ese campo
         if (facturaUrl && schema.find(f => f.name === 'factura_url')) productData.factura_url = facturaUrl;
