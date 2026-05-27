@@ -1,96 +1,131 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, RefreshCw, ArrowDownCircle, FileText, AlertCircle, ShieldCheck, Loader2, CheckCircle2, Eye, EyeOff, Lock, Clock, Send } from 'lucide-react';
+import { X, RefreshCw, ArrowDownCircle, FileText, AlertCircle, ShieldCheck, Loader2, CheckCircle2, Eye, EyeOff, Lock, Clock, Send, Upload, FileImage } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
 import { useSalidaAuth } from '../context/SalidaAuthContext';
 import { useApproval } from '../context/ApprovalContext';
 import { APPROVAL_STATUS } from '../context/ApprovalContext';
-import { validateSupervisorCredentials } from '../storage/supabaseStorage';
+import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
 import SupervisorSelector from './SupervisorSelector';
 import ApprovalStatusBadge from './ApprovalStatusBadge';
 import './ActionModal.css';
 
-// ─── Sub-panel: Autorización por Supervisor (Método Directo) ───────────────────
-const SupervisorPanel = ({ onAuthorized }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+// ─── Sub-panel: Vincular Factura de Compra ───────────────────
+const FacturaUploadPanel = ({ onAuthorized }) => {
+  const [file, setFile] = useState(null);
+  const [folio, setFolio] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
-  const handleValidate = useCallback(async () => {
-    if (!email.trim() || !password) { setError('Completa correo y contraseña.'); return; }
-    setError('');
-    setLoading(true);
-    try {
-      const result = await validateSupervisorCredentials(email.trim(), password);
-      onAuthorized(result.name, result.id);
-    } catch (err) {
-      setError(err.message || 'Error al validar credenciales');
-    } finally {
-      setLoading(false);
+  const handleFileChange = useCallback((e) => {
+    const selected = e.target.files[0];
+    if (!selected) return;
+    setFile(selected);
+    if (selected.type.startsWith('image/')) {
+      setPreviewUrl(URL.createObjectURL(selected));
+    } else {
+      setPreviewUrl(null);
     }
-  }, [email, password, onAuthorized]);
+  }, []);
+
+  const handleUpload = useCallback(async () => {
+    if (!file) {
+      toast.error('Selecciona una imagen o PDF de factura');
+      return;
+    }
+    const finalFolio = folio.trim() || `FAC-${Date.now()}`;
+    setUploading(true);
+    try {
+      const publicUrl = await uploadFactura(file);
+      onAuthorized(finalFolio, publicUrl);
+    } catch (err) {
+      console.error('[FacturaUploadPanel] Error:', err);
+      toast.error(err.message || 'Error al subir la factura');
+    } finally {
+      setUploading(false);
+    }
+  }, [file, folio, onAuthorized]);
+
+  // Limpiar URL temporal al desmontar
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   return (
     <div className="am-auth-panel">
-      <div className="am-auth-panel-icon">
-        <Lock size={22} />
+      <div className="am-auth-panel-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+        <Upload size={22} />
       </div>
-      <p className="am-auth-panel-title">Credenciales de Supervisor</p>
-      <p className="am-auth-panel-sub">Solo usuarios con rol <strong>admin</strong> o <strong>supervisor</strong> pueden autorizar.</p>
+      <p className="am-auth-panel-title">Vincular Factura de Compra</p>
+      <p className="am-auth-panel-sub">Sube una foto o PDF de la factura correspondiente para autorizar esta salida.</p>
 
       <div className="f-group" style={{ marginTop: '1rem' }}>
-        <label>Correo del supervisor</label>
+        <label>Número de Factura / Folio (Opcional)</label>
         <input
-          type="email"
+          type="text"
           className="f-input"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="supervisor@empresa.com"
-          autoComplete="off"
-          disabled={loading}
+          value={folio}
+          onChange={e => setFolio(e.target.value)}
+          placeholder="Ej: A-45201, 1024..."
+          disabled={uploading}
         />
       </div>
 
-      <div className="f-group" style={{ marginTop: '0.75rem', position: 'relative' }}>
-        <label>Contraseña</label>
-        <div style={{ position: 'relative' }}>
+      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Archivo de Factura</label>
+        <div 
+          style={{
+            border: '2px dashed rgba(255,255,255,0.15)',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            textAlign: 'center',
+            background: 'rgba(255,255,255,0.02)',
+            cursor: 'pointer',
+            position: 'relative',
+            transition: 'border-color 0.2s',
+          }}
+          onClick={() => !uploading && document.getElementById('factura-file-input').click()}
+        >
           <input
-            type={showPw ? 'text' : 'password'}
-            className="f-input"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="••••••••"
-            autoComplete="new-password"
-            disabled={loading}
-            onKeyDown={e => e.key === 'Enter' && handleValidate()}
-            style={{ paddingRight: '3rem' }}
+            id="factura-file-input"
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+            disabled={uploading}
           />
-          <button
-            type="button"
-            onClick={() => setShowPw(v => !v)}
-            style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--text-muted))' }}
-          >
-            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
+          {previewUrl ? (
+            <img 
+              src={previewUrl} 
+              alt="Preview" 
+              style={{ maxWidth: '100%', maxHeight: '100px', objectFit: 'contain', borderRadius: '8px', margin: '0 auto' }} 
+            />
+          ) : file ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#fff', fontSize: '0.85rem' }}>
+              <FileImage size={24} style={{ color: '#3b82f6' }} />
+              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>{file.name}</span>
+            </div>
+          ) : (
+            <div>
+              <Upload size={20} style={{ color: 'rgba(255,255,255,0.4)', margin: '0 auto 8px' }} />
+              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
+                Selecciona una foto o PDF de factura
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {error && (
-        <div className="am-auth-error">
-          <AlertCircle size={13} /> {error}
-        </div>
-      )}
-
       <button
         className="btn-apple-primary"
-        style={{ width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-        onClick={handleValidate}
-        disabled={loading || !email || !password}
+        style={{ width: '100%', marginTop: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#3b82f6', color: '#fff' }}
+        onClick={handleUpload}
+        disabled={uploading || !file}
       >
-        {loading ? <><Loader2 size={16} className="am-spin" /> Verificando...</> : <><ShieldCheck size={16} /> Validar Autorización</>}
+        {uploading ? <><Loader2 size={16} className="am-spin" /> Subiendo factura...</> : <><ShieldCheck size={16} /> Subir y Vincular</>}
       </button>
     </div>
   );
@@ -205,12 +240,12 @@ const AuthBadge = ({ authState, onClear, SALIDA_METHODS }) => (
 // ─── ActionModal principal ────────────────────────────────────────────────────
 const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const { isMobile } = useIsMobile();
-  const { authState, isAutorizado, autorizarConSupervisor, limpiarAuth, buildAuthDetails, SALIDA_METHODS } = useSalidaAuth();
+  const { authState, isAutorizado, autorizarConFactura, limpiarAuth, buildAuthDetails, SALIDA_METHODS } = useSalidaAuth();
   const { currentRequestId, startPolling, stopPolling, requests } = useApproval();
 
   const [qty, setQty] = useState(1);
   const [motivo, setMotivo] = useState('');
-  const [authMethod, setAuthMethod] = useState('direct'); // 'direct' | 'approval'
+  const [authMethod, setAuthMethod] = useState('factura'); // 'factura' | 'approval'
   const [currentRequest, setCurrentRequest] = useState(null);
 
   useEffect(() => {
@@ -230,7 +265,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     parsedQty > 0 &&
     parsedQty <= stockDisponible &&
     motivo.trim().length > 0 &&
-    (authMethod === 'direct' ? isAutorizado : currentRequest?.status === APPROVAL_STATUS.APPROVED);
+    (authMethod === 'factura' ? isAutorizado : currentRequest?.status === APPROVAL_STATUS.APPROVED);
 
   // Manejar creación de solicitud
   const handleRequestCreated = useCallback((request) => {
@@ -244,10 +279,10 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
 
     let authDetails;
     
-    if (authMethod === 'direct') {
-      // Validación de seguridad en cliente: bloquear si no hay autorización directa
-      if (!authState.autorizadoPorId) {
-        toast.error('Salida bloqueada: se requiere autorización de supervisor.');
+    if (authMethod === 'factura') {
+      // Validación de seguridad en cliente: bloquear si no hay factura vinculada
+      if (authState.method !== SALIDA_METHODS.FACTURA) {
+        toast.error('Salida bloqueada: se requiere vincular una factura.');
         return;
       }
       authDetails = buildAuthDetails(`Motivo: ${motivo.trim()}`);
@@ -338,18 +373,18 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
       <div className="am-auth-section">
         <div className="am-auth-section-header">
           <ShieldCheck size={15} />
-          <span>Autorización de supervisor</span>
-          {(!isAutorizado && authMethod === 'direct') && <span className="am-auth-required-badge">REQUERIDA</span>}
+          <span>Vincular Documentación</span>
+          {(!isAutorizado && authMethod === 'factura') && <span className="am-auth-required-badge">REQUERIDA</span>}
         </div>
 
         {/* Selector de método de autorización */}
         <div className="am-method-selector">
           <button
-            className={`am-method-btn ${authMethod === 'direct' ? 'active' : ''}`}
-            onClick={() => setAuthMethod('direct')}
+            className={`am-method-btn ${authMethod === 'factura' ? 'active' : ''}`}
+            onClick={() => setAuthMethod('factura')}
           >
-            <Lock size={14} />
-            Credenciales Directas
+            <FileText size={14} />
+            Vincular Factura
           </button>
           <button
             className={`am-method-btn ${authMethod === 'approval' ? 'active' : ''}`}
@@ -361,15 +396,15 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
         </div>
 
         {/* Contenido según método seleccionado */}
-        {authMethod === 'direct' ? (
+        {authMethod === 'factura' ? (
           <>
-            {isAutorizado ? (
+            {isAutorizado && authState.method === SALIDA_METHODS.FACTURA ? (
               <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
             ) : (
-              <SupervisorPanel
-                onAuthorized={(name, id) => {
-                  autorizarConSupervisor(name, id);
-                  toast.success(`Autorizado por ${name}`);
+              <FacturaUploadPanel 
+                onAuthorized={(facturaId, url) => {
+                  autorizarConFactura(facturaId, url);
+                  toast.success(`Factura vinculada: ${facturaId}`);
                 }}
               />
             )}

@@ -35,10 +35,10 @@ export async function uploadFactura(file) {
   let fileToUpload = file;
   let contentType = file.type;
 
-  // Comprimir imágenes: máx 1200px, calidad 75%
+  // Comprimir imágenes: máx 1600px, calidad 85% (mejor calidad para auditorías)
   if (file.type.startsWith('image/')) {
     try {
-      const blob = await compressImage(file, 1200, 1200, 0.75);
+      const blob = await compressImage(file, 1600, 1600, 0.85);
       fileToUpload = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
       contentType = 'image/jpeg';
     } catch (e) {
