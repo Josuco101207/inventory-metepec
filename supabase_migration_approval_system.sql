@@ -42,10 +42,10 @@ CREATE INDEX IF NOT EXISTS idx_movements_supervisor ON public.movements(supervis
 -- ─── RLS (ROW LEVEL SECURITY) PARA APPROVAL_REQUESTS ───
 ALTER TABLE public.approval_requests ENABLE ROW LEVEL SECURITY;
 
--- Policy: Solo usuarios autenticados pueden ver solicitudes
+-- Policy: Permitir lectura pública de solicitudes (requerido para enlaces de email sin login)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='auth_select_approval_requests') THEN
-    CREATE POLICY "auth_select_approval_requests" ON public.approval_requests FOR SELECT TO authenticated USING (true);
+    CREATE POLICY "auth_select_approval_requests" ON public.approval_requests FOR SELECT TO public USING (true);
   END IF;
 END $$;
 
@@ -56,17 +56,12 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Policy: Solo admin/supervisor pueden actualizar solicitudes (aprobar/rechazar)
+-- Policy: Permitir actualización pública de solicitudes pendientes (requerido para aprobar/rechazar desde email sin login)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='auth_update_approval_requests') THEN
-    CREATE POLICY "auth_update_approval_requests" ON public.approval_requests FOR UPDATE TO authenticated 
-    USING (
-      EXISTS (
-        SELECT 1 FROM public.profiles 
-        WHERE profiles.id = auth.uid() 
-        AND profiles.role IN ('admin', 'supervisor')
-      )
-    );
+    CREATE POLICY "auth_update_approval_requests" ON public.approval_requests FOR UPDATE TO public 
+    USING (status = 'pending')
+    WITH CHECK (status IN ('approved', 'rejected'));
   END IF;
 END $$;
 
