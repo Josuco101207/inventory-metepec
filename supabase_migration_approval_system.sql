@@ -42,10 +42,11 @@ CREATE INDEX IF NOT EXISTS idx_movements_supervisor ON public.movements(supervis
 -- ─── RLS (ROW LEVEL SECURITY) PARA APPROVAL_REQUESTS ───
 ALTER TABLE public.approval_requests ENABLE ROW LEVEL SECURITY;
 
--- Policy: Permitir lectura pública de solicitudes (requerido para enlaces de email sin login)
+-- Policy: Solo el solicitante y el supervisor asignado pueden leer la solicitud (autenticados)
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='auth_select_approval_requests') THEN
-    CREATE POLICY "auth_select_approval_requests" ON public.approval_requests FOR SELECT TO public USING (true);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='strict_select_approval_requests') THEN
+    CREATE POLICY "strict_select_approval_requests" ON public.approval_requests FOR SELECT TO authenticated
+    USING (auth.uid() = requester_id OR auth.uid() = supervisor_id);
   END IF;
 END $$;
 
@@ -56,12 +57,11 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Policy: Permitir actualización pública de solicitudes pendientes (requerido para aprobar/rechazar desde email sin login)
+-- Policy: Solo el supervisor asignado puede hacer actualizaciones directas (autenticados)
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='auth_update_approval_requests') THEN
-    CREATE POLICY "auth_update_approval_requests" ON public.approval_requests FOR UPDATE TO public 
-    USING (status = 'pending')
-    WITH CHECK (status IN ('approved', 'rejected'));
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='approval_requests' AND policyname='strict_update_approval_requests') THEN
+    CREATE POLICY "strict_update_approval_requests" ON public.approval_requests FOR UPDATE TO authenticated
+    USING (auth.uid() = supervisor_id);
   END IF;
 END $$;
 
@@ -180,3 +180,115 @@ BEGIN
   ORDER BY p.role DESC, p.name ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ─── SEGURIDAD CON TOKENS CRIPTOGRÁFICOS ───
+
+-- Agregar columna de token criptográfico automático
+ALTER TABLE public.approval_requests 
+ADD COLUMN IF NOT EXISTS security_token TEXT DEFAULT encode(gen_random_bytes(16), 'hex');
+
+-- RPC para consulta segura mediante token (lectura pública limitada)
+CREATE OR REPLACE FUNCTION public.get_approval_request_by_token(p_id UUID, p_token TEXT)
+RETURNS TABLE (
+  id UUID,
+  status TEXT,
+  timeout_at TIMESTAMPTZ,
+  metadata JSONB
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT ar.id, ar.status, ar.timeout_at, ar.metadata
+  FROM public.approval_requests ar
+  WHERE ar.id = p_id AND ar.security_token = p_token;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para responder a la solicitud segura mediante token (aprobación/rechazo público limitado)
+CREATE OR REPLACE FUNCTION public.respond_to_approval_request_by_token(
+  p_id UUID,
+  p_token TEXT,
+  p_status TEXT,
+  p_rejection_reason TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_current_status TEXT;
+  v_timeout TIMESTAMPTZ;
+BEGIN
+  -- Validar existencia e integridad del token
+  SELECT status, timeout_at INTO v_current_status, v_timeout
+  FROM public.approval_requests
+  WHERE id = p_id AND security_token = p_token;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Token de seguridad inválido o solicitud no encontrada.';
+  END IF;
+  
+  IF v_current_status <> 'pending' THEN
+    RAISE EXCEPTION 'Esta solicitud ya ha sido procesada.';
+  END IF;
+  
+  IF v_timeout < now() THEN
+    UPDATE public.approval_requests SET status = 'expired', completed_at = now() WHERE id = p_id;
+    RETURN FALSE;
+  END IF;
+  
+  -- Ejecutar la actualización de forma segura (salta RLS por SECURITY DEFINER)
+  UPDATE public.approval_requests
+  SET 
+    status = p_status,
+    completed_at = now(),
+    rejection_reason = COALESCE(p_rejection_reason, rejection_reason)
+  WHERE id = p_id;
+  
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC para actualización de permisos de usuario (administrador de equipo)
+CREATE OR REPLACE FUNCTION public.update_user_permissions(
+  target_user_id UUID,
+  new_allowed_views TEXT[],
+  new_allowed_categories TEXT[],
+  new_editable_categories TEXT[]
+)
+RETURNS void AS $$
+DECLARE
+  calling_user_role TEXT;
+BEGIN
+  SELECT role INTO calling_user_role FROM public.profiles WHERE id = auth.uid();
+  IF calling_user_role <> 'admin' THEN
+    RAISE EXCEPTION 'Solo los administradores pueden modificar los permisos.';
+  END IF;
+  
+  UPDATE public.profiles
+  SET 
+    allowed_views = new_allowed_views,
+    allowed_categories = new_allowed_categories,
+    editable_categories = new_editable_categories,
+    updated_at = now()
+  WHERE id = target_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función y trigger para autocreación de perfiles tras signUp
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, name, role, allowed_categories, editable_categories, allowed_views)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'name', new.email),
+    'user',
+    ARRAY[]::TEXT[],
+    ARRAY[]::TEXT[],
+    ARRAY['dashboard', 'profile']::TEXT[]
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

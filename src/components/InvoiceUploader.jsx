@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Upload, Camera, FileImage, X, AlertCircle, Cpu } from 'lucide-react';
 import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 
@@ -80,7 +80,7 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview,
           <div className="iu-spinner" />
           <div className="iu-processing-text">
             <h3>Procesando factura...{aiStatus.provider === 'ocr' && ocrProgress > 0 ? ` ${ocrProgress}%` : ''}</h3>
-            <p>{aiStatus.provider === 'ocr' ? 'OCR analizando el documento (procesamiento local)' : 'La IA est├í extrayendo los datos del documento'}</p>
+            <p>{aiStatus.provider === 'ocr' ? 'OCR analizando el documento (procesamiento local)' : 'La IA está extrayendo los datos del documento'}</p>
             {aiStatus.provider === 'ocr' && ocrProgress > 0 && (
               <div className="iu-progress-bar">
                 <div className="iu-progress-fill" style={{ width: `${ocrProgress}%` }} />
@@ -114,10 +114,10 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview,
         <Cpu size={14} />
         <span>
           {aiStatus.configured
-            ? `IA conectada ┬À ${aiStatus.provider.toUpperCase()}`
+            ? `IA conectada · ${aiStatus.provider.toUpperCase()}`
             : aiStatus.provider === 'ocr'
-              ? 'OCR Local ┬À Tesseract.js'
-              : 'Modo Demo ┬À Sin API Key'}
+              ? 'OCR Local · Tesseract.js'
+              : 'Modo Demo · Sin API Key'}
         </span>
       </div>
 
@@ -141,9 +141,9 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview,
             <div className="iu-dropzone-icon">
               <Upload size={32} />
             </div>
-            <h3>Arrastra tu factura aqu├¡</h3>
+            <h3>Arrastra tu factura aquí</h3>
             <p>o haz clic para seleccionar archivo</p>
-            <p className="iu-formats">JPG, PNG, WebP, PDF ┬À M├íx {MAX_SIZE_MB}MB</p>
+            <p className="iu-formats">JPG, PNG, WebP, PDF · Máx {MAX_SIZE_MB}MB</p>
           </div>
         )}
       </div>

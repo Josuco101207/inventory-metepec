@@ -265,7 +265,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     parsedQty > 0 &&
     parsedQty <= stockDisponible &&
     motivo.trim().length > 0 &&
-    (authMethod === 'factura' ? isAutorizado : currentRequest?.status === APPROVAL_STATUS.APPROVED);
+    (authMethod === 'factura' ? (isAutorizado && authState.method === SALIDA_METHODS.FACTURA) : currentRequest?.status === APPROVAL_STATUS.APPROVED);
 
   // Manejar creación de solicitud
   const handleRequestCreated = useCallback((request) => {

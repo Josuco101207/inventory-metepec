@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Sparkles, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
 import InvoiceUploader from '../components/InvoiceUploader';
 import InvoiceReviewForm from '../components/InvoiceReviewForm';
@@ -47,15 +47,15 @@ const InvoiceAIView = () => {
     } catch (err) {
       console.error('Invoice processing error:', err);
       const msg = err.message || '';
-      let friendly = 'Ocurri├│ un error al procesar la factura. Intenta de nuevo.';
+      let friendly = 'Ocurrió un error al procesar la factura. Intenta de nuevo.';
       if (msg.toLowerCase().includes('high demand') || msg.toLowerCase().includes('overloaded') || msg.toLowerCase().includes('spike') || msg.toLowerCase().includes('503') || msg.toLowerCase().includes('429')) {
-        friendly = 'La IA est├í muy ocupada en este momento. Espera unos segundos y vuelve a intentarlo.';
+        friendly = 'La IA está muy ocupada en este momento. Espera unos segundos y vuelve a intentarlo.';
       } else if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('limit')) {
-        friendly = 'Se alcanz├│ el l├¡mite de uso de la IA. Intenta m├ís tarde.';
+        friendly = 'Se alcanzó el límite de uso de la IA. Intenta más tarde.';
       } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('failed to fetch')) {
-        friendly = 'Sin conexi├│n a internet. Verifica tu red y vuelve a intentarlo.';
+        friendly = 'Sin conexión a internet. Verifica tu red y vuelve a intentarlo.';
       } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('400')) {
-        friendly = 'El archivo no pudo ser le├¡do por la IA. Intenta con una imagen m├ís clara.';
+        friendly = 'El archivo no pudo ser leído por la IA. Intenta con una imagen más clara.';
       }
       toast.error(friendly, { duration: 6000 });
       backToUpload();
@@ -87,7 +87,7 @@ const InvoiceAIView = () => {
             </div>
             <div>
               <h1 className="iaiv-title">Carga Inteligente</h1>
-              <p className="iaiv-subtitle">Sube una factura y la IA extraer├í los productos autom├íticamente</p>
+              <p className="iaiv-subtitle">Sube una factura y la IA extraerá los productos automáticamente</p>
             </div>
           </div>
         </div>

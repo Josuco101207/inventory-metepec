@@ -23,8 +23,8 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
   const emailFrom = import.meta.env.VITE_EMAIL_FROM || 'onboarding@resend.dev';
   const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
 
-  const approveUrl = `${appUrl}/approve/${request.id}`;
-  const rejectUrl = `${appUrl}/reject/${request.id}`;
+  const approveUrl = `${appUrl}/approve/${request.id}?token=${request.security_token}`;
+  const rejectUrl = `${appUrl}/reject/${request.id}?token=${request.security_token}`;
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -489,8 +489,15 @@ export const ApprovalProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
       
-      const reqToUpdate = requests.find(r => r.id === requestId);
-      const currentMeta = reqToUpdate?.metadata || {};
+      // Obtener el registro actual directamente de Supabase para evitar stale closures en el estado local
+      const { data: currentReq, error: fetchError } = await supabase
+        .from('approval_requests')
+        .select('metadata')
+        .eq('id', requestId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      const currentMeta = currentReq?.metadata || {};
 
       const { data: request, error } = await supabase
         .from('approval_requests')
@@ -530,8 +537,15 @@ export const ApprovalProvider = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
       
-      const reqToUpdate = requests.find(r => r.id === requestId);
-      const currentMeta = reqToUpdate?.metadata || {};
+      // Obtener el registro actual directamente de Supabase para evitar stale closures en el estado local
+      const { data: currentReq, error: fetchError } = await supabase
+        .from('approval_requests')
+        .select('metadata')
+        .eq('id', requestId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      const currentMeta = currentReq?.metadata || {};
 
       const { data: request, error } = await supabase
         .from('approval_requests')

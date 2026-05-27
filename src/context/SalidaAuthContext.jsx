@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
 
 const STORAGE_KEY = 'dicrejart_salida_auth';
 const AUTH_EXPIRY_MS = 15 * 60 * 1000; // 15 minutos de validez
@@ -66,6 +67,28 @@ export const SalidaAuthProvider = ({ children }) => {
       console.error('[SalidaAuth] Error saving state:', e);
     }
   }, [authState]);
+
+  // Temporizador para invalidar automáticamente la sesión temporal expirada
+  useEffect(() => {
+    if (authState.method === SALIDA_METHODS.NONE || !authState.autorizadoAt) return;
+
+    const timeSinceAuth = Date.now() - new Date(authState.autorizadoAt).getTime();
+    const remainingTime = AUTH_EXPIRY_MS - timeSinceAuth;
+
+    if (remainingTime <= 0) {
+      limpiarAuth();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      limpiarAuth();
+      toast.warning('Autorización temporal de salida expirada', {
+        description: 'La sesión de salida ha expirado tras 15 minutos.'
+      });
+    }, remainingTime);
+
+    return () => clearTimeout(timer);
+  }, [authState.method, authState.autorizadoAt, limpiarAuth]);
 
   // Autorizar vía factura
   const autorizarConFactura = useCallback((facturaId, facturaUrl) => {

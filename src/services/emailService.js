@@ -3,6 +3,8 @@
  * Proporciona funciones para enviar emails relacionados con el sistema de aprobaciones
  */
 
+import { supabase } from '../lib/supabase';
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -203,11 +205,12 @@ const EMAIL_TEMPLATES = {
 
 // ─── FUNCIÓN PARA GENERAR URLs DE APROBACIÓN ───
 
-const generateApprovalUrls = (requestId) => {
+const generateApprovalUrls = (requestId, token) => {
   const baseUrl = window.location.origin;
+  const tokenParam = token ? `?token=${token}` : '';
   return {
-    approveUrl: `${baseUrl}/approve/${requestId}`,
-    rejectUrl: `${baseUrl}/reject/${requestId}`
+    approveUrl: `${baseUrl}/approve/${requestId}${tokenParam}`,
+    rejectUrl: `${baseUrl}/reject/${requestId}${tokenParam}`
   };
 };
 
@@ -243,7 +246,7 @@ export const sendEmail = async (to, template, data) => {
 // ─── FUNCIONES ESPECÍFICAS PARA APROBACIONES ───
 
 export const sendApprovalRequestEmail = async (supervisorEmail, supervisorName, requestData) => {
-  const urls = generateApprovalUrls(requestData.id);
+  const urls = generateApprovalUrls(requestData.id, requestData.security_token);
   
   return await sendEmail(supervisorEmail, 'approval_request', {
     supervisorName,

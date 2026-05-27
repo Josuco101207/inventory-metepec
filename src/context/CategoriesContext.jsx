@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -143,45 +143,58 @@ export const CategoriesProvider = ({ children }) => {
   }, [loadCategories]);
 
   // Helper functions (same API as before)
-  const allCategoryTitles = categories.map(c => c.title);
-  const allCategoryViewIds = categories.map(c => c.viewId);
+  const allCategoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
+  const allCategoryViewIds = useMemo(() => categories.map(c => c.viewId), [categories]);
 
-  const categoryToRoute = (categoryTitle) => {
+  const categoryToRoute = useCallback((categoryTitle) => {
     const cat = categories.find(c => c.title === categoryTitle);
     return cat?.route || '/';
-  };
+  }, [categories]);
 
-  const categoryToViewId = (categoryTitle) => {
+  const categoryToViewId = useCallback((categoryTitle) => {
     const cat = categories.find(c => c.title === categoryTitle);
     return cat?.viewId || null;
-  };
+  }, [categories]);
 
-  const getCategoryByViewId = (viewId) => {
+  const getCategoryByViewId = useCallback((viewId) => {
     return categories.find(c => c.viewId === viewId) || null;
-  };
+  }, [categories]);
 
-  const getCategoryByTitle = (title) => {
+  const getCategoryByTitle = useCallback((title) => {
     return categories.find(c => c.title === title) || null;
-  };
+  }, [categories]);
 
-  const getCategoryBySlug = (slug) => {
+  const getCategoryBySlug = useCallback((slug) => {
     return categories.find(c => c.id === slug) || null;
-  };
+  }, [categories]);
+
+  const providerValue = useMemo(() => ({
+    categories,
+    loading,
+    reload: loadCategories,
+    allCategoryTitles,
+    allCategoryViewIds,
+    categoryToRoute,
+    categoryToViewId,
+    getCategoryByViewId,
+    getCategoryByTitle,
+    getCategoryBySlug,
+    ICON_NAMES,
+  }), [
+    categories,
+    loading,
+    loadCategories,
+    allCategoryTitles,
+    allCategoryViewIds,
+    categoryToRoute,
+    categoryToViewId,
+    getCategoryByViewId,
+    getCategoryByTitle,
+    getCategoryBySlug,
+  ]);
 
   return (
-    <CategoriesContext.Provider value={{
-      categories,
-      loading,
-      reload: loadCategories,
-      allCategoryTitles,
-      allCategoryViewIds,
-      categoryToRoute,
-      categoryToViewId,
-      getCategoryByViewId,
-      getCategoryByTitle,
-      getCategoryBySlug,
-      ICON_NAMES,
-    }}>
+    <CategoriesContext.Provider value={providerValue}>
       {children}
     </CategoriesContext.Provider>
   );

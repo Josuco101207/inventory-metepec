@@ -5,11 +5,13 @@ import { CheckCircle2, XCircle, Clock, Loader2, ShieldCheck, AlertCircle } from 
 
 const ApprovalActionView = ({ action }) => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+
   const [status, setStatus] = useState('loading'); // loading | confirming | success | error | already_handled
   const [request, setRequest] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [rejectReason, setRejectReason] = useState('');
-  const [showRejectForm, setShowRejectForm] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   // Cargar la solicitud
@@ -17,22 +19,20 @@ const ApprovalActionView = ({ action }) => {
     const loadRequest = async () => {
       try {
         const { data, error } = await supabase
-          .from('approval_requests')
-          .select('*')
-          .eq('id', id)
-          .single();
+          .rpc('get_approval_request_by_token', { p_id: id, p_token: token });
 
-        if (error || !data) {
+        if (error || !data || data.length === 0) {
           setStatus('error');
-          setErrorMsg('Solicitud no encontrada o enlace inválido.');
+          setErrorMsg('Solicitud no encontrada, enlace expirado o token de seguridad inválido.');
           return;
         }
 
-        setRequest(data);
+        const requestData = data[0];
+        setRequest(requestData);
 
-        if (data.status !== 'pending') {
+        if (requestData.status !== 'pending') {
           setStatus('already_handled');
-        } else if (new Date(data.timeout_at) < new Date()) {
+        } else if (new Date(requestData.timeout_at) < new Date()) {
           setStatus('already_handled');
           setErrorMsg('Esta solicitud ya expiró.');
         } else {
@@ -46,22 +46,19 @@ const ApprovalActionView = ({ action }) => {
     };
 
     if (id) loadRequest();
-  }, [id, action]);
+  }, [id, action, token]);
 
   const handleApprove = async () => {
     setProcessing(true);
     try {
-      const { error } = await supabase
-        .from('approval_requests')
-        .update({
-          status: 'approved',
-          completed_at: new Date().toISOString(),
-          metadata: { ...request.metadata, response_message: 'Aprobado por supervisor via email', approved_at: new Date().toISOString() }
-        })
-        .eq('id', id)
-        .eq('status', 'pending');
+      const { data: success, error } = await supabase
+        .rpc('respond_to_approval_request_by_token', {
+          p_id: id,
+          p_token: token,
+          p_status: 'approved'
+        });
 
-      if (error) throw error;
+      if (error || !success) throw error || new Error('No se pudo procesar la aprobación.');
       setStatus('success');
     } catch (err) {
       setStatus('error');
@@ -75,18 +72,15 @@ const ApprovalActionView = ({ action }) => {
     if (!rejectReason.trim()) return;
     setProcessing(true);
     try {
-      const { error } = await supabase
-        .from('approval_requests')
-        .update({
-          status: 'rejected',
-          completed_at: new Date().toISOString(),
-          rejection_reason: rejectReason.trim(),
-          metadata: { ...request.metadata, rejected_at: new Date().toISOString() }
-        })
-        .eq('id', id)
-        .eq('status', 'pending');
+      const { data: success, error } = await supabase
+        .rpc('respond_to_approval_request_by_token', {
+          p_id: id,
+          p_token: token,
+          p_status: 'rejected',
+          p_rejection_reason: rejectReason.trim()
+        });
 
-      if (error) throw error;
+      if (error || !success) throw error || new Error('No se pudo procesar el rechazo.');
       setStatus('success');
     } catch (err) {
       setStatus('error');
