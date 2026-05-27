@@ -204,12 +204,21 @@ const AuthBadge = ({ authState, onClear, SALIDA_METHODS }) => (
 const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const { isMobile } = useIsMobile();
   const { authState, isAutorizado, autorizarConSupervisor, limpiarAuth, buildAuthDetails, SALIDA_METHODS } = useSalidaAuth();
-  const { currentRequestId, startPolling, stopPolling } = useApproval();
+  const { currentRequestId, startPolling, stopPolling, requests } = useApproval();
 
   const [qty, setQty] = useState(1);
   const [motivo, setMotivo] = useState('');
   const [authMethod, setAuthMethod] = useState('direct'); // 'direct' | 'approval'
   const [currentRequest, setCurrentRequest] = useState(null);
+
+  useEffect(() => {
+    if (currentRequestId && requests?.length > 0) {
+      const updatedReq = requests.find(req => req.id === currentRequestId);
+      if (updatedReq && updatedReq.status !== currentRequest?.status) {
+        setCurrentRequest(updatedReq);
+      }
+    }
+  }, [requests, currentRequestId, currentRequest?.status]);
 
   const parsedQty = parseInt(qty) || 0;
   const stockDisponible = item?.qty ?? 0;
