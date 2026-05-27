@@ -68,6 +68,7 @@ import { Toaster, toast } from 'sonner';
 import { Loader2, Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState as useStateR } from 'react';
 import { CategoriesProvider, useCategories } from './context/CategoriesContext';
+import ApprovalActionView from './views/ApprovalActionView';
 
 const RootApp = () => {
   const { user, loading, userData, isAdmin } = useAuth();
@@ -133,7 +134,17 @@ const RootApp = () => {
   };
 
   if (!user) {
-    return <LoginView />;
+    return (
+      <Router>
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', background: '#1a1a2e' }}><Loader2 className="animate-spin text-white" size={40} /></div>}>
+          <Routes>
+            <Route path="/approve/:id" element={<ApprovalActionView action="approve" />} />
+            <Route path="/reject/:id" element={<ApprovalActionView action="reject" />} />
+            <Route path="*" element={<LoginView />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    );
   }
 
   return (
@@ -163,6 +174,8 @@ const RootApp = () => {
           )}
           <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}><Loader2 className="animate-spin" style={{ color: 'hsl(var(--primary))' }} size={40} /></div>}>
             <Routes>
+              <Route path="/approve/:id" element={<ApprovalActionView action="approve" />} />
+              <Route path="/reject/:id" element={<ApprovalActionView action="reject" />} />
               <Route path="/" element={<ViewProtectedRoute viewId="dashboard"><Dashboard /></ViewProtectedRoute>} />
               {categories.map(cat => (
                 <Route
