@@ -93,10 +93,10 @@ export const InventoryProvider = ({ children }) => {
       if (safeColumns.includes(key)) {
         dbFields[key] = rawFields[key];
       } else {
-        if (key === 'name' && mappedNameKey) dbFields[mappedNameKey] = rawFields[key];
-        if (key === 'qty' && mappedQtyKey) dbFields[mappedQtyKey] = rawFields[key];
-        if (key === 'observaciones' && mappedObsKey) dbFields[mappedObsKey] = rawFields[key];
-        if (key === 'threshold' && mappedThresholdKey) dbFields[mappedThresholdKey] = rawFields[key];
+        if (key === 'name' && mappedNameKey && dbFields[mappedNameKey] === undefined) dbFields[mappedNameKey] = rawFields[key];
+        if (key === 'qty' && mappedQtyKey && dbFields[mappedQtyKey] === undefined) dbFields[mappedQtyKey] = rawFields[key];
+        if (key === 'observaciones' && mappedObsKey && dbFields[mappedObsKey] === undefined) dbFields[mappedObsKey] = rawFields[key];
+        if (key === 'threshold' && mappedThresholdKey && dbFields[mappedThresholdKey] === undefined) dbFields[mappedThresholdKey] = rawFields[key];
       }
     }
     return dbFields;
