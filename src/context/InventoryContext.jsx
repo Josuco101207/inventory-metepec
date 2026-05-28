@@ -563,8 +563,13 @@ export const InventoryProvider = ({ children }) => {
     const tableName = item._tableName || getTableName(item.category);
     const diff = physicalQty - (item.qty || 0);
 
+    const validColumns = getValidColumns(item.category);
+
     try {
-      if (tableName) await sbUpdateItem(tableName, itemId, { qty: physicalQty });
+      if (tableName) {
+        const updates = mapToDbFields({ qty: physicalQty }, validColumns);
+        await sbUpdateItem(tableName, itemId, updates);
+      }
       setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, qty: physicalQty } : i));
       const finalReason = reason ? `Audit: ${reason} (Ajuste: ${diff > 0 ? '+' : ''}${diff})` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
       addMovement('Auditoría', item.name, Math.abs(diff), userName, finalReason, item.category);
@@ -662,7 +667,14 @@ export const InventoryProvider = ({ children }) => {
         
         const updated = await sbUpdateItem(tableName, itemId, dbFields);
         if (updated) {
-          setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updated } : i));
+          const normalized = { ...updated };
+          if (normalized.nombre !== undefined) normalized.name = normalized.nombre;
+          if (normalized.cantidad !== undefined) normalized.qty = normalized.cantidad;
+          if (normalized.detalles !== undefined) normalized.observaciones = normalized.detalles;
+          if (normalized.stock_min !== undefined) normalized.threshold = normalized.stock_min;
+          if (normalized.minimo !== undefined) normalized.threshold = normalized.minimo;
+          
+          setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...normalized } : i));
         }
         
         // Save changes in details for annulment
