@@ -378,8 +378,9 @@ const UserManagementView = () => {
               const allowedCats = u.allowedCategories || [];
               const editableCats = u.editableCategories || [];
 
+              const validAllowed = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c));
               const permPct = ALL_CATEGORIES.length > 0
-                ? Math.min(Math.round(((u.allowedCategories || []).length / ALL_CATEGORIES.length) * 100), 100)
+                ? Math.round((validAllowed.length / ALL_CATEGORIES.length) * 100)
                 : 0;
               const initials = (u.displayName || u.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
 
