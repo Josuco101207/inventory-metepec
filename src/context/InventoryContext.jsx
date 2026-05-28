@@ -316,10 +316,14 @@ export const InventoryProvider = ({ children }) => {
       // Save original values for annulment (if provided)
       if (originalValues) {
         movementData.originalValues = originalValues;
+        movementData.details = movementData.details ? `${movementData.details} | _originalValues:${JSON.stringify(originalValues)}` : `_originalValues:${JSON.stringify(originalValues)}`;
       }
 
+      // Remove non-db columns before sending to Supabase
+      const { originalValues: _, ...dbMovementData } = movementData;
+
       // Save to Supabase (fire-and-forget, fallback to localStorage on error)
-      const saved = await sbInsertMovement(movementData);
+      const saved = await sbInsertMovement(dbMovementData);
       const finalMovement = saved || { ...movementData, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) };
 
       // Keep localStorage in sync as local cache
@@ -910,9 +914,18 @@ export const InventoryProvider = ({ children }) => {
             console.warn('[annulMovement] Old audit without diff - cannot reverse stock automatically');
             toast.warning('Auditoría antigua: no se puede revertir el stock automáticamente. Solo se marcará como anulada.');
           }
-        } else if (mov.action === 'Edición' && mov.originalValues) {
-          // Restore original values
-          extraFields = { ...mov.originalValues };
+        } else if (mov.action === 'Edición') {
+          let origVals = mov.originalValues;
+          if (!origVals && mov.details && mov.details.includes('_originalValues:')) {
+            try {
+              const match = mov.details.match(/_originalValues:(.*)/);
+              if (match) origVals = JSON.parse(match[1]);
+            } catch(e) { console.error('Failed to parse originalValues from details', e); }
+          }
+          if (origVals) {
+            // Restore original values
+            extraFields = { ...origVals };
+          }
         }
 
         if (qtyChange !== 0 || Object.keys(extraFields).length > 0) {
