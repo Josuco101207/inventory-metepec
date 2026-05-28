@@ -559,32 +559,76 @@ const InventoryView = ({ categoryTitle }) => {
           <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
             <div
               className="modal-card animate-scale-up"
-              style={{ maxWidth: 700, width: '95vw', padding: 0, overflow: 'hidden' }}
+              style={{
+                maxWidth: 720,
+                width: '95vw',
+                padding: 0,
+                overflow: 'hidden',
+                background: 'rgba(30, 28, 26, 0.95)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+              }}
               onClick={e => e.stopPropagation()}
             >
-              <header className="modal-header" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <FileImage size={20} />
+              {/* Header */}
+              <header style={{
+                padding: '1.1rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.07)',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{
+                    width: 38, height: 38,
+                    borderRadius: 10,
+                    background: 'rgba(167, 139, 250, 0.12)',
+                    border: '1px solid rgba(167, 139, 250, 0.25)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#a78bfa',
+                    flexShrink: 0,
+                  }}>
+                    <FileImage size={18} />
+                  </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1rem' }}>Visor de Documentos</h3>
-                    <p style={{ margin: 0, fontSize: '0.78rem', opacity: 0.6 }}>{facturaModalItem.name}</p>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: '0.95rem',
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 800,
+                      color: '#fff',
+                      letterSpacing: '-0.01em',
+                    }}>Visor de Documentos</h3>
+                    <p style={{
+                      margin: 0,
+                      fontSize: '0.73rem',
+                      color: 'rgba(255, 255, 255, 0.45)',
+                      fontWeight: 600,
+                    }}>{facturaModalItem.name}</p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+
+                <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   {facturaModalItem.invoices && facturaModalItem.invoices.length > 1 && (
                     <select
                       value={activeInvoiceIndex}
                       onChange={(e) => setActiveInvoiceIndex(Number(e.target.value))}
                       style={{
-                        fontSize: '0.78rem',
-                        padding: '0.4rem 1.8rem 0.4rem 0.6rem',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        borderRadius: 'var(--radius-button, 8px)',
+                        fontSize: '0.73rem',
+                        padding: '0.4rem 1.6rem 0.4rem 0.65rem',
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        borderRadius: '10px',
                         color: '#fff',
                         cursor: 'pointer',
                         outline: 'none',
-                        height: 'auto',
+                        fontWeight: 600,
+                        fontFamily: 'var(--font-body)',
                       }}
                     >
                       {facturaModalItem.invoices.map((inv, idx) => (
@@ -598,31 +642,103 @@ const InventoryView = ({ categoryTitle }) => {
                     href={activeInvoice.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="fly-btn fly-btn-primary"
-                    style={{ fontSize: '0.78rem', padding: '0.4rem 0.9rem', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '0.4rem 0.9rem',
+                      height: 'auto',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'linear-gradient(135deg, var(--zone-arcade), #a5d84a)',
+                      color: 'var(--fly-dark)',
+                      borderRadius: '10px',
+                      fontWeight: 800,
+                      fontFamily: 'var(--font-heading)',
+                      textDecoration: 'none',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      transition: 'all 0.2s ease',
+                    }}
                   >
                     Abrir en nueva pestaña
                   </a>
-                  <button className="invt-btn invt-btn-gray" onClick={() => setFacturaModalItem(null)} title="Cerrar">
-                    <X size={18} />
+                  <button
+                    onClick={() => setFacturaModalItem(null)}
+                    title="Cerrar"
+                    style={{
+                      width: 34, height: 34,
+                      borderRadius: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <X size={16} />
                   </button>
                 </div>
               </header>
 
-              <div style={{ padding: '0.75rem 1.25rem 1.25rem', position: 'relative' }}>
+              {/* Content */}
+              <div style={{ padding: '1rem 1.5rem 1.5rem', position: 'relative' }}>
                 {imageError ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh', gap: '1rem', background: '#111', borderRadius: 8, padding: '2rem', textAlign: 'center' }}>
-                    <AlertCircle size={32} style={{ color: 'var(--fly-magenta, #ff007f)' }} />
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#fff', fontWeight: 600 }}>No se puede previsualizar esta factura en el navegador.</p>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.6)' }}>
-                      El archivo podría estar protegido, ser muy pesado o no ser compatible. Usa el botón "Abrir en nueva pestaña" para verlo o descargarlo.
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '40vh',
+                    gap: '1rem',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    borderRadius: 14,
+                    padding: '2.5rem',
+                    textAlign: 'center',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}>
+                    <div style={{
+                      width: 56, height: 56,
+                      borderRadius: 14,
+                      background: 'rgba(218, 0, 163, 0.1)',
+                      border: '1px solid rgba(218, 0, 163, 0.2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <AlertCircle size={28} style={{ color: 'var(--fly-magenta, #DA00A3)' }} />
+                    </div>
+                    <p style={{
+                      margin: 0,
+                      fontSize: '0.92rem',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontFamily: 'var(--font-heading)',
+                    }}>No se puede previsualizar</p>
+                    <p style={{
+                      margin: 0,
+                      fontSize: '0.78rem',
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      lineHeight: 1.5,
+                      maxWidth: 340,
+                    }}>
+                      El archivo podría estar protegido, ser muy pesado o no ser compatible. Usa el botón para verlo o descargarlo.
                     </p>
                     <a
                       href={activeInvoice.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="fly-btn fly-btn-primary"
-                      style={{ fontSize: '0.78rem', padding: '0.5rem 1rem', marginTop: '0.5rem' }}
+                      style={{
+                        fontSize: '0.75rem',
+                        padding: '0.55rem 1.2rem',
+                        marginTop: '0.5rem',
+                        background: 'linear-gradient(135deg, var(--zone-arcade), #a5d84a)',
+                        color: 'var(--fly-dark)',
+                        borderRadius: 10,
+                        fontWeight: 800,
+                        fontFamily: 'var(--font-heading)',
+                        textDecoration: 'none',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
                     >
                       Ver en pestaña nueva
                     </a>
@@ -631,14 +747,26 @@ const InventoryView = ({ categoryTitle }) => {
                   <iframe
                     src={activeInvoice.url}
                     title="Factura PDF"
-                    style={{ width: '100%', height: '60vh', border: 'none', borderRadius: 8 }}
+                    style={{
+                      width: '100%',
+                      height: '62vh',
+                      border: 'none',
+                      borderRadius: 14,
+                      background: 'rgba(0, 0, 0, 0.2)',
+                    }}
                     onError={() => setImageError(true)}
                   />
                 ) : (
                   <img
                     src={activeInvoice.url}
                     alt="Factura"
-                    style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8, background: '#111' }}
+                    style={{
+                      width: '100%',
+                      maxHeight: '65vh',
+                      objectFit: 'contain',
+                      borderRadius: 14,
+                      background: 'rgba(0, 0, 0, 0.25)',
+                    }}
                     onError={() => setImageError(true)}
                   />
                 )}
