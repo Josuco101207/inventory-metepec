@@ -341,8 +341,8 @@ const UserManagementView = () => {
   const summaryText = (u) => {
     if (u.role === 'admin') return { text: 'Acceso ilimitado', color: '#0071e3', bg: '#f0f7ff', border: '#bfdbfe' };
     if (u.role === 'supervisor') return { text: 'Supervisor de salidas', color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
-    const a = (u.allowedCategories || []).length;
-    const e = (u.editableCategories || []).length;
+    const a = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c)).length;
+    const e = (u.editableCategories || []).filter(c => ALL_CATEGORIES.includes(c)).length;
     if (a === 0 && e === 0) return { text: 'Sin permisos', color: '#dc2626', bg: '#fff1f1', border: '#fecaca' };
     return { text: `${a} agregar · ${e} editar`, color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
   };
@@ -374,13 +374,12 @@ const UserManagementView = () => {
               const isExpanded = expandedUserId === u.id;
               const isAdminUser = u.role === 'admin';
               const rs = roleStyle(u.role);
+              const allowedCats = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c));
+              const editableCats = (u.editableCategories || []).filter(c => ALL_CATEGORIES.includes(c));
               const ss = summaryText(u);
-              const allowedCats = u.allowedCategories || [];
-              const editableCats = u.editableCategories || [];
 
-              const validAllowed = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c));
               const permPct = ALL_CATEGORIES.length > 0
-                ? Math.round((validAllowed.length / ALL_CATEGORIES.length) * 100)
+                ? Math.round((allowedCats.length / ALL_CATEGORIES.length) * 100)
                 : 0;
               const initials = (u.displayName || u.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
 
