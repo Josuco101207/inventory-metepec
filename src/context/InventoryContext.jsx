@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { useCategories } from './CategoriesContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
+import { sendCriticalStockAlert } from '../utils/emailService';
 import {
   getMovements, addMovement as addLocalStorageMovement, updateMovement as updateLocalStorageMovement,
   getPersonnel, getBrands, getLocations,
@@ -405,6 +406,12 @@ export const InventoryProvider = ({ children }) => {
         finalDetails,
         item.category
       );
+
+      const threshold = item.threshold || 0;
+      if (newQty <= threshold && (item.qty || 0) > threshold) {
+        sendCriticalStockAlert(item.name, newQty, threshold);
+      }
+
       toast.success(`${change > 0 ? 'Entrada' : 'Salida'} registrada: ${item.name}`);
     } catch (err) {
       console.error('[updateStock] ERROR:', err);
@@ -573,6 +580,12 @@ export const InventoryProvider = ({ children }) => {
       setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, qty: physicalQty } : i));
       const finalReason = reason ? `Audit: ${reason} (Ajuste: ${diff > 0 ? '+' : ''}${diff})` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
       addMovement('Auditoría', item.name, Math.abs(diff), userName, finalReason, item.category);
+
+      const threshold = item.threshold || 0;
+      if (physicalQty <= threshold && (item.qty || 0) > threshold) {
+        sendCriticalStockAlert(item.name, physicalQty, threshold);
+      }
+
       toast.success("Auditoría registrada exitosamente");
     } catch (err) {
       toast.error(`Error en auditoría: ${err.message}`);
