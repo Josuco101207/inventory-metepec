@@ -18,16 +18,42 @@ const parseMovDetails = (details) => {
   const supervisorMatch = details.match(/autorizado_por:([^|]+)/);
   const supervisorName = supervisorMatch ? supervisorMatch[1].trim() : null;
   const isApproval = /approval_id:/.test(details);
-  const text = details
+  
+  let text = details
+    .replace(/\s*\|?\s*_originalValues:\{[^}]*\}/g, '')
     .replace(/\s*\|?\s*item_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*(?:factura_url:|factura:\s*)https?:\/\/\S+/gi, '')
     .replace(/\s*\|?\s*factura_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*approval_id:[\w-]+/g, '')
     .replace(/\s*\|?\s*supervisor_id:[\w-]+/g, '')
-    .replace(/\s*\|?\s*autorizado_por:[^|]+/g, '')
+    .replace(/\s*\|?\s*autorizado_por:[^|]+/g, '');
+
+  if (text.includes('Cambios:')) {
+    text = text.replace(/Cambios:\s*(.*)/, (match, p1) => {
+      const changes = p1.split(', ').map(change => {
+        const parts = change.split(': ');
+        if (parts.length === 2) {
+          const field = parts[0];
+          const vals = parts[1].split(' -> ');
+          if (vals.length === 2) {
+            const oldVal = vals[0].replace(/"/g, '').replace(/null/g, 'nada');
+            const newVal = vals[1].replace(/"/g, '').replace(/null/g, 'nada');
+            return `${field} de ${oldVal} a ${newVal}`;
+          }
+        }
+        return change.replace(/"/g, '').replace(/null/g, 'nada');
+      });
+      return `Se modificó: ${changes.join(', ')}`;
+    });
+  }
+
+  text = text.replace(/Artículo editado \(sin cambios detectados\)/, 'Se editó el artículo sin modificar valores');
+
+  text = text
     .replace(/^\s*\|\s*|\s*\|\s*$/g, '')
     .replace(/\s*\|\s*\|\s*/g, ' | ')
     .trim() || null;
+    
   return { text, facturaUrl, supervisorName, isApproval };
 };
 
