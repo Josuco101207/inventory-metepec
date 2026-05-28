@@ -856,9 +856,9 @@
 
 /* ═══ ACTION BUTTONS (Row-level) ═══ */
 .fly-action-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -870,11 +870,41 @@
   flex-shrink: 0;
 }
 
-.fly-action-btn:hover {
-  transform: translateY(-2px) scale(1.08);
-  border-color: rgba(255, 255, 255, 0.2);
+.fly-action-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.2px;
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: block;
 }
 
+.fly-action-btn:hover {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.fly-action-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Purple action (Ver Factura) */
+.fly-action-purple {
+  color: #c084fc;
+  border-color: rgba(167, 139, 250, 0.25);
+  background: rgba(167, 139, 250, 0.06);
+}
+.fly-action-purple:hover {
+  background: #a78bfa;
+  border-color: #a78bfa;
+  color: var(--fly-white);
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+}
+
+/* Blue action (Movimientos - Arcade Theme) */
+.fly-action-blue {
+  color: var(--zone-arcade);
+  border-color: rgba(141, 198, 63, 0.25);
+  background: rgba(141, 198, 63, 0.06);
+}
 .fly-action-blue:hover {
   background: var(--zone-arcade);
   border-color: var(--zone-arcade);
@@ -882,6 +912,12 @@
   box-shadow: 0 4px 16px rgba(141, 198, 63, 0.35);
 }
 
+/* Orange action (Auditar) */
+.fly-action-orange {
+  color: var(--zone-hachas);
+  border-color: rgba(247, 148, 30, 0.25);
+  background: rgba(247, 148, 30, 0.06);
+}
 .fly-action-orange:hover {
   background: var(--zone-hachas);
   border-color: var(--zone-hachas);
@@ -889,28 +925,29 @@
   box-shadow: 0 4px 16px rgba(247, 148, 30, 0.35);
 }
 
+/* Gray action (Editar) */
+.fly-action-gray {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
 .fly-action-gray:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
   color: var(--fly-white);
 }
 
+/* Red action (Eliminar) */
+.fly-action-red {
+  color: #ff6b6b;
+  border-color: rgba(218, 0, 163, 0.25);
+  background: rgba(218, 0, 163, 0.06);
+}
 .fly-action-red:hover {
   background: var(--fly-magenta);
   border-color: var(--fly-magenta);
   color: var(--fly-white);
   box-shadow: 0 4px 16px rgba(218, 0, 163, 0.35);
-}
-
-.fly-action-purple {
-  color: #a78bfa;
-  border-color: rgba(167, 139, 250, 0.2);
-}
-.fly-action-purple:hover {
-  background: #a78bfa;
-  border-color: #a78bfa;
-  color: var(--fly-white);
-  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
 }
 
 
@@ -1293,7 +1330,7 @@
     padding: 0;
   }
 
-  .fly-action-btn svg { width: 13px; height: 13px; }
+  .fly-action-btn svg { width: 15px; height: 15px; stroke-width: 2.2px; }
 
   .fly-inventory-list-wrap {
     border-radius: 14px;
@@ -1328,7 +1365,8 @@
   }
 
   .fly-action-btn svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
+    stroke-width: 2px;
   }
 }

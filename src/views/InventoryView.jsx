@@ -504,19 +504,19 @@ const InventoryView = ({ categoryTitle }) => {
                       </div>
                       <div className="fly-lr-actions">
                         {item.factura_url && (
-                          <button className="fly-action-btn fly-action-purple" onClick={() => handlers.handleViewFactura(item)} title="Ver Factura"><FileImage size={14} /></button>
+                          <button className="fly-action-btn fly-action-purple" onClick={() => handlers.handleViewFactura(item)} title="Ver Factura"><FileImage size={18} /></button>
                         )}
                         {(isStaff || canEditIn(categoryTitle)) && (
                           <>
-                            <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={14} /></button>
-                            <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={14} /></button>
+                            <button className="fly-action-btn fly-action-blue" onClick={() => handlers.handleAction(item)} title="Movimiento"><Activity size={18} /></button>
+                            <button className="fly-action-btn fly-action-orange" onClick={() => handlers.handleAudit(item)} title="Auditar"><ClipboardCheck size={18} /></button>
                           </>
                         )}
                         {(isAdmin || canEditIn(categoryTitle)) && (
-                          <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar"><Edit3 size={14} /></button>
+                          <button className="fly-action-btn fly-action-gray" onClick={() => handlers.handleEdit(item)} title="Editar"><Edit3 size={18} /></button>
                         )}
                         {isAdmin && (
-                          <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar"><Trash2 size={14} /></button>
+                          <button className="fly-action-btn fly-action-red" onClick={() => handlers.handleDelete(item)} title="Eliminar"><Trash2 size={18} /></button>
                         )}
                       </div>
                     </div>
