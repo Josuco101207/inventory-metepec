@@ -67,24 +67,77 @@ const DatabaseAdminView = () => {
   const { categories, reload: reloadCategories } = useCategories();
   const [tables, setTables] = useState([]);
   const [loadingTables, setLoadingTables] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dicrejart_db_admin_show_create_form');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
   const [expandedTable, setExpandedTable] = useState(null);
   const [tableColumns, setTableColumns] = useState({});
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
   // New category form
-  const [catTitle, setCatTitle] = useState('');
-  const [catShortTitle, setCatShortTitle] = useState('');
-  const [catIcon, setCatIcon] = useState('Package');
-  const [catZone, setCatZone] = useState('arcade');
-  const [columns, setColumns] = useState([
-    { name: 'name', type: 'text', required: true },
-    { name: 'qty', type: 'int4', required: true },
-    { name: 'threshold', type: 'int4', required: false },
-    { name: 'marca', type: 'text', required: false },
-    { name: 'location', type: 'text', required: false },
-  ]);
+  const [catTitle, setCatTitle] = useState(() => {
+    return localStorage.getItem('dicrejart_db_admin_cat_title') || '';
+  });
+  const [catShortTitle, setCatShortTitle] = useState(() => {
+    return localStorage.getItem('dicrejart_db_admin_cat_short_title') || '';
+  });
+  const [catIcon, setCatIcon] = useState(() => {
+    return localStorage.getItem('dicrejart_db_admin_cat_icon') || 'Package';
+  });
+  const [catZone, setCatZone] = useState(() => {
+    return localStorage.getItem('dicrejart_db_admin_cat_zone') || 'arcade';
+  });
+  const [columns, setColumns] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dicrejart_db_admin_columns');
+      return saved ? JSON.parse(saved) : [
+        { name: 'name', type: 'text', required: true },
+        { name: 'qty', type: 'int4', required: true },
+        { name: 'threshold', type: 'int4', required: false },
+        { name: 'marca', type: 'text', required: false },
+        { name: 'location', type: 'text', required: false },
+      ];
+    } catch {
+      return [
+        { name: 'name', type: 'text', required: true },
+        { name: 'qty', type: 'int4', required: true },
+        { name: 'threshold', type: 'int4', required: false },
+        { name: 'marca', type: 'text', required: false },
+        { name: 'location', type: 'text', required: false },
+      ];
+    }
+  });
+
+  // Sync form state to localStorage
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_show_create_form', JSON.stringify(showCreateForm));
+  }, [showCreateForm]);
+
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_cat_title', catTitle);
+  }, [catTitle]);
+
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_cat_short_title', catShortTitle);
+  }, [catShortTitle]);
+
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_cat_icon', catIcon);
+  }, [catIcon]);
+
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_cat_zone', catZone);
+  }, [catZone]);
+
+  useEffect(() => {
+    localStorage.setItem('dicrejart_db_admin_columns', JSON.stringify(columns));
+  }, [columns]);
 
   const fetchTables = useCallback(async () => {
     setLoadingTables(true);
