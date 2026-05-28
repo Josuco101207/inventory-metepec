@@ -12,6 +12,9 @@ export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
   {
+    auth: {
+      storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+    },
     realtime: {
       params: {
         eventsPerSecond: 10,
