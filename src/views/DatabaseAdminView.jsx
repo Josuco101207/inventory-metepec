@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Database, Plus, Trash2, Table2, Columns3, Eye, RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Check, Loader2, X, Type, Hash, Calendar, ToggleLeft, List, Package, Layers } from 'lucide-react';
+import { Database, Plus, Trash2, Table2, Columns3, Eye, RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Check, Loader2, X, Type, Hash, Calendar, ToggleLeft, List, Package, Layers, Edit2, Download, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoriesContext';
 import { supabase } from '../lib/supabase';
@@ -80,6 +80,64 @@ const DatabaseAdminView = () => {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
+  // Edit category state
+  const [editingCatId, setEditingCatId] = useState(null);
+  const [editCatTitle, setEditCatTitle] = useState('');
+  const [editCatShortTitle, setEditCatShortTitle] = useState('');
+  const [editCatIcon, setEditCatIcon] = useState('Package');
+  const [editCatZone, setEditCatZone] = useState('arcade');
+  const [updating, setUpdating] = useState(false);
+
+  const startEditCategory = (cat) => {
+    setEditingCatId(cat.id);
+    setEditCatTitle(cat.title);
+    setEditCatShortTitle(cat.shortTitle);
+    setEditCatIcon(cat.iconName || 'Package');
+    setEditCatZone(cat.zone || 'arcade');
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCatId(null);
+  };
+
+  const updateCategory = async (cat) => {
+    if (!editCatTitle.trim()) return toast.error('Nombre de categoría requerido');
+    
+    setUpdating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const updateRes = await fetch(`${supabaseUrl}/rest/v1/categories?id=eq.${cat.supabaseId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          title: editCatTitle.trim(),
+          short_title: editCatShortTitle.trim() || editCatTitle.trim().substring(0, 14),
+          icon_name: editCatIcon,
+          zone: editCatZone,
+        }),
+      });
+
+      if (!updateRes.ok) {
+        const err = await updateRes.json().catch(() => ({}));
+        throw new Error(err.message || 'Error actualizando categoría');
+      }
+
+      toast.success(`Categoría "${editCatTitle}" actualizada`);
+      setEditingCatId(null);
+      reloadCategories();
+    } catch (err) {
+      console.error('Update category error:', err);
+      toast.error(err.message || 'Error al actualizar categoría');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   // New category form
   const [catTitle, setCatTitle] = useState(() => {
     return localStorage.getItem('dicrejart_db_admin_cat_title') || '';
@@ -99,7 +157,8 @@ const DatabaseAdminView = () => {
       return saved ? JSON.parse(saved) : [
         { name: 'name', type: 'text', required: true },
         { name: 'qty', type: 'int4', required: true },
-        { name: 'threshold', type: 'int4', required: false },
+        { name: 'stock_min', type: 'int4', required: false },
+        { name: 'subcategoria', type: 'text', required: false },
         { name: 'marca', type: 'text', required: false },
         { name: 'location', type: 'text', required: false },
       ];
@@ -107,7 +166,8 @@ const DatabaseAdminView = () => {
       return [
         { name: 'name', type: 'text', required: true },
         { name: 'qty', type: 'int4', required: true },
-        { name: 'threshold', type: 'int4', required: false },
+        { name: 'stock_min', type: 'int4', required: false },
+        { name: 'subcategoria', type: 'text', required: false },
         { name: 'marca', type: 'text', required: false },
         { name: 'location', type: 'text', required: false },
       ];
@@ -138,6 +198,68 @@ const DatabaseAdminView = () => {
   useEffect(() => {
     localStorage.setItem('dicrejart_db_admin_columns', JSON.stringify(columns));
   }, [columns]);
+
+  const [backingUp, setBackingUp] = useState(false);
+
+  const handleBackup = async () => {
+    setBackingUp(true);
+    const toastId = toast.loading('Generando respaldo de la base de datos...');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // 1. Fetch all categories metadata
+      const catRes = await fetch(`${supabaseUrl}/rest/v1/categories?select=*`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      const categoriesData = await catRes.json();
+      
+      const backupData = {
+        timestamp: new Date().toISOString(),
+        categories: categoriesData,
+        tables: {}
+      };
+
+      // 2. Fetch data for each category table
+      for (const cat of categoriesData) {
+        if (cat.table_name) {
+          try {
+            const tableRes = await fetch(`${supabaseUrl}/rest/v1/${cat.table_name}?select=*`, {
+              headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${session.access_token}`
+              }
+            });
+            if (tableRes.ok) {
+              backupData.tables[cat.table_name] = await tableRes.json();
+            }
+          } catch (e) {
+            console.warn(`Could not backup table ${cat.table_name}`);
+          }
+        }
+      }
+
+      // Create download
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dicrejart_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Respaldo generado con éxito', { id: toastId });
+    } catch (err) {
+      console.error('Backup error:', err);
+      toast.error('Error al generar el respaldo', { id: toastId });
+    } finally {
+      setBackingUp(false);
+    }
+  };
 
   const fetchTables = useCallback(async () => {
     setLoadingTables(true);
@@ -214,7 +336,7 @@ const DatabaseAdminView = () => {
           let def = `"${safeName}" ${c.type}`;
           if (c.required) def += ' NOT NULL';
           if (c.type === 'int4' && safeName === 'qty') def += ' DEFAULT 0';
-          if (c.type === 'int4' && safeName === 'threshold') def += ' DEFAULT 0';
+          if (c.type === 'int4' && safeName === 'stock_min') def += ' DEFAULT 0';
           return def;
         }),
       ];
@@ -269,7 +391,8 @@ const DatabaseAdminView = () => {
       setColumns([
         { name: 'name', type: 'text', required: true },
         { name: 'qty', type: 'int4', required: true },
-        { name: 'threshold', type: 'int4', required: false },
+        { name: 'stock_min', type: 'int4', required: false },
+        { name: 'subcategoria', type: 'text', required: false },
         { name: 'marca', type: 'text', required: false },
         { name: 'location', type: 'text', required: false },
       ]);
@@ -364,6 +487,10 @@ const DatabaseAdminView = () => {
             </div>
           </div>
           <div className="db-admin-header-actions">
+            <button type="button" className="db-btn db-btn-secondary" onClick={handleBackup} disabled={backingUp}>
+              {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+              Respaldo
+            </button>
             <button type="button" className="db-btn db-btn-secondary" onClick={() => { fetchTables(); reloadCategories(); }}>
               <RefreshCw size={16} /> Actualizar
             </button>
@@ -517,6 +644,13 @@ const DatabaseAdminView = () => {
                   <span className="db-table-rows" style={{ opacity: 0.5 }}>{cat.tableName}</span>
                   <span className="db-col-dot" style={{ background: ZONE_OPTIONS.find(z => z.value === cat.zone)?.color || '#ccc', marginLeft: 'auto' }}></span>
                   <button
+                    className="db-btn-icon"
+                    style={{ marginLeft: '0.5rem', color: 'var(--fly-blue)' }}
+                    onClick={(e) => { e.stopPropagation(); startEditCategory(cat); }}
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
                     className="db-btn-icon db-btn-danger"
                     style={{ marginLeft: '0.25rem' }}
                     onClick={(e) => { e.stopPropagation(); deleteCategory(cat); }}
@@ -525,7 +659,55 @@ const DatabaseAdminView = () => {
                     {deleting === cat.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   </button>
                 </div>
-                {expandedTable === cat.tableName && (
+                
+                {editingCatId === cat.id && (
+                  <div className="db-create-form" style={{ margin: '1rem', border: '1px solid var(--fly-border)', borderRadius: '12px', padding: '1rem', background: 'var(--fly-panel-bg)' }} onClick={e => e.stopPropagation()}>
+                    <h3 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--fly-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Edit2 size={16} /> Editar Metadatos
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="db-form-group">
+                        <label className="db-label">Nombre</label>
+                        <input type="text" className="db-input" value={editCatTitle} onChange={(e) => setEditCatTitle(e.target.value)} />
+                      </div>
+                      <div className="db-form-group">
+                        <label className="db-label">Nombre corto</label>
+                        <input type="text" className="db-input" maxLength={14} value={editCatShortTitle} onChange={(e) => setEditCatShortTitle(e.target.value)} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' }}>
+                      <div className="db-form-group">
+                        <label className="db-label">Icono</label>
+                        <div className="db-select-wrapper">
+                          <Package size={14} />
+                          <select className="db-select" value={editCatIcon} onChange={(e) => setEditCatIcon(e.target.value)}>
+                            {ICON_OPTIONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="db-form-group">
+                        <label className="db-label">Zona / Color</label>
+                        <div className="db-select-wrapper">
+                          <span className="db-col-dot" style={{ background: ZONE_OPTIONS.find(z => z.value === editCatZone)?.color || '#ccc' }}></span>
+                          <select className="db-select" value={editCatZone} onChange={(e) => setEditCatZone(e.target.value)}>
+                            {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
+                      <button className="db-btn" style={{ background: 'transparent', border: '1px solid var(--fly-border)', color: 'var(--fly-text)' }} onClick={cancelEditCategory}>
+                        Cancelar
+                      </button>
+                      <button className="db-btn db-btn-primary" onClick={() => updateCategory(cat)} disabled={updating}>
+                        {updating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Guardar Cambios
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {expandedTable === cat.tableName && editingCatId !== cat.id && (
                   <div className="db-table-columns">
                     {tableColumns[cat.tableName] ? (
                       tableColumns[cat.tableName].map((col, i) => {

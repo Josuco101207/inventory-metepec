@@ -888,66 +888,67 @@
 
 /* Purple action (Ver Factura) */
 .fly-action-purple {
-  color: #c084fc;
-  border-color: rgba(167, 139, 250, 0.25);
-  background: rgba(167, 139, 250, 0.06);
+  color: #d8b4fe;
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.15);
 }
 .fly-action-purple:hover {
   background: #a78bfa;
   border-color: #a78bfa;
-  color: var(--fly-white);
-  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.35);
+  color: var(--fly-dark, #1c1c1e);
+  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
 }
 
 /* Blue action (Movimientos - Arcade Theme) */
 .fly-action-blue {
-  color: var(--zone-arcade);
-  border-color: rgba(141, 198, 63, 0.25);
-  background: rgba(141, 198, 63, 0.06);
+  color: #b5e550;
+  border-color: rgba(141, 198, 63, 0.4);
+  background: rgba(141, 198, 63, 0.15);
 }
 .fly-action-blue:hover {
   background: var(--zone-arcade);
   border-color: var(--zone-arcade);
   color: var(--fly-dark);
-  box-shadow: 0 4px 16px rgba(141, 198, 63, 0.35);
+  box-shadow: 0 4px 16px rgba(141, 198, 63, 0.4);
 }
 
 /* Orange action (Auditar) */
 .fly-action-orange {
-  color: var(--zone-hachas);
-  border-color: rgba(247, 148, 30, 0.25);
-  background: rgba(247, 148, 30, 0.06);
+  color: #ffb347;
+  border-color: rgba(247, 148, 30, 0.4);
+  background: rgba(247, 148, 30, 0.15);
 }
 .fly-action-orange:hover {
   background: var(--zone-hachas);
   border-color: var(--zone-hachas);
   color: var(--fly-dark);
-  box-shadow: 0 4px 16px rgba(247, 148, 30, 0.35);
+  box-shadow: 0 4px 16px rgba(247, 148, 30, 0.4);
 }
 
 /* Gray action (Editar) */
 .fly-action-gray {
-  color: rgba(255, 255, 255, 0.85);
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
 }
 .fly-action-gray:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.35);
-  color: var(--fly-white);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #ffffff;
+  color: var(--fly-dark);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
 }
 
 /* Red action (Eliminar) */
 .fly-action-red {
-  color: #ff6b6b;
-  border-color: rgba(218, 0, 163, 0.25);
-  background: rgba(218, 0, 163, 0.06);
+  color: #ff8787;
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.15);
 }
 .fly-action-red:hover {
-  background: var(--fly-magenta);
-  border-color: var(--fly-magenta);
-  color: var(--fly-white);
-  box-shadow: 0 4px 16px rgba(218, 0, 163, 0.35);
+  background: #ff4757;
+  border-color: #ff4757;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(255, 71, 87, 0.4);
 }
 
 
