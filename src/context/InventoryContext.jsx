@@ -87,6 +87,7 @@ export const InventoryProvider = ({ children }) => {
     const mappedNameKey = safeColumns.includes('name') ? 'name' : safeColumns.find(c => ['nombre', 'titulo', 'title', 'producto', 'articulo'].includes(c.toLowerCase()));
     const mappedQtyKey = safeColumns.includes('qty') ? 'qty' : safeColumns.find(c => ['cantidad', 'stock', 'existencias'].includes(c.toLowerCase()));
     const mappedObsKey = safeColumns.includes('observaciones') ? 'observaciones' : safeColumns.find(c => ['detalles', 'notas', 'descripcion'].includes(c.toLowerCase()) && c !== mappedNameKey);
+    const mappedThresholdKey = safeColumns.includes('threshold') ? 'threshold' : safeColumns.find(c => ['stock_min', 'minimo', 'min'].includes(c.toLowerCase()));
 
     for (const key of Object.keys(rawFields)) {
       if (safeColumns.includes(key)) {
@@ -95,6 +96,7 @@ export const InventoryProvider = ({ children }) => {
         if (key === 'name' && mappedNameKey) dbFields[mappedNameKey] = rawFields[key];
         if (key === 'qty' && mappedQtyKey) dbFields[mappedQtyKey] = rawFields[key];
         if (key === 'observaciones' && mappedObsKey) dbFields[mappedObsKey] = rawFields[key];
+        if (key === 'threshold' && mappedThresholdKey) dbFields[mappedThresholdKey] = rawFields[key];
       }
     }
     return dbFields;
@@ -209,6 +211,8 @@ export const InventoryProvider = ({ children }) => {
           if (row.nombre && !row.name) normalizedRow.name = row.nombre;
           if (row.cantidad !== undefined && row.qty === undefined) normalizedRow.qty = row.cantidad;
           if (row.detalles && !row.observaciones) normalizedRow.observaciones = row.detalles;
+          if (row.stock_min !== undefined && row.threshold === undefined) normalizedRow.threshold = row.stock_min;
+          if (row.minimo !== undefined && row.threshold === undefined) normalizedRow.threshold = row.minimo;
           allItems.push({ ...normalizedRow, category: cat.title, _tableName: cat.tableName });
         });
       }));
@@ -1000,13 +1004,22 @@ export const InventoryProvider = ({ children }) => {
           if (payload.eventType === 'INSERT') {
             setItemsState(prev => {
               if (prev.find(i => i.id === payload.new.id)) return prev;
-              return [...prev, { ...payload.new, category: cat.title, _tableName: cat.tableName }];
+              const newItem = { ...payload.new, category: cat.title, _tableName: cat.tableName };
+              if (newItem.stock_min !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.stock_min;
+              if (newItem.minimo !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.minimo;
+              return [...prev, newItem];
             });
           } else if (payload.eventType === 'UPDATE') {
             console.log('[Realtime UPDATE] Updating item:', payload.new.id, 'New qty:', payload.new.qty);
-            setItemsState(prev => prev.map(i =>
-              i.id === payload.new.id ? { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName } : i
-            ));
+            setItemsState(prev => prev.map(i => {
+              if (i.id === payload.new.id) {
+                const updatedItem = { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName };
+                if (updatedItem.stock_min !== undefined) updatedItem.threshold = updatedItem.stock_min;
+                if (updatedItem.minimo !== undefined) updatedItem.threshold = updatedItem.minimo;
+                return updatedItem;
+              }
+              return i;
+            }));
           } else if (payload.eventType === 'DELETE') {
             setItemsState(prev => prev.filter(i => i.id !== payload.old.id));
           }
