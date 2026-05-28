@@ -86,6 +86,8 @@ const DatabaseAdminView = () => {
   const [editCatShortTitle, setEditCatShortTitle] = useState('');
   const [editCatIcon, setEditCatIcon] = useState('Package');
   const [editCatZone, setEditCatZone] = useState('arcade');
+  const [editColumns, setEditColumns] = useState([]);
+  const [originalColumns, setOriginalColumns] = useState([]);
   const [updating, setUpdating] = useState(false);
 
   const startEditCategory = (cat) => {
@@ -94,6 +96,16 @@ const DatabaseAdminView = () => {
     setEditCatShortTitle(cat.shortTitle);
     setEditCatIcon(cat.iconName || 'Package');
     setEditCatZone(cat.zone || 'arcade');
+    
+    const schemaCols = Array.isArray(cat.schema) ? cat.schema : [];
+    const initialCols = schemaCols.map(c => ({
+      name: c.name,
+      type: c.type,
+      required: false,
+      originalName: c.name
+    }));
+    setEditColumns(initialCols);
+    setOriginalColumns(JSON.parse(JSON.stringify(initialCols)));
   };
 
   const cancelEditCategory = () => {
@@ -106,6 +118,42 @@ const DatabaseAdminView = () => {
     setUpdating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Diff columns
+      const finalCols = editColumns.filter(c => c.name.trim());
+      const newSchema = finalCols.map(c => ({
+        name: c.name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+        label: c.name.charAt(0).toUpperCase() + c.name.slice(1).replace(/_/g, ' '),
+        type: c.type,
+      }));
+
+      // SQL statements
+      let sql = '';
+      
+      // Handle drops
+      for (const orig of originalColumns) {
+        if (!finalCols.find(c => c.originalName === orig.originalName)) {
+           sql += `ALTER TABLE public."${cat.tableName}" DROP COLUMN IF EXISTS "${orig.originalName}";\n`;
+        }
+      }
+
+      // Handle renames and adds
+      for (const col of finalCols) {
+        const safeName = col.name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        if (!col.originalName) {
+           let def = `"${safeName}" ${col.type}`;
+           if (col.required) def += ' NOT NULL';
+           if (col.type === 'int4' && (safeName === 'qty' || safeName === 'stock_min')) def += ' DEFAULT 0';
+           sql += `ALTER TABLE public."${cat.tableName}" ADD COLUMN IF NOT EXISTS ${def};\n`;
+        } else if (col.originalName !== safeName) {
+           sql += `ALTER TABLE public."${cat.tableName}" RENAME COLUMN "${col.originalName}" TO "${safeName}";\n`;
+        }
+      }
+
+      if (sql.trim()) {
+         await rpcCall('exec_sql', { query: sql });
+      }
+
       const updateRes = await fetch(`${supabaseUrl}/rest/v1/categories?id=eq.${cat.supabaseId}`, {
         method: 'PATCH',
         headers: {
@@ -119,6 +167,7 @@ const DatabaseAdminView = () => {
           short_title: editCatShortTitle.trim() || editCatTitle.trim().substring(0, 14),
           icon_name: editCatIcon,
           zone: editCatZone,
+          schema: JSON.stringify(newSchema),
         }),
       });
 
@@ -136,6 +185,22 @@ const DatabaseAdminView = () => {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const addEditColumn = () => {
+    setEditColumns([...editColumns, { name: '', type: 'text', required: false, originalName: null }]);
+  };
+  const removeEditColumn = (i) => {
+    const col = editColumns[i];
+    if (col.originalName) {
+      if (!window.confirm(`¿Seguro que deseas ELIMINAR la columna "${col.originalName}"? Esto borrará todos los datos asociados en la base de datos de forma irreversible.`)) return;
+    }
+    setEditColumns(editColumns.filter((_, idx) => idx !== i));
+  };
+  const updateEditColumn = (i, field, value) => {
+    const updated = [...editColumns];
+    updated[i] = { ...updated[i], [field]: value };
+    setEditColumns(updated);
   };
 
   // New category form
@@ -695,7 +760,57 @@ const DatabaseAdminView = () => {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
+                    
+                    {/* Columns Edit Section */}
+                    <div className="db-columns-section" style={{ marginTop: '1.5rem', borderTop: '1px solid var(--fly-border)', paddingTop: '1rem' }}>
+                      <div className="db-columns-header">
+                        <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--fly-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Columns3 size={14} /> Esquema de la Tabla
+                        </h4>
+                        <button className="db-btn-icon" onClick={addEditColumn}><Plus size={14} /></button>
+                      </div>
+
+                      <div className="db-default-cols" style={{ marginBottom: '0.5rem' }}>
+                        <div className="db-default-cols-list">
+                          <span className="db-default-col"><Hash size={12} /> id (UUID, auto)</span>
+                          <span className="db-default-col"><Calendar size={12} /> created_at (auto)</span>
+                          <span className="db-default-col"><Calendar size={12} /> updated_at (auto)</span>
+                        </div>
+                      </div>
+
+                      {editColumns.map((col, i) => {
+                        const typeInfo = getTypeInfo(col.type);
+                        const TypeIcon = typeInfo.icon;
+                        const isOriginal = !!col.originalName;
+                        return (
+                          <div key={i} className="db-column-row">
+                            <input
+                              type="text"
+                              className="db-input db-col-name"
+                              placeholder="nombre_columna"
+                              value={col.name}
+                              onChange={(e) => updateEditColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
+                            />
+                            <div className="db-select-wrapper">
+                              <TypeIcon size={14} style={{ color: typeInfo.color }} />
+                              <select className="db-select" value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)} disabled={isOriginal}>
+                                {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                              </select>
+                            </div>
+                            {!isOriginal && (
+                              <label className="db-checkbox-label">
+                                <input type="checkbox" checked={col.required} onChange={(e) => updateEditColumn(i, 'required', e.target.checked)} />
+                                <span>Req</span>
+                              </label>
+                            )}
+                            {isOriginal && <span style={{ fontSize: '0.7rem', color: 'var(--fly-border)' }}>Existente</span>}
+                            <button className="db-btn-icon db-btn-danger" onClick={() => removeEditColumn(i)}><Trash2 size={14} /></button>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
                       <button className="db-btn" style={{ background: 'transparent', border: '1px solid var(--fly-border)', color: 'var(--fly-text)' }} onClick={cancelEditCategory}>
                         Cancelar
                       </button>
