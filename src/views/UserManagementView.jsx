@@ -379,7 +379,7 @@ const UserManagementView = () => {
               const editableCats = u.editableCategories || [];
 
               const permPct = ALL_CATEGORIES.length > 0
-                ? Math.round(((u.allowedCategories || []).length / ALL_CATEGORIES.length) * 100)
+                ? Math.min(Math.round(((u.allowedCategories || []).length / ALL_CATEGORIES.length) * 100), 100)
                 : 0;
               const initials = (u.displayName || u.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
 
