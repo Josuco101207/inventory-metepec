@@ -32,7 +32,7 @@ const MobileInventoryCard = React.memo(({ item, zoneColor, isAdmin, isStaff, can
     <>
       <div className={`mic-card ${isCritical ? 'mic-critical' : ''}`}>
         {/* Top: Avatar + Name + More */}
-        <div className="mic-top">
+        <div className="mic-top" onClick={() => handlers.handleViewDetail?.(item)} style={{ cursor: 'pointer' }}>
           {item.foto_url ? (
             <img src={item.foto_url} alt={item.name} className={avatarClass} style={{ objectFit: 'cover' }} />
           ) : (
@@ -55,7 +55,7 @@ const MobileInventoryCard = React.memo(({ item, zoneColor, isAdmin, isStaff, can
             </div>
           </div>
           {hasActions && (
-            <button className="mic-more-btn" onClick={() => setActionsOpen(true)} aria-label="Acciones">
+            <button className="mic-more-btn" onClick={(e) => { e.stopPropagation(); setActionsOpen(true); }} aria-label="Acciones">
               <MoreVertical size={20} />
             </button>
           )}

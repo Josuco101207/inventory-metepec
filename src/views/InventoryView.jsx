@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import ActionModal from '../components/ActionModal';
 import AddItemModal from '../components/AddItemModal';
+import ItemDetailModal from '../components/ItemDetailModal';
 import Header from '../components/Header';
 import FlyPattern from '../components/FlyPattern';
 import FlyLogo from '../components/FlyLogo';
@@ -148,6 +149,7 @@ const InventoryView = ({ categoryTitle }) => {
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [facturaModalItem, setFacturaModalItem] = useState(null);
+  const [detailModalItem, setDetailModalItem] = useState(null);
   const [activeInvoiceIndex, setActiveInvoiceIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
 
@@ -244,6 +246,7 @@ const InventoryView = ({ categoryTitle }) => {
       setActiveInvoiceIndex(0);
       setFacturaModalItem(item);
     },
+    handleViewDetail: (item) => { setDetailModalItem(item); },
   }), [deleteItem, returnItem, auditStock, userData, setActiveInvoiceIndex]);
 
   const rowData = useMemo(() => ({
@@ -483,7 +486,7 @@ const InventoryView = ({ categoryTitle }) => {
 
                   return (
                     <div key={item.id} className={`fly-list-row fly-list-row-${zoneColor} ${isCritical ? 'fly-row-critical' : ''}`}>
-                      <div className="fly-lr-name" title={item.descripcion}>
+                      <div className="fly-lr-name" title={item.descripcion} onClick={() => setDetailModalItem(item)} style={{ cursor: 'pointer' }}>
                         {item.foto_url ? (
                           <img src={item.foto_url} alt={item.name} className={`fly-lr-avatar fly-lravatar-${zoneColor}`} style={{ objectFit: 'cover' }} />
                         ) : (
@@ -555,6 +558,13 @@ const InventoryView = ({ categoryTitle }) => {
       <AddItemModal 
         isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem}
         onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Jonathan'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Jonathan'); setIsAddModalOpen(false); }}
+      />
+
+      <ItemDetailModal
+        isOpen={!!detailModalItem}
+        onClose={() => setDetailModalItem(null)}
+        item={detailModalItem}
+        categoryTitle={categoryTitle}
       />
 
       {/* Modal Visor de Factura */}
