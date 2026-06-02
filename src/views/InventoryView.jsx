@@ -226,7 +226,7 @@ const InventoryView = ({ categoryTitle }) => {
 
   const subcategories = useMemo(() => [
     'TODAS', 
-    ...new Set(items.filter(i => i.category === categoryTitle && i.subcategory).map(i => i.subcategory))
+    ...new Set(items.filter(i => i.category === categoryTitle && (i.subcategory || i.subcategoria)).map(i => i.subcategory || i.subcategoria))
   ].sort(), [items, categoryTitle]);
 
   // Handlers estables para evitar re-renders en filas virtualizadas

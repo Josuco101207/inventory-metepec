@@ -18,7 +18,7 @@ self.onmessage = (e) => {
       
       // Filtros por categoría
       if (item.category !== categoryTitle) continue;
-      if (activeSubcategory !== 'TODAS' && item.subcategory !== activeSubcategory) continue;
+      if (activeSubcategory !== 'TODAS' && (item.subcategory || item.subcategoria) !== activeSubcategory) continue;
       if (selectedBrand !== 'Todas' && item.marca !== selectedBrand) continue;
       if (selectedLocation !== 'Todas' && item.location !== selectedLocation) continue;
       if (statusFilter && item.status !== statusFilter) continue;
