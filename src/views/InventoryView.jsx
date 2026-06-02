@@ -224,10 +224,10 @@ const InventoryView = ({ categoryTitle }) => {
     return () => clearTimeout(filterTimer);
   }, [items, debouncedSearch, categoryTitle, activeSubcategory, selectedBrand, selectedLocation]);
 
-  const subcategories = useMemo(() => [
-    'TODAS', 
-    ...new Set(items.filter(i => i.category === categoryTitle && (i.subcategory || i.subcategoria)).map(i => i.subcategory || i.subcategoria))
-  ].sort(), [items, categoryTitle]);
+  const subcategories = useMemo(() => {
+    const subs = Array.from(new Set(items.filter(i => i.category === categoryTitle && (i.subcategory || i.subcategoria)).map(i => i.subcategory || i.subcategoria))).sort();
+    return ['TODAS', ...subs];
+  }, [items, categoryTitle]);
 
   // Handlers estables para evitar re-renders en filas virtualizadas
   const handlers = useMemo(() => ({
