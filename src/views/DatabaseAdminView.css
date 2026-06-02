@@ -1,0 +1,720 @@
+.db-admin-view {
+  padding: 0 1.5rem 2rem;
+  min-height: 100vh;
+  position: relative;
+}
+
+.db-admin-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Header */
+.db-admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.db-admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.db-admin-icon {
+  color: var(--fly-yellow, #E2FF00);
+}
+
+.db-admin-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: hsl(var(--text-main));
+  margin: 0;
+}
+
+.db-admin-sub {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.db-admin-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.db-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.db-btn-primary {
+  background: var(--fly-yellow, #E2FF00);
+  color: #1a1a1a;
+}
+.db-btn-primary:hover {
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+}
+
+.db-btn-secondary {
+  background: hsl(var(--card-bg));
+  color: hsl(var(--text-main));
+  border: 1px solid hsl(var(--border));
+}
+.db-btn-secondary:hover {
+  border-color: var(--fly-yellow, #E2FF00);
+}
+
+.db-btn-create {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, #34c759, #30b350);
+  color: #fff;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+.db-btn-create:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.db-btn-create:not(:disabled):hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.db-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card-bg));
+  color: hsl(var(--text-main));
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.db-btn-icon:hover {
+  border-color: var(--fly-yellow, #E2FF00);
+  color: var(--fly-yellow, #E2FF00);
+}
+
+.db-btn-danger:hover {
+  border-color: #ff3b30;
+  color: #ff3b30;
+  background: rgba(255, 59, 48, 0.08);
+}
+
+/* Mobile touch fix for buttons */
+.db-btn-new-cat {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.db-btn-new-cat:active {
+  transform: scale(0.98);
+}
+
+/* Create Form */
+.db-create-form {
+  background: hsl(var(--card-bg));
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.db-form-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0 0 1.25rem;
+  color: hsl(var(--text-main));
+}
+
+.db-form-group {
+  margin-bottom: 1rem;
+}
+
+.db-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  margin-bottom: 0.4rem;
+}
+
+.db-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--bg-main));
+  color: hsl(var(--text-main));
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  transition: border-color 0.2s;
+}
+.db-input:focus {
+  outline: none;
+  border-color: var(--fly-yellow, #E2FF00);
+}
+.db-input::placeholder {
+  opacity: 0.3;
+}
+
+/* Default columns */
+.db-default-cols {
+  background: rgba(226, 255, 0, 0.05);
+  border: 1px solid rgba(226, 255, 0, 0.15);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.db-default-cols-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  margin: 0 0 0.4rem;
+}
+
+.db-default-cols-list {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.db-default-col {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--fly-yellow, #E2FF00);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Columns section */
+.db-columns-section {
+  margin-bottom: 1rem;
+}
+
+.db-columns-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.db-columns-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.db-column-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.db-col-name {
+  flex: 1;
+  min-width: 140px;
+}
+
+.db-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: hsl(var(--bg-main));
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  padding: 0 0.5rem 0 0.7rem;
+  min-width: 160px;
+}
+
+.db-select {
+  flex: 1;
+  padding: 0.6rem 0.3rem;
+  border: none;
+  background: transparent;
+  color: hsl(var(--text-main));
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.db-select:focus {
+  outline: none;
+}
+
+.db-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.db-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fly-yellow, #E2FF00);
+  cursor: pointer;
+}
+
+/* RLS Toggle */
+.db-rls-toggle {
+  padding: 0.75rem 0;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* SQL Preview */
+.db-sql-preview {
+  margin-top: 1rem;
+}
+
+.db-sql-preview h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin: 0 0 0.5rem;
+}
+
+.db-sql-code {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 10px;
+  padding: 1rem;
+  font-size: 0.72rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Tables Section */
+.db-tables-section {
+  margin-top: 1.5rem;
+}
+
+.db-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0 0 1rem;
+}
+
+.db-count {
+  background: var(--fly-yellow, #E2FF00);
+  color: #1a1a1a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+}
+
+.db-loading, .db-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.db-empty-hint {
+  font-size: 0.72rem;
+  opacity: 0.6;
+}
+
+.db-tables-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.db-table-card {
+  background: hsl(var(--card-bg));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.db-table-card:hover {
+  border-color: rgba(226, 255, 0, 0.3);
+}
+
+.db-table-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.db-table-icon {
+  color: var(--fly-yellow, #E2FF00);
+}
+
+.db-table-name {
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.db-table-rows {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.4;
+  font-weight: 700;
+}
+
+.db-table-columns {
+  padding: 0 1rem 0.85rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.db-table-col {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  font-size: 0.78rem;
+}
+
+.db-col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db-col-name {
+  font-weight: 800;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.db-col-type {
+  opacity: 0.4;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.db-col-required {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ff9500;
+  letter-spacing: 0.05em;
+}
+
+.db-loading-sm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+.db-admin-restricted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  gap: 1rem;
+  text-align: center;
+  opacity: 0.5;
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) and (pointer: coarse) {
+  .db-admin-view {
+    padding: 0 16px 100px;
+  }
+
+  .db-admin-container {
+    max-width: 100%;
+  }
+
+  .db-admin-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .db-admin-header-left {
+    gap: 10px;
+  }
+
+  .db-admin-title {
+    font-size: 1.25rem;
+  }
+
+  .db-admin-header-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .db-admin-header-actions .db-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px;
+    font-size: 0.7rem;
+  }
+
+  /* Create form mobile - compact */
+  .db-create-form {
+    padding: 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+  }
+
+  .db-form-title {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  /* Force single column on mobile - tight gaps */
+  .db-create-form > div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .db-form-group {
+    margin-bottom: 8px;
+  }
+
+  .db-label {
+    font-size: 0.65rem;
+    margin-bottom: 4px;
+  }
+
+  .db-input, .db-select-wrapper {
+    min-height: 40px;
+    font-size: 16px;
+    padding: 0.5rem 0.7rem;
+  }
+
+  /* Compact selects for icon and zone */
+  .db-select-wrapper {
+    min-height: 36px;
+    padding: 0 0.4rem 0 0.6rem;
+  }
+
+  .db-select-wrapper .db-select {
+    padding: 0.4rem 0.2rem;
+    font-size: 0.8rem;
+  }
+
+  .db-select-wrapper svg,
+  .db-select-wrapper .db-col-dot {
+    flex-shrink: 0;
+  }
+
+  /* Column rows - compact cards */
+  .db-column-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .db-column-row .db-input {
+    flex: 2;
+    min-width: 120px;
+  }
+
+  .db-column-row .db-select-wrapper {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .db-checkbox-label {
+    padding: 4px 0;
+    font-size: 0.65rem;
+  }
+
+  .db-checkbox-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Default cols compact */
+  .db-default-cols {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+
+  .db-default-cols-label {
+    font-size: 0.6rem;
+    margin-bottom: 4px;
+  }
+
+  .db-default-col {
+    font-size: 0.7rem;
+  }
+
+  /* Columns section header compact */
+  .db-columns-section {
+    margin-top: 10px;
+  }
+
+  .db-columns-header {
+    margin-bottom: 8px;
+  }
+
+  .db-columns-header h3 {
+    font-size: 0.75rem;
+  }
+
+  /* Create button - compact */
+  .db-btn-create {
+    min-height: 44px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
+
+  /* Tables section - compact */
+  .db-tables-section {
+    margin-top: 16px;
+  }
+
+  .db-section-title {
+    font-size: 0.9rem;
+  }
+
+  .db-table-header {
+    padding: 14px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .db-table-name {
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .db-table-rows {
+    margin-left: 0;
+    width: 100%;
+    order: 3;
+    font-size: 0.65rem;
+  }
+
+  .db-table-columns {
+    padding: 12px;
+  }
+
+  .db-table-col {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .db-col-type {
+    width: 100%;
+    order: 3;
+  }
+}
+
+/* Small phones - extra compact */
+@media (max-width: 400px) and (pointer: coarse) {
+  .db-admin-view {
+    padding: 0 12px 100px;
+  }
+
+  .db-create-form {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .db-form-title {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+
+  .db-admin-title {
+    font-size: 1.1rem;
+  }
+
+  .db-column-row {
+    padding: 6px 8px;
+  }
+
+  .db-select-wrapper {
+    min-height: 32px;
+  }
+
+  .db-select-wrapper .db-select {
+    font-size: 0.75rem;
+  }
+}

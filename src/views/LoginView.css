@@ -1,0 +1,712 @@
+/* ═══════════════════════════════════════════════════════════════
+   FLY EXTREME — LOGIN SCREEN
+   Identidad oficial 100% fiel al manual
+   Layout split: Branding (izq) + Formulario (der)
+   ═══════════════════════════════════════════════════════════════ */
+
+.fly-login-screen {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fly-dark);
+  padding: 2rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+
+/* ─── FORMAS BAUHAUS DECORATIVAS (Pag. 17-19) ─── */
+.fly-login-shape {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: flyFloat 12s ease-in-out infinite;
+}
+
+.fly-login-shape-1 {
+  top: -10%;
+  left: -5%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(218, 0, 163, 0.3) 0%, transparent 70%);
+}
+
+.fly-login-shape-2 {
+  bottom: -15%;
+  right: -10%;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, rgba(224, 218, 60, 0.25) 0%, transparent 70%);
+  animation-delay: -4s;
+}
+
+.fly-login-shape-3 {
+  top: 30%;
+  right: 30%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(0, 173, 239, 0.18) 0%, transparent 70%);
+  animation-delay: -8s;
+}
+
+@keyframes flyFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.08); }
+  66% { transform: translate(-30px, 20px) scale(0.94); }
+}
+
+/* ─── CONTENEDOR PRINCIPAL ─── */
+.fly-login-container {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  width: 100%;
+  max-width: 1100px;
+  background: rgba(37, 34, 32, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-container);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  animation: flyAppear 600ms var(--ease-fly) backwards;
+}
+
+@keyframes flyAppear {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BRANDING (izquierda)
+   ═══════════════════════════════════════════════════════════════ */
+.fly-login-brand {
+  position: relative;
+  padding: 2.5rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(218, 0, 163, 0.12) 0%, rgba(37, 34, 32, 0.4) 50%, rgba(224, 218, 60, 0.08) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 600px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Cuarto de circulo decorativo Bauhaus */
+.fly-login-brand::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 280px;
+  height: 280px;
+  background: var(--fly-magenta);
+  opacity: 0.06;
+  border-bottom-left-radius: 100%;
+  pointer-events: none;
+}
+
+.fly-login-brand::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 200px;
+  height: 200px;
+  background: var(--fly-yellow);
+  opacity: 0.05;
+  border-top-right-radius: 100%;
+  pointer-events: none;
+}
+
+.fly-login-brand-top {
+  position: relative;
+  z-index: 2;
+  animation: flyAppear 800ms 100ms var(--ease-fly) backwards;
+}
+
+.fly-login-brand-content {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  max-width: 100%;
+  animation: flyAppear 800ms 250ms var(--ease-fly) backwards;
+}
+
+.fly-login-tag {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  background: rgba(218, 0, 163, 0.18);
+  border: 1px solid rgba(218, 0, 163, 0.5);
+  border-radius: 999px;
+  color: var(--fly-magenta);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.fly-login-mega-title {
+  font-family: var(--font-hero);
+  font-weight: 900;
+  font-size: clamp(2.25rem, 4.2vw, 3.75rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fly-white);
+  margin: 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.fly-login-mega-title span {
+  display: block;
+}
+
+.fly-login-mega-title span:first-child {
+  color: var(--fly-white);
+}
+
+.fly-login-mega-accent {
+  color: var(--fly-yellow) !important;
+  text-shadow: 0 0 40px rgba(224, 218, 60, 0.4);
+}
+
+.fly-login-pitch {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.7;
+  max-width: 360px;
+  margin: 0 0 2rem;
+}
+
+.fly-login-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fly-login-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--fly-yellow);
+  border-radius: var(--radius-button);
+  transition: var(--transition-fly);
+}
+
+.fly-login-feature:nth-child(2) {
+  border-left-color: var(--fly-magenta);
+}
+
+.fly-login-feature:nth-child(3) {
+  border-left-color: var(--zone-boliche);
+}
+
+.fly-login-feature:hover {
+  transform: translateX(4px);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.fly-login-feature-num {
+  font-family: var(--font-hero);
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--fly-yellow);
+  line-height: 1;
+  min-width: 28px;
+  letter-spacing: 0.02em;
+}
+
+.fly-login-feature:nth-child(2) .fly-login-feature-num {
+  color: var(--fly-magenta);
+}
+
+.fly-login-feature:nth-child(3) .fly-login-feature-num {
+  color: var(--zone-boliche);
+}
+
+.fly-login-feature-text {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CARD FORMULARIO (derecha)
+   ═══════════════════════════════════════════════════════════════ */
+.fly-login-card {
+  padding: 3rem 2.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(37, 34, 32, 0.45);
+  animation: flyAppear 800ms 400ms var(--ease-fly) backwards;
+  position: relative;
+}
+
+.fly-login-card-header {
+  margin-bottom: 2rem;
+}
+
+.fly-login-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+
+.fly-login-step {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.65rem;
+  color: var(--fly-magenta);
+  letter-spacing: 0.25em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.fly-login-card-title {
+  font-family: var(--font-hero);
+  font-weight: 900;
+  font-size: 2rem;
+  color: var(--fly-yellow);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+  line-height: 1;
+}
+
+.fly-login-card-sub {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* ─── FORMULARIO ─── */
+.fly-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fly-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fly-field label {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.65rem;
+  color: var(--fly-yellow);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.fly-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fly-field-icon {
+  position: absolute;
+  left: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  z-index: 2;
+  transition: var(--transition-fly);
+}
+
+.fly-field-wrap input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--radius-input) !important;
+  padding: 0.95rem 1rem 0.95rem 2.75rem !important;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--fly-white) !important;
+  transition: var(--transition-fly);
+  outline: none;
+}
+
+.fly-field-wrap input::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-weight: 500;
+}
+
+.fly-field-wrap input:focus {
+  background: rgba(224, 218, 60, 0.04) !important;
+  border-color: var(--fly-yellow) !important;
+  box-shadow: 0 0 0 3px rgba(224, 218, 60, 0.18) !important;
+}
+
+.fly-field-wrap input:focus ~ .fly-field-icon,
+.fly-field-wrap:focus-within .fly-field-icon {
+  color: var(--fly-yellow);
+}
+
+.fly-field-action {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition-fly);
+  z-index: 2;
+}
+
+.fly-field-action:hover {
+  color: var(--fly-yellow);
+  background: rgba(224, 218, 60, 0.08);
+}
+
+/* ─── ERROR ─── */
+.fly-login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: rgba(218, 0, 163, 0.2);
+  border: 2px solid var(--fly-magenta);
+  border-radius: var(--radius-button);
+  color: var(--fly-magenta);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  animation: flyShake 500ms var(--ease-fly);
+  text-align: center;
+  justify-content: center;
+}
+
+/* Shake animation for password field on error */
+.fly-field-shake {
+  animation: flyFieldShake 400ms ease-in-out;
+}
+
+@keyframes flyShake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  50% { transform: translateX(-6px); }
+  70% { transform: translateX(6px); }
+}
+
+@keyframes flyFieldShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+/* ─── SUBMIT BUTTON ─── */
+.fly-login-submit {
+  margin-top: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--fly-yellow);
+  color: var(--fly-dark);
+  border: none;
+  border-radius: var(--radius-button);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: var(--transition-fly);
+  position: relative;
+  overflow: hidden;
+}
+
+.fly-login-submit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-100%);
+  transition: transform 600ms var(--ease-fly);
+}
+
+.fly-login-submit:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.fly-login-submit:hover:not(:disabled)::before {
+  transform: translateX(100%);
+}
+
+.fly-login-submit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.fly-login-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fly-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── FOOTER LOGIN ─── */
+.fly-login-footer {
+  margin-top: auto;
+  padding-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.fly-login-footer-line {
+  width: 40px;
+  height: 2px;
+  background: var(--fly-magenta);
+  margin-bottom: 0.5rem;
+}
+
+.fly-login-footer-text {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.fly-login-footer-text strong {
+  color: var(--fly-yellow);
+  font-weight: 900;
+}
+
+.fly-login-version {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin: 0.5rem 0 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* TABLET LANDSCAPE / SMALL DESKTOP — Reducir tipografias y paddings */
+@media (max-width: 1100px) {
+  .fly-login-container {
+    max-width: 960px;
+  }
+
+  .fly-login-brand,
+  .fly-login-card {
+    padding: 2.25rem 2rem;
+  }
+
+  .fly-login-mega-title {
+    font-size: clamp(2rem, 3.6vw, 3rem);
+  }
+}
+
+/* TABLET PORTRAIT — Layout vertical */
+@media (max-width: 900px) {
+  .fly-login-screen {
+    padding: 1.5rem 1rem;
+  }
+
+  .fly-login-container {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .fly-login-brand {
+    padding: 2.25rem 2rem 1.75rem;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 1.25rem;
+  }
+
+  .fly-login-brand-top {
+    display: flex;
+    justify-content: center;
+  }
+
+  .fly-login-mega-title {
+    font-size: clamp(2.25rem, 8vw, 3rem);
+    text-align: center;
+    align-items: center;
+  }
+
+  .fly-login-pitch,
+  .fly-login-tag {
+    text-align: center;
+  }
+
+  .fly-login-tag {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: fit-content;
+  }
+
+  .fly-login-pitch {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .fly-login-features {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .fly-login-card {
+    padding: 2rem;
+  }
+}
+
+/* MOBILE — Bottom sheet style */
+@media (max-width: 540px) {
+  .fly-login-screen {
+    padding: 0;
+    align-items: stretch;
+    min-height: 100vh;
+  }
+
+  .fly-login-container {
+    border-radius: 0;
+    min-height: 100vh;
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
+  }
+
+  .fly-login-brand {
+    padding: 2rem 1.25rem 1.5rem;
+  }
+
+  .fly-login-card {
+    padding: 1.75rem 1.25rem 2rem;
+  }
+
+  .fly-login-mega-title {
+    font-size: clamp(2rem, 9vw, 2.5rem);
+  }
+
+  .fly-login-card-title {
+    font-size: 1.5rem;
+  }
+
+  .fly-login-card-sub {
+    font-size: 0.8rem;
+  }
+
+  .fly-login-feature {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .fly-login-feature-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* Reducir blobs decorativos en móvil para performance */
+  .fly-login-shape-1,
+  .fly-login-shape-2 {
+    width: 280px;
+    height: 280px;
+  }
+
+  .fly-login-shape-3 {
+    display: none;
+  }
+}
+
+/* MOBILE PEQUEÑO — Reducir aún más */
+@media (max-width: 380px) {
+  .fly-login-mega-title {
+    font-size: 1.85rem;
+  }
+
+  .fly-login-pitch {
+    font-size: 0.75rem;
+  }
+
+  .fly-login-card-title {
+    font-size: 1.3rem;
+  }
+
+  .fly-login-submit {
+    font-size: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+}
+
+/* PANTALLAS BAJAS — Reducir altura del brand */
+@media (max-height: 700px) and (min-width: 901px) {
+  .fly-login-brand {
+    min-height: 560px;
+    padding: 2rem 2.25rem;
+  }
+
+  .fly-login-card {
+    padding: 2rem 2.25rem;
+  }
+
+  .fly-login-brand-top svg,
+  .fly-login-brand-top img {
+    transform: scale(0.85);
+    transform-origin: left center;
+  }
+}

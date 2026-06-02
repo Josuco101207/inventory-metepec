@@ -1,0 +1,247 @@
+/* FLY EXTREME & SPORTS PARK - DESIGN TOKENS */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+
+:root {
+  /* 1A. Paleta Cromatica */
+  --fly-dark: #252220;
+  --fly-dark-rgb: 37, 34, 32;
+  --fly-yellow: #E0DA3C;
+  --fly-yellow-rgb: 224, 218, 60;
+  --fly-magenta: #DA00A3;
+  --fly-magenta-rgb: 218, 0, 163;
+  --fly-white: #FFFFFF;
+
+  /* Zonificacion */
+  --zone-boliche: #00ADEF;
+  --zone-boliche-rgb: 0, 173, 239;
+  --zone-arcade: #8DC63F;
+  --zone-arcade-rgb: 141, 198, 63;
+  --zone-hachas: #F7941E;
+  --zone-hachas-rgb: 247, 148, 30;
+  --zone-laser-tag: #DA00A3;
+  --zone-laser-tag-rgb: 218, 0, 163;
+
+  /* 1B. Tipografia */
+  --font-hero: 'Aquire', 'Montserrat', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Montserrat', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+  --tracking-hero: 0.05em;
+  --tracking-heading: 0.02em;
+
+  /* 2B. Geometria */
+  --radius-container: 1.5rem;
+  --radius-button: 0.75rem;
+  --radius-input: 0.75rem;
+  --card-border-gradient: linear-gradient(45deg, rgba(218, 0, 163, 0.6), rgba(218, 0, 163, 0));
+
+  /* 4. Micro-interacciones */
+  --ease-fly: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fly: 300ms;
+  --transition-fly: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Sombras */
+  --shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-glow-yellow: 0 0 24px rgba(224, 218, 60, 0.45), 0 0 48px rgba(224, 218, 60, 0.15);
+  --shadow-glow-magenta: 0 0 24px rgba(218, 0, 163, 0.45), 0 0 48px rgba(218, 0, 163, 0.15);
+  --shadow-glow-boliche: 0 0 24px rgba(0, 173, 239, 0.45);
+  --shadow-glow-arcade: 0 0 24px rgba(141, 198, 63, 0.45);
+  --shadow-glow-hachas: 0 0 24px rgba(247, 148, 30, 0.45);
+  --shadow-glow-laser: 0 0 24px rgba(218, 0, 163, 0.45);
+
+  /* Reticula */
+  --grid-unit: calc(100% / 14);
+}
+
+/* Override tema global (dark-first) */
+:root,
+:root.dark,
+.dark {
+  --bg-main: 24, 7%, 13%;
+  --bg-card: 24, 7%, 17%;
+  --text-main: 0, 0%, 100%;
+  --text-muted: 0, 0%, 78%;
+  --text-soft: 0, 0%, 55%;
+  --border-color: 24, 7%, 22%;
+  --primary: 58, 71%, 56%;
+  --primary-dark: 58, 71%, 46%;
+  --primary-light: 58, 71%, 96%;
+  --danger: 325, 100%, 43%;
+  --warning: 32, 93%, 54%;
+  --success: 85, 53%, 51%;
+}
+
+/* ============ TIPOGRAFIA ============ */
+.fly-hero {
+  font-family: var(--font-hero);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-hero);
+  line-height: 0.95;
+}
+
+.fly-heading {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-heading);
+}
+
+.fly-body {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-regular);
+}
+
+.fly-label {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+/* ============ BOTONES ============ */
+.fly-btn {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-button);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fly);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.fly-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fly-btn-primary {
+  background: var(--fly-yellow);
+  color: var(--fly-dark);
+}
+.fly-btn-primary:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.fly-btn-secondary {
+  background: transparent;
+  color: var(--fly-magenta);
+  border: 2px solid var(--fly-magenta);
+}
+.fly-btn-secondary:hover:not(:disabled) {
+  background: var(--fly-magenta);
+  color: var(--fly-white);
+  box-shadow: var(--shadow-glow-magenta);
+}
+
+.fly-btn-ghost {
+  background: transparent;
+  color: var(--fly-white);
+  font-weight: var(--font-weight-bold);
+}
+.fly-btn-ghost:hover:not(:disabled) {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* Variantes por zona */
+.fly-btn-zone-boliche { background: var(--zone-boliche); color: var(--fly-white); }
+.fly-btn-zone-boliche:hover:not(:disabled) { box-shadow: var(--shadow-glow-boliche); transform: scale(1.05); }
+
+.fly-btn-zone-arcade { background: var(--zone-arcade); color: var(--fly-dark); }
+.fly-btn-zone-arcade:hover:not(:disabled) { box-shadow: var(--shadow-glow-arcade); transform: scale(1.05); }
+
+.fly-btn-zone-hachas { background: var(--zone-hachas); color: var(--fly-dark); }
+.fly-btn-zone-hachas:hover:not(:disabled) { box-shadow: var(--shadow-glow-hachas); transform: scale(1.05); }
+
+.fly-btn-zone-laser { background: var(--zone-laser-tag); color: var(--fly-white); }
+.fly-btn-zone-laser:hover:not(:disabled) { box-shadow: var(--shadow-glow-laser); transform: scale(1.05); }
+
+/* ============ TARJETAS ============ */
+.fly-card {
+  position: relative;
+  background: var(--fly-dark);
+  border-radius: var(--radius-container);
+  padding: 1.5rem;
+  overflow: hidden;
+  transition: var(--transition-fly);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.fly-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--card-border-gradient);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.fly-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow-magenta);
+}
+
+.fly-card-zone-boliche:hover { box-shadow: var(--shadow-glow-boliche); }
+.fly-card-zone-arcade:hover { box-shadow: var(--shadow-glow-arcade); }
+.fly-card-zone-hachas:hover { box-shadow: var(--shadow-glow-hachas); }
+.fly-card-zone-laser:hover { box-shadow: var(--shadow-glow-laser); }
+
+/* ============ SKELETON (pulso magenta) ============ */
+@keyframes fly-pulse {
+  0%, 100% { background-color: rgba(218, 0, 163, 0.1); }
+  50% { background-color: rgba(218, 0, 163, 0.3); }
+}
+
+.fly-skeleton {
+  border-radius: var(--radius-button);
+  animation: fly-pulse 1.5s var(--ease-fly) infinite;
+  min-height: 1rem;
+}
+
+/* ============ NAVBAR ============ */
+.fly-navbar {
+  background: rgba(37, 34, 32, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: var(--transition-fly);
+}
+
+/* ============ INPUTS ============ */
+.fly-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--fly-white);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-regular);
+  border-radius: var(--radius-input);
+  padding: 0.75rem 1rem;
+  transition: var(--transition-fly);
+  outline: none;
+}
+
+.fly-input:focus {
+  border-color: var(--fly-yellow);
+  box-shadow: 0 0 0 3px rgba(224, 218, 60, 0.2);
+}
+
+.fly-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}

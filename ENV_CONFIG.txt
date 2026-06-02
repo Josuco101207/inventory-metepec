@@ -1,0 +1,5 @@
+# Copia este contenido a un archivo llamado .env en la raíz del proyecto
+VITE_SUPABASE_URL=https://rpaihoyotvinucbelaew.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwYWlob3lvdHZpbnVjYmVsYWV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTgyNzksImV4cCI6MjA5NDA5NDI3OX0.uARuwulS8yyA-676zxNdvaCHNB6ggEErQDjTQ0zE278
+VITE_EMAIL_FROM=noreply@dicrejart.com
+VITE_APP_URL=http://localhost:5173 

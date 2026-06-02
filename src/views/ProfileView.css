@@ -1,0 +1,453 @@
+/* ═══════════════════════════════════════════
+   PROFILE VIEW — FLY EXTREME DESIGN
+   ═══════════════════════════════════════════ */
+
+/* ═══ MAIN CONTAINER ═══ */
+.fly-profile-view {
+  min-height: 100vh;
+  padding: 0 2rem 3rem;
+  position: relative;
+  background: var(--fly-dark);
+  color: var(--fly-white);
+  font-family: var(--font-body);
+}
+
+.fly-profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ═══ PROFILE HEADER ═══ */
+.fly-profile-header {
+  position: relative;
+  padding: 3rem 2.5rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-container);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  overflow: hidden;
+}
+
+.fly-profile-bg-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(135deg, rgba(141, 198, 63, 0.15), rgba(141, 198, 63, 0.05));
+  opacity: 0.8;
+  z-index: 0;
+}
+
+.fly-profile-avatar-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.fly-profile-avatar {
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(135deg, rgba(141, 198, 63, 0.3), rgba(141, 198, 63, 0.1));
+  border: 3px solid rgba(141, 198, 63, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--zone-arcade);
+  box-shadow: 0 8px 24px rgba(141, 198, 63, 0.25);
+}
+
+.fly-profile-name {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.75rem;
+  color: var(--fly-white);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.fly-profile-email {
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fly-profile-role {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-button);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.fly-role-admin {
+  background: rgba(141, 198, 63, 0.15);
+  color: var(--zone-arcade);
+  border-color: rgba(141, 198, 63, 0.35);
+}
+
+/* ═══ STATS GRID ═══ */
+.fly-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.fly-stat-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-container);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: var(--transition-fly);
+}
+
+.fly-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.fly-stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fly-stat-blue {
+  background: rgba(0, 168, 255, 0.15);
+  color: var(--zone-boliche);
+  border: 1.5px solid rgba(0, 168, 255, 0.3);
+}
+
+.fly-stat-green {
+  background: rgba(141, 198, 63, 0.15);
+  color: var(--zone-arcade);
+  border: 1.5px solid rgba(141, 198, 63, 0.3);
+}
+
+.fly-stat-purple {
+  background: rgba(218, 0, 163, 0.15);
+  color: var(--zone-laser-tag);
+  border: 1.5px solid rgba(218, 0, 163, 0.3);
+}
+
+.fly-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fly-stat-value {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.85rem;
+  line-height: 1;
+  color: var(--fly-white);
+}
+
+.fly-stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ═══ PROFILE SECTIONS ═══ */
+.fly-profile-section {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-container);
+  padding: 2rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.fly-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.12);
+}
+
+.fly-section-title {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--fly-white);
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+}
+
+.fly-section-sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  margin: 0;
+}
+
+.fly-section-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ═══ ACTIVITY LIST ═══ */
+.fly-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.fly-activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-button);
+  transition: var(--transition-fly);
+}
+
+.fly-activity-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(4px);
+}
+
+.fly-activity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.fly-dot-green {
+  background: var(--zone-arcade);
+  color: var(--zone-arcade);
+}
+
+.fly-dot-red {
+  background: var(--zone-hachas);
+  color: var(--zone-hachas);
+}
+
+.fly-activity-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fly-activity-action {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--fly-white);
+  margin: 0;
+}
+
+.fly-activity-date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.fly-empty-activity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-button);
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+}
+
+/* ═══ METRICS GRID ═══ */
+.fly-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.fly-metric-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-button);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: var(--transition-fly);
+}
+
+.fly-metric-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.fly-metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fly-metric-value {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: var(--fly-white);
+}
+
+.fly-status-online {
+  color: var(--zone-arcade);
+  font-size: 1.1rem;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1024px) {
+  .fly-profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .fly-profile-view {
+    padding: 0 1rem 3rem;
+  }
+
+  .fly-profile-container {
+    padding-top: 2rem;
+  }
+
+  .fly-profile-header {
+    padding: 2rem 1.75rem;
+  }
+
+  .fly-profile-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .fly-profile-name {
+    font-size: 1.4rem;
+  }
+
+  .fly-profile-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .fly-stat-card {
+    padding: 1.25rem;
+  }
+
+  .fly-stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .fly-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .fly-profile-section {
+    padding: 1.5rem;
+  }
+
+  .fly-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .fly-section-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fly-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .fly-profile-header {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .fly-profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .fly-profile-name {
+    font-size: 1.25rem;
+  }
+
+  .fly-stat-card {
+    padding: 1rem;
+  }
+
+  .fly-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fly-stat-value {
+    font-size: 1.35rem;
+  }
+}

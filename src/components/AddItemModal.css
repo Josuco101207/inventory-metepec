@@ -1,0 +1,789 @@
+/* ═══════════════════════════════════════════
+   ADD ITEM MODAL — FLY EXTREME DESIGN
+   ═══════════════════════════════════════════ */
+
+.add-item-modal {
+  max-width: 680px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  height: 85vh;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══ MODAL HEADER ═══ */
+.add-modal-header {
+  position: relative;
+  padding: 2rem 2rem 1.5rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid hsl(var(--border-color));
+  background: linear-gradient(135deg, hsla(var(--bg-card), 0.5), hsla(var(--bg-main), 0.3));
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.add-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-button);
+  margin-bottom: 1rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+/* Zone-specific badge colors */
+.add-modal-arcade .add-modal-badge {
+  background: rgba(141, 198, 63, 0.15);
+  border-color: rgba(141, 198, 63, 0.3);
+  color: var(--zone-arcade);
+}
+
+.add-modal-boliche .add-modal-badge {
+  background: rgba(0, 168, 255, 0.15);
+  border-color: rgba(0, 168, 255, 0.3);
+  color: var(--zone-boliche);
+}
+
+.add-modal-hachas .add-modal-badge {
+  background: rgba(247, 148, 30, 0.15);
+  border-color: rgba(247, 148, 30, 0.3);
+  color: var(--zone-hachas);
+}
+
+.add-modal-laser .add-modal-badge {
+  background: rgba(218, 0, 163, 0.15);
+  border-color: rgba(218, 0, 163, 0.3);
+  color: var(--zone-laser-tag);
+}
+
+.add-modal-yellow .add-modal-badge {
+  background: rgba(224, 218, 60, 0.15);
+  border-color: rgba(224, 218, 60, 0.3);
+  color: var(--fly-yellow);
+}
+
+.add-modal-magenta .add-modal-badge {
+  background: rgba(255, 0, 150, 0.15);
+  border-color: rgba(255, 0, 150, 0.3);
+  color: var(--fly-magenta);
+}
+
+.add-modal-header h3 {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: hsl(var(--text-main));
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.add-modal-header p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: hsl(var(--text-muted));
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ═══ FORM CONTENT ═══ */
+.add-item-modal form {
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.form-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border-color)) transparent;
+  min-height: 0;
+}
+
+.form-scroll-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.form-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-scroll-content::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border-color));
+  border-radius: 4px;
+}
+
+.form-scroll-content::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--text-muted));
+}
+
+.main-fields {
+  margin-bottom: 1.5rem;
+  min-height: 0;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+/* ═══ FORM GROUPS ═══ */
+.f-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.f-group label {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--text-muted));
+  padding-left: 0.25rem;
+}
+
+.f-group input,
+.f-group select,
+.f-group textarea {
+  width: 100%;
+  padding: 0.875rem 1.125rem;
+  border-radius: var(--radius-button);
+  border: 1.5px solid hsl(var(--border-color));
+  background-color: hsl(var(--bg-main));
+  color: hsl(var(--text-main));
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.f-group input:focus,
+.f-group select:focus,
+.f-group textarea:focus {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--bg-card));
+  box-shadow: 0 0 0 3px hsla(var(--primary), 0.1);
+}
+
+.f-group input::placeholder,
+.f-group select::placeholder,
+.f-group textarea::placeholder {
+  color: hsl(var(--text-soft));
+  font-weight: 500;
+}
+
+.f-group textarea {
+  resize: none;
+  line-height: 1.5;
+}
+
+/* ═══ CHECKBOX STYLE ═══ */
+.f-group label.flex {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.875rem 1.125rem;
+  background-color: hsl(var(--bg-main));
+  border: 1.5px solid hsl(var(--border-color));
+  border-radius: var(--radius-button);
+  transition: all 0.2s;
+}
+
+.f-group label.flex:hover {
+  border-color: hsl(var(--primary));
+}
+
+.f-group label.flex input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: hsl(var(--primary));
+  cursor: pointer;
+}
+
+.f-group label.flex span {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+}
+
+/* ═══ FLY PRIMARY BUTTON ═══ */
+.btn-fly-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  padding: 1rem 1.25rem;
+  min-height: 52px;
+  border-radius: var(--radius-button);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--fly-dark);
+  white-space: nowrap;
+}
+
+/* Zone-specific button colors */
+.btn-fly-arcade {
+  background: var(--zone-arcade);
+}
+
+.btn-fly-arcade:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-arcade);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-boliche {
+  background: var(--zone-boliche);
+}
+
+.btn-fly-boliche:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-boliche);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-hachas {
+  background: var(--zone-hachas);
+}
+
+.btn-fly-hachas:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-hachas);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-laser {
+  background: var(--zone-laser-tag);
+}
+
+.btn-fly-laser:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-laser);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-yellow {
+  background: var(--fly-yellow);
+}
+
+.btn-fly-yellow:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-yellow);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-magenta {
+  background: var(--fly-magenta);
+  color: var(--fly-white);
+}
+
+.btn-fly-magenta:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-magenta);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-fly-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ═══ SECONDARY BUTTON (CANCELAR) ═══ */
+.btn-apple-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1.5px solid hsl(var(--border-color));
+  padding: 1rem 1.25rem;
+  min-height: 52px;
+  border-radius: var(--radius-button);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: hsl(var(--bg-main));
+  color: hsl(var(--text-main));
+  white-space: nowrap;
+}
+
+.btn-apple-secondary:hover {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--bg-card));
+  transform: translateY(-2px);
+}
+
+/* ═══ BUTTON CONTAINER ═══ */
+.form-button-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid hsl(var(--border-color));
+  background: hsl(var(--bg-card));
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.flex {
+  display: flex;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* ═══ UTILITY CLASSES ═══ */
+.dynamic-section {
+  padding: 1.5rem;
+  background-color: hsl(var(--bg-main));
+  border-radius: 20px;
+  border: 1.5px dashed hsl(var(--border-color));
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-muted {
+  color: hsl(var(--text-muted));
+}
+
+.italic {
+  font-style: italic;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-20 {
+  height: 5rem;
+}
+
+.p-3 {
+  padding: 0.75rem;
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes scaleUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* iOS / Cupertino Settings Style for Herramientas */
+.ios-settings-card {
+  background: hsl(var(--bg-main));
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border-color));
+}
+
+/* ═══ MOBILE REDESIGN — CSS GRID LAYOUT ═══ */
+@media (max-width: 768px) {
+
+  /* ── Modal Container: CSS Grid with 4 rows ── */
+  .add-item-modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    /* Grid layout: handle, header, scrollable-content, footer */
+    display: grid !important;
+    grid-template-rows: auto auto 1fr auto !important;
+    animation: slideUpModal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUpModal {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ── Row 1: Drag Handle ── */
+  .add-item-modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+    margin: 10px auto 4px;
+  }
+
+  /* ── Row 2: Header ── */
+  .add-item-modal > header,
+  .add-item-modal .modal-header {
+    margin-bottom: 0 !important;
+    padding: 0.75rem 1.25rem 0.75rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    position: relative;
+  }
+
+  .add-modal-badge {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .add-item-modal .modal-header h3,
+  .add-modal-header h3 {
+    font-size: 1.2rem !important;
+    margin: 0 !important;
+    padding-right: 3rem;
+  }
+
+  .add-item-modal .modal-header p,
+  .add-modal-header p {
+    font-size: 0.75rem !important;
+    margin: 0 !important;
+    opacity: 0.6;
+  }
+
+  /* Close button */
+  .add-item-modal .modal-close-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    z-index: 20;
+  }
+
+  /* ── KEY: Form uses display:contents ──
+     This makes form-scroll-content and form-button-footer 
+     become direct grid children of .add-item-modal (rows 3 & 4) */
+  .add-item-modal form {
+    display: contents !important;
+  }
+
+  /* ── Row 3: Scrollable Form Content ── */
+  .add-item-modal .form-scroll-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 1rem 1.25rem;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  /* ── Row 4: Footer with Buttons (ALWAYS VISIBLE) ── */
+  .add-item-modal .form-button-footer {
+    padding: 0.875rem 1.25rem;
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 12px));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: hsl(var(--bg-card));
+  }
+
+  .add-item-modal .form-button-footer .flex {
+    display: flex !important;
+    gap: 0.75rem;
+  }
+
+  /* ── Form field styles ── */
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .col-span-2 {
+    grid-column: span 1;
+  }
+
+  .gap-4 {
+    gap: 0.875rem;
+  }
+
+  .f-group {
+    gap: 0.35rem;
+  }
+
+  .f-group label {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    padding-left: 0.125rem;
+  }
+
+  .f-group input,
+  .f-group select,
+  .f-group textarea {
+    padding: 0.8rem 0.9rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .f-group input:focus,
+  .f-group select:focus,
+  .f-group textarea:focus {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+  }
+
+  .f-group input[type="number"] {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .f-group label.flex {
+    padding: 0.8rem 0.9rem;
+    border-radius: 10px;
+  }
+
+  .main-fields {
+    margin-bottom: 0;
+  }
+
+  /* ── Button styles ── */
+  .btn-fly-primary,
+  .btn-apple-secondary {
+    min-height: 48px;
+    font-size: 0.72rem;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-fly-primary {
+    font-weight: 900;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-apple-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* ═══ EXTRA SMALL SCREENS ═══ */
+@media (max-width: 480px) {
+  .add-item-modal {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  .add-item-modal::before {
+    display: none;
+  }
+
+  .add-item-modal .form-scroll-content {
+    padding: 1rem;
+  }
+
+  .gap-4 {
+    gap: 0.75rem;
+  }
+
+  .f-group input,
+  .f-group select,
+  .f-group textarea {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .add-item-modal .form-button-footer {
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 12px));
+  }
+
+  .btn-fly-primary,
+  .btn-apple-secondary {
+    min-height: 46px;
+    font-size: 0.68rem;
+  }
+}
+
+.ios-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem 1rem 1rem;
+}
+
+.ios-icon {
+  color: hsl(var(--primary));
+  background: hsla(var(--primary), 0.1);
+  padding: 6px;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+}
+
+.ios-settings-header h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: hsl(var(--text-main));
+}
+
+.ios-settings-header p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: hsl(var(--text-muted));
+  font-weight: 500;
+}
+
+.ios-settings-group {
+  background: hsl(var(--bg-card));
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border-color));
+}
+
+.ios-settings-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border-color));
+  min-height: 54px;
+}
+
+.ios-settings-row:last-child {
+  border-bottom: none;
+}
+
+.ios-settings-row label {
+  flex: 0 0 120px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--text-main));
+  margin: 0;
+}
+
+.ios-input-container {
+  flex: 1;
+  display: flex;
+}
+
+.ios-input-container input,
+.ios-input-container select {
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.9rem;
+  color: hsl(var(--text-muted)) !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-align: right;
+  direction: rtl; /* Makes select arrow and text align right */
+}
+
+/* Fix for input text align while keeping LTR text entry */
+.ios-input-container input {
+  direction: ltr;
+}
+
+.ios-input-container input:focus,
+.ios-input-container select:focus {
+  color: hsl(var(--primary)) !important;
+}
+
+.ios-input-container input::placeholder {
+  color: hsl(var(--text-soft));
+}
+
+/* ─── iOS Settings Responsive ─── */
+@media (max-width: 768px) {
+  .ios-settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: auto;
+    padding: 0.6rem 1rem;
+  }
+
+  .ios-settings-row label {
+    flex: none;
+    font-size: 0.75rem;
+    color: hsl(var(--text-muted));
+  }
+
+  .ios-input-container {
+    width: 100%;
+  }
+
+  .ios-input-container input,
+  .ios-input-container select {
+    text-align: left;
+    direction: ltr;
+  }
+
+  .dynamic-section {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .grid.gap-4 {
+    gap: 0.75rem;
+  }
+}
+

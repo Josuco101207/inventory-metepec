@@ -1,0 +1,265 @@
+/* ═══════════════════════════════════════════
+   TRANSACTIONS VIEW — PREMIUM GRID TABLE
+   ═══════════════════════════════════════════ */
+
+/* ─── Container ─── */
+.invt-container {
+  background: hsl(var(--bg-card));
+  border-radius: 24px;
+  border: 1px solid hsla(var(--border-color), 0.2);
+  box-shadow: var(--shadow-xl);
+  margin-top: 1.5rem;
+  overflow: hidden;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.invt-body {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: 70vh;
+}
+
+/* ─── Grid Layout ─── */
+.invt-grid-row {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1fr 120px;
+  align-items: center;
+  padding: 0 1.5rem;
+  min-width: 900px;
+}
+
+/* ─── Header ─── */
+.invt-header-row {
+  height: 52px;
+  background: hsla(var(--bg-main), 0.8);
+  border-bottom: 2px solid hsla(var(--border-color), 0.4);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: hsl(var(--text-soft));
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* ─── Data Row ─── */
+.invt-data-row {
+  min-height: 72px;
+  padding: 12px 1.5rem;
+  border-bottom: 1px solid hsla(var(--border-color), 0.08);
+  transition: background 0.2s ease;
+}
+
+.invt-data-row:hover {
+  background: hsla(var(--primary), 0.04);
+}
+
+.invt-data-row:last-child {
+  border-bottom: none;
+}
+
+/* ─── Cell: Article / Action ─── */
+.invt-cell-art {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  padding-right: 12px;
+}
+
+.invt-avatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  border: 1px solid hsla(var(--primary), 0.1);
+  box-shadow: var(--shadow-sm);
+}
+
+.invt-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.invt-action-label {
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.invt-item-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: hsl(var(--text-main));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.invt-item-cat {
+  font-size: 10px;
+  font-weight: 700;
+  color: hsl(var(--text-soft));
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ─── Cell: Details ─── */
+.invt-cell-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px;
+}
+
+.invt-detail-text {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: hsl(var(--text-main));
+  line-height: 1.4;
+}
+
+.invt-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: hsl(var(--text-soft));
+}
+
+.invt-user-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: hsla(var(--bg-main), 0.8);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid hsla(var(--border-color), 0.5);
+}
+
+.invt-qty-badge {
+  background: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+}
+
+/* ─── Cell: Timestamp ─── */
+.invt-cell-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.invt-time-date {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: hsl(var(--text-main));
+}
+
+.invt-time-hour {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: hsl(var(--text-soft));
+}
+
+/* ─── Cell: Actions ─── */
+.invt-cell-act {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.invt-btn-annul {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsla(var(--danger), 0.2);
+  background: hsla(var(--danger), 0.05);
+  color: hsl(var(--danger));
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.invt-btn-annul:hover {
+  background: hsl(var(--danger));
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px hsla(var(--danger), 0.3);
+}
+
+.invt-badge-annulled {
+  background: hsl(var(--danger));
+  color: white;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Empty State ─── */
+.fly-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  color: hsl(var(--text-soft));
+  opacity: 0.5;
+}
+
+.fly-empty-state p {
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .invt-grid-row {
+    grid-template-columns: 1.5fr 1.5fr 1fr 100px;
+    min-width: 750px;
+  }
+}
+
+@media (max-width: 768px) {
+  .invt-grid-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem 1.5rem;
+    gap: 1rem;
+    min-width: 0;
+  }
+  
+  .invt-header-row { display: none !important; }
+  
+  .invt-data-row { min-height: auto; }
+  
+  .invt-cell-art { padding-right: 0; }
+  
+  .invt-cell-details { padding: 0; }
+  
+  .invt-cell-time { flex-direction: row; gap: 8px; align-items: baseline; }
+  
+  .invt-cell-act { justify-content: flex-start; margin-top: 0.5rem; }
+}
