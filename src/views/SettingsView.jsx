@@ -13,8 +13,28 @@ const SettingsView = () => {
   const { isAdmin } = useAuth();
   const { categories: CATEGORIES } = useCategories();
   const [newBrand, setNewBrand] = useState('');
-  const [newLocName, setNewLocName] = useState('');
-  const [newLocZone, setNewLocZone] = useState('');
+  
+  // Location Builder State
+  const [locType1, setLocType1] = useState('Estante');
+  const [locId1, setLocId1] = useState('');
+  const [showSubLevel, setShowSubLevel] = useState(false);
+  const [locType2, setLocType2] = useState('Piso');
+  const [locId2, setLocId2] = useState('');
+
+  const type1Options = ['Estante', 'Pasillo', 'Vitrina', 'Mostrador', 'Bodega', 'Zona', 'Cajonera'];
+  const type2Options = ['Piso', 'Nivel', 'Cajón', 'Caja', 'Fila', 'Sección'];
+
+  const handleAddLocation = () => {
+    if (!locId1.trim()) return;
+    let finalName = `${locType1} ${locId1.trim()}`;
+    if (showSubLevel && locId2.trim()) {
+      finalName += ` - ${locType2} ${locId2.trim()}`;
+    }
+    addLocation(finalName, '');
+    setLocId1('');
+    setLocId2('');
+    setShowSubLevel(false);
+  };
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const [categoryToClear, setCategoryToClear] = useState(CATEGORIES[0]?.title || '');
 
@@ -63,34 +83,75 @@ const SettingsView = () => {
                 Añade o elimina las ubicaciones donde se puede encontrar inventario.
               </p>
               
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nombre de la nueva ubicación" 
-                  value={newLocName} 
-                  onChange={e => setNewLocName(e.target.value)}
-                  style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)' }}
-                  onKeyDown={e => {
-                    if(e.key === 'Enter' && newLocName.trim()) {
-                      addLocation(newLocName.trim(), newLocZone.trim());
-                      setNewLocName('');
-                      setNewLocZone('');
-                    }
-                  }}
-                />
-                <button 
-                  className="fly-btn fly-btn-primary" 
-                  onClick={() => {
-                    if(newLocName.trim()) {
-                      addLocation(newLocName.trim(), newLocZone.trim());
-                      setNewLocName('');
-                      setNewLocZone('');
-                    }
-                  }}
-                  disabled={!newLocName.trim()}
-                >
-                  <Plus size={18} />
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <select 
+                    value={locType1} 
+                    onChange={e => setLocType1(e.target.value)}
+                    style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
+                  >
+                    {type1Options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: 3, A..." 
+                    value={locId1} 
+                    onChange={e => setLocId1(e.target.value)}
+                    style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
+                    onKeyDown={e => {
+                      if(e.key === 'Enter') handleAddLocation();
+                    }}
+                  />
+                </div>
+
+                {showSubLevel && (
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)' }}>
+                    <select 
+                      value={locType2} 
+                      onChange={e => setLocType2(e.target.value)}
+                      style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
+                    >
+                      {type2Options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: 4, B..." 
+                      value={locId2} 
+                      onChange={e => setLocId2(e.target.value)}
+                      style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
+                      onKeyDown={e => {
+                        if(e.key === 'Enter') handleAddLocation();
+                      }}
+                    />
+                    <button 
+                      onClick={() => { setShowSubLevel(false); setLocId2(''); }}
+                      style={{ background: 'transparent', border: 'none', color: 'hsl(var(--danger))', cursor: 'pointer', padding: '4px' }}
+                      title="Quitar sub-nivel"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                  {!showSubLevel ? (
+                    <button 
+                      onClick={() => setShowSubLevel(true)}
+                      style={{ background: 'transparent', border: '1px dashed var(--border-color)', color: 'hsl(var(--text-muted))', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    >
+                      <Plus size={14} /> Añadir sub-nivel
+                    </button>
+                  ) : <div></div>}
+                  
+                  <button 
+                    className="fly-btn fly-btn-primary" 
+                    onClick={handleAddLocation}
+                    disabled={!locId1.trim()}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}
+                  >
+                    <Plus size={18} /> Guardar
+                  </button>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
