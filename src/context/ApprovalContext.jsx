@@ -78,12 +78,30 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
     </html>
   `;
 
+  const sendWithRetry = async (url, options, maxRetries = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const res = await fetch(url, options);
+        if (res.ok) return res;
+        // Si es el último intento o no es un error de red/500, lanzamos error
+        if (i === maxRetries - 1 || res.status < 500) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP error ${res.status}`);
+        }
+      } catch (err) {
+        if (i === maxRetries - 1) throw err;
+        // Exponential backoff: 1s, 2s, 4s...
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+  };
+
   try {
-    // Llamar a Edge Function de Supabase
+    // Llamar a Edge Function de Supabase con reintentos
     const { data: { session } } = await supabase.auth.getSession();
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+    const response = await sendWithRetry(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
@@ -96,16 +114,11 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Error enviando email via Edge Function');
-    }
-
     const data = await response.json();
     console.log('[Approval] Email sent successfully via Edge Function:', data);
     return data;
   } catch (error) {
-    console.error('[Approval] Error sending email via Edge Function:', error);
+    console.error('[Approval] Error sending email via Edge Function (after retries):', error);
     // No lanzar error para no bloquear la creación de la solicitud
     return { success: false, error: error.message };
   }

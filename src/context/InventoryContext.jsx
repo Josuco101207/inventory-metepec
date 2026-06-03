@@ -289,36 +289,62 @@ export const InventoryProvider = ({ children }) => {
   useEffect(() => {
     if (!user || catsLoading || !categories.length) return;
 
-    const channels = [];
-    let subscribedCount = 0;
+    let isSubscribed = false;
 
     const onChannelReady = () => {
-      subscribedCount++;
-      if (subscribedCount > 0) {
-        setConnectionStatus('online');
-        setLastSync(new Date());
-      }
+      isSubscribed = true;
+      setConnectionStatus('online');
+      setLastSync(new Date());
     };
 
     const onChannelError = (err) => {
       console.warn('[Inventory] Realtime channel error', err);
-      // We don't set to offline on a single channel error 
-      // to prevent the entire UI from showing "Desconectado"
+      setConnectionStatus('reconnecting');
     };
 
-    const movCh = supabase
-      .channel('realtime-movements')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'movements' }, (payload) => {
+    const globalChannel = supabase
+      .channel('inventory-global')
+      .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
         setLastSync(new Date());
-        if (payload.eventType === 'INSERT') {
-          setMovementsState(prev => {
-            if (prev.find(m => m.id === payload.new.id)) return prev;
-            return [payload.new, ...prev];
-          });
-        } else if (payload.eventType === 'UPDATE') {
-          setMovementsState(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
-        } else if (payload.eventType === 'DELETE') {
-          setMovementsState(prev => prev.filter(m => m.id !== payload.old.id));
+        const tableName = payload.table;
+
+        if (tableName === 'movements') {
+          if (payload.eventType === 'INSERT') {
+            setMovementsState(prev => {
+              if (prev.find(m => m.id === payload.new.id)) return prev;
+              return [payload.new, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setMovementsState(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
+          } else if (payload.eventType === 'DELETE') {
+            setMovementsState(prev => prev.filter(m => m.id !== payload.old.id));
+          }
+        } else {
+          // Verificar si la tabla corresponde a una categoría
+          const cat = categories.find(c => c.tableName === tableName);
+          if (cat) {
+            if (payload.eventType === 'INSERT') {
+              setItemsState(prev => {
+                if (prev.find(i => i.id === payload.new.id)) return prev;
+                const newItem = { ...payload.new, category: cat.title, _tableName: cat.tableName };
+                if (newItem.stock_min !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.stock_min;
+                if (newItem.minimo !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.minimo;
+                return [...prev, newItem];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              setItemsState(prev => prev.map(i => {
+                if (i.id === payload.new.id) {
+                  const updatedItem = { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName };
+                  if (updatedItem.stock_min !== undefined) updatedItem.threshold = updatedItem.stock_min;
+                  if (updatedItem.minimo !== undefined) updatedItem.threshold = updatedItem.minimo;
+                  return updatedItem;
+                }
+                return i;
+              }));
+            } else if (payload.eventType === 'DELETE') {
+              setItemsState(prev => prev.filter(i => i.id !== payload.old.id));
+            }
+          }
         }
       })
       .subscribe((status) => {
@@ -326,46 +352,9 @@ export const InventoryProvider = ({ children }) => {
         else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') onChannelError();
         else if (status === 'TIMED_OUT') setConnectionStatus('reconnecting');
       });
-    channels.push(movCh);
-
-    categories.forEach(cat => {
-      if (!cat.tableName) return;
-      const ch = supabase
-        .channel(`realtime-${cat.tableName}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: cat.tableName }, (payload) => {
-          setLastSync(new Date());
-          if (payload.eventType === 'INSERT') {
-            setItemsState(prev => {
-              if (prev.find(i => i.id === payload.new.id)) return prev;
-              const newItem = { ...payload.new, category: cat.title, _tableName: cat.tableName };
-              if (newItem.stock_min !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.stock_min;
-              if (newItem.minimo !== undefined && newItem.threshold === undefined) newItem.threshold = newItem.minimo;
-              return [...prev, newItem];
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            setItemsState(prev => prev.map(i => {
-              if (i.id === payload.new.id) {
-                const updatedItem = { ...i, ...payload.new, category: cat.title, _tableName: cat.tableName };
-                if (updatedItem.stock_min !== undefined) updatedItem.threshold = updatedItem.stock_min;
-                if (updatedItem.minimo !== undefined) updatedItem.threshold = updatedItem.minimo;
-                return updatedItem;
-              }
-              return i;
-            }));
-          } else if (payload.eventType === 'DELETE') {
-            setItemsState(prev => prev.filter(i => i.id !== payload.old.id));
-          }
-        })
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') onChannelReady();
-          else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') onChannelError();
-          else if (status === 'TIMED_OUT') setConnectionStatus('reconnecting');
-        });
-      channels.push(ch);
-    });
 
     return () => {
-      channels.forEach(ch => supabase.removeChannel(ch));
+      supabase.removeChannel(globalChannel);
     };
   }, [user, categories, catsLoading, setMovementsState]);
 

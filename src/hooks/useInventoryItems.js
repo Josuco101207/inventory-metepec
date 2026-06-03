@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 import { sendCriticalStockAlert } from '../utils/emailService';
+import { addToQueue } from '../services/offlineSyncQueue';
 import {
   insertItem as sbInsertItem,
   updateItem as sbUpdateItem,
@@ -38,7 +39,16 @@ export const useInventoryItems = ({
     try {
       if (tableName) {
         const updates = mapToDbFields({ qty: newQty }, validColumns, fieldMappings);
-        await sbUpdateItem(tableName, itemId, updates);
+        try {
+          await sbUpdateItem(tableName, itemId, updates);
+        } catch (err) {
+          if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+            addToQueue({ type: 'UPDATE_ITEM', payload: { tableName, itemId, updates } });
+            toast.warning('Sin conexión. Movimiento guardado para sincronizar después.');
+          } else {
+            throw err;
+          }
+        }
       }
       const urlMatch = customDetails?.match(/(?:factura_url:|factura:\s*)(https?:\/\/\S+)/i);
       const facturaUrl = urlMatch ? urlMatch[1] : null;

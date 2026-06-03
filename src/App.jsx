@@ -66,9 +66,10 @@ import { SalidaAuthProvider } from './context/SalidaAuthContext';
 import { ApprovalProvider } from './context/ApprovalContext';
 import { Toaster } from 'sonner';
 import { Loader2, Lock, AlertTriangle, RefreshCw } from 'lucide-react';
-import { useState as useStateR } from 'react';
+import { useState as useStateR, useEffect } from 'react';
 import { CategoriesProvider, useCategories } from './context/CategoriesContext';
 import ApprovalActionView from './views/ApprovalActionView';
+import { flushQueue } from './services/offlineSyncQueue';
 
 const ViewProtectedRoute = ({ viewId, children }) => {
   const { loading, userData, isAdmin } = useAuth();
@@ -110,6 +111,14 @@ const RootApp = () => {
   const { loadError, syncInventory } = useInventory();
   const [sidebarOpen, setSidebarOpen] = useStateR(false);
   const { isMobile } = useIsMobile();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      flushQueue();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
 
   if (loading || catsLoading) {
     return (
