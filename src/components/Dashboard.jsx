@@ -4,16 +4,16 @@ import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useTheme } from '../context/ThemeContext';
 import {
-  ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, Tooltip
+  ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip
 } from 'recharts';
 import {
   Activity, TrendingUp, AlertTriangle, Package, ArrowUpRight, ArrowUpCircle, ArrowDownCircle,
   Warehouse, History, RotateCcw, RefreshCw, Search, Filter,
   LayoutDashboard, BarChart3, Settings, User, LogOut, Menu, X,
   Wrench, PenTool, Printer, Cpu, Layers, Archive, Landmark,
-  AlertCircle, XCircle, ClipboardCheck, Loader2, Zap
+  AlertCircle, XCircle, ClipboardCheck, Loader2, Zap, Sparkles, Radio
 } from 'lucide-react';
-import { CATEGORY_ICONS } from '../config/categories';
+import { CATEGORY_ICONS, categoryToRoute } from '../config/categories';
 import { useCategories } from '../context/CategoriesContext';
 import { toast } from 'sonner';
 import FlyPattern from './FlyPattern';
@@ -23,6 +23,33 @@ import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
 import './Dashboard.css';
+
+// ═══ Animated Counter Hook ═══
+const useAnimatedCounter = (target, duration = 1200) => {
+  const [count, setCount] = useState(0);
+  const prevTarget = useRef(0);
+  
+  useEffect(() => {
+    if (target === prevTarget.current) return;
+    const start = prevTarget.current;
+    const diff = target - start;
+    if (diff === 0) return;
+    
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.round(start + diff * eased));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    prevTarget.current = target;
+  }, [target, duration]);
+  
+  return count;
+};
 
 // Limpia IDs técnicos del texto y extrae metadata estructurada
 const parseMovDetails = (details) => {
@@ -80,14 +107,27 @@ const toLocalDateString = (date) => {
 
 // Acciones con colores Fly (solo yellow/magenta/zonas, segun manual Pag. 10)
 const actionColors = {
-  Entrada:     { color: 'var(--zone-arcade)',   label: 'IN',  Icon: ArrowUpCircle },
-  Salida:      { color: 'var(--fly-magenta)',   label: 'OUT', Icon: ArrowDownCircle },
-  Préstamo:    { color: 'var(--zone-boliche)',  label: 'LEND', Icon: RefreshCw },
-  Devolución:  { color: 'var(--fly-yellow)',    label: 'BACK', Icon: RefreshCw },
-  Auditoría:   { color: 'var(--zone-hachas)',   label: 'AUDIT', Icon: ClipboardCheck },
-  Alta:        { color: 'var(--zone-arcade)',   label: 'NEW', Icon: ArrowUpCircle },
-  Edición:     { color: 'var(--zone-hachas)',   label: 'EDIT', Icon: ClipboardCheck },
-  Eliminación: { color: 'var(--fly-magenta)',   label: 'DEL', Icon: ArrowDownCircle },
+  Entrada:     { color: 'var(--zone-arcade)',   label: 'ENTRADA',  Icon: ArrowUpCircle },
+  Salida:      { color: 'var(--fly-magenta)',   label: 'SALIDA', Icon: ArrowDownCircle },
+  Préstamo:    { color: 'var(--zone-boliche)',  label: 'PRÉSTAMO', Icon: RefreshCw },
+  Devolución:  { color: 'var(--fly-yellow)',    label: 'DEVOLUCIÓN', Icon: RefreshCw },
+  Auditoría:   { color: 'var(--zone-hachas)',   label: 'AUDITORÍA', Icon: ClipboardCheck },
+  Alta:        { color: 'var(--zone-arcade)',   label: 'ALTA', Icon: ArrowUpCircle },
+  Edición:     { color: 'var(--zone-hachas)',   label: 'EDICIÓN', Icon: ClipboardCheck },
+  Eliminación: { color: 'var(--fly-magenta)',   label: 'ELIMINACIÓN', Icon: ArrowDownCircle },
+};
+
+// ═══ Custom Tooltip Component ═══
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="fly-chart-tooltip">
+      <span className="fly-chart-tooltip-label">{label}</span>
+      <span className="fly-chart-tooltip-value">
+        <Activity size={14} /> {payload[0].value} movimientos
+      </span>
+    </div>
+  );
 };
 
 const Dashboard = () => {
@@ -110,6 +150,11 @@ const Dashboard = () => {
   const [isCriticalModalOpen, setIsCriticalModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { isMobile } = useIsMobile();
+
+  // Animated counters for metrics
+  const animatedItems = useAnimatedCounter(globalStats.items || items.length || 0);
+  const animatedMovements = useAnimatedCounter(globalStats.movements || movements.length || 0);
+  const animatedCritical = useAnimatedCounter(globalStats.critical || 0);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -179,21 +224,45 @@ const Dashboard = () => {
     };
   });
 
+  // Calculate quick stats for hero
+  const todayMovCount = useMemo(() => {
+    return movements.filter(m => {
+      if (!m.timestamp) return false;
+      const ts = typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+      return toLocalDateString(ts) === todayStr;
+    }).length;
+  }, [movements, todayStr]);
+
   if (loading) {
     return (
       <div className="fly-loading-screen">
-        <FlyPattern fixed opacity={0.05} />
-        <Loader2 className="fly-loader" size={48} />
+        <div className="fly-loading-rings">
+          <div className="fly-loading-ring fly-loading-ring-1" />
+          <div className="fly-loading-ring fly-loading-ring-2" />
+          <div className="fly-loading-ring fly-loading-ring-3" />
+        </div>
+        <FlyLogo size={64} glow circular />
+        <Loader2 className="fly-loader" size={32} />
         <p className="fly-loading-label">CARGANDO INVENTARIO</p>
+        <div className="fly-loading-bar">
+          <div className="fly-loading-bar-fill" />
+        </div>
       </div>
     );
   }
 
   const now = new Date();
   const greeting = now.getHours() < 12 ? 'BUENOS DIAS' : now.getHours() < 19 ? 'BUENAS TARDES' : 'BUENAS NOCHES';
+  const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
     <div className="fly-dashboard">
+      {/* ═══ AMBIENT ORBS ═══ */}
+      <div className="fly-dashboard-orb fly-dashboard-orb-1" aria-hidden="true" />
+      <div className="fly-dashboard-orb fly-dashboard-orb-2" aria-hidden="true" />
+      <div className="fly-dashboard-orb fly-dashboard-orb-3" aria-hidden="true" />
+      <div className="fly-dashboard-grid-overlay" aria-hidden="true" />
+
       {!isMobile && <Header />}
 
       {/* ═══ LEGACY CATEGORY WARNING ═══ */}
@@ -231,9 +300,15 @@ const Dashboard = () => {
       {/* ═══ HERO SECTION ═══ */}
       <section className="fly-hero-section">
         <div className="fly-hero-bg-accent" />
+        <div className="fly-hero-bg-accent-2" aria-hidden="true" />
         <div className="fly-hero-content">
           <div className="fly-hero-top">
-            <span className="fly-hero-badge">● LIVE · {now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}</span>
+            <span className="fly-hero-badge">
+              <span className="fly-pulse-dot" /> LIVE · {now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}
+            </span>
+            <span className="fly-hero-time-badge">
+              <Radio size={12} /> {timeStr.toUpperCase()}
+            </span>
           </div>
           <h1 className="fly-hero-title">
             <span className="fly-hero-kicker">{greeting},</span>
@@ -243,50 +318,74 @@ const Dashboard = () => {
             CENTRO DE CONTROL <span className="fly-accent-yellow">FLY EXTREME</span> — 
             GESTION TOTAL DE ACTIVOS &amp; SUMINISTROS
           </p>
+          <div className="fly-hero-quick-stats">
+            <div className="fly-hero-stat">
+              <Sparkles size={14} />
+              <span><strong>{todayMovCount}</strong> movimientos hoy</span>
+            </div>
+            <div className="fly-hero-stat">
+              <Package size={14} />
+              <span><strong>{items.length}</strong> artículos activos</span>
+            </div>
+            {lowStockItems.length > 0 && (
+              <div className="fly-hero-stat fly-hero-stat--alert">
+                <AlertTriangle size={14} />
+                <span><strong>{lowStockItems.length}</strong> stock crítico</span>
+              </div>
+            )}
+          </div>
         </div>
+        <div className="fly-hero-glow" aria-hidden="true" />
       </section>
 
       {/* ═══ METRICS / STATS ═══ */}
       <section className="fly-metrics-row">
-        <div className="fly-metric-card fly-metric-yellow">
+        <div className="fly-metric-card fly-metric-yellow fly-metric-card--animated fly-shimmer" style={{'--stagger': 0}}>
           <div className="fly-metric-icon-wrap">
+            <div className="fly-stat-ring fly-stat-ring--yellow" />
             <Package size={24} />
           </div>
           <div className="fly-metric-data">
             <span className="fly-metric-label">TOTAL ACTIVOS</span>
-            <span className="fly-metric-value">{globalStats.items || items.length || 0}</span>
+            <span className="fly-metric-value">{animatedItems}</span>
             <span className="fly-metric-foot">ARTICULOS REGISTRADOS</span>
           </div>
           <div className="fly-metric-shape" />
         </div>
 
-        <div className="fly-metric-card fly-metric-magenta">
+        <div className="fly-metric-card fly-metric-magenta fly-metric-card--animated fly-shimmer" style={{'--stagger': 1}}>
           <div className="fly-metric-icon-wrap">
+            <div className="fly-stat-ring fly-stat-ring--magenta" />
             <TrendingUp size={24} />
           </div>
           <div className="fly-metric-data">
             <span className="fly-metric-label">MOVIMIENTOS</span>
-            <span className="fly-metric-value">{globalStats.movements || movements.length || 0}</span>
+            <span className="fly-metric-value">{animatedMovements}</span>
             <span className="fly-metric-foot">ACTIVIDAD REGISTRADA</span>
           </div>
           <div className="fly-metric-shape" />
         </div>
 
         <div 
-          className="fly-metric-card fly-metric-alert"
+          className="fly-metric-card fly-metric-alert fly-metric-card--animated fly-shimmer"
+          style={{'--stagger': 2}}
           onClick={() => setIsCriticalModalOpen(true)}
           role="button"
           tabIndex={0}
         >
           <div className="fly-metric-icon-wrap">
+            <div className="fly-stat-ring fly-stat-ring--alert" />
             <AlertTriangle size={24} />
           </div>
           <div className="fly-metric-data">
             <span className="fly-metric-label">STOCK CRITICO</span>
-            <span className="fly-metric-value">{globalStats.critical || lowStockItems.length || 0}</span>
+            <span className="fly-metric-value">{animatedCritical}</span>
             <span className="fly-metric-foot">REQUIERE ATENCION →</span>
           </div>
           <div className="fly-metric-shape" />
+          {(globalStats.critical || lowStockItems.length) > 0 && (
+            <div className="fly-metric-alert-pulse" aria-hidden="true" />
+          )}
         </div>
       </section>
 
@@ -294,9 +393,13 @@ const Dashboard = () => {
       <section className="fly-main-grid">
         {/* Chart card */}
         <div className="fly-chart-card">
+          <div className="fly-chart-card-glow" aria-hidden="true" />
           <div className="fly-card-header">
             <div>
-              <h2 className="fly-card-title">ACTIVIDAD</h2>
+              <h2 className="fly-card-title">
+                <Activity size={20} style={{ verticalAlign: '-4px', marginRight: 8 }} />
+                ACTIVIDAD
+              </h2>
               <p className="fly-card-sub">FLUJO SEMANAL DE MOVIMIENTOS</p>
             </div>
           </div>
@@ -306,44 +409,43 @@ const Dashboard = () => {
                 <AreaChart data={globalStats.activity}>
                   <defs>
                     <linearGradient id="flyChartGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#E0DA3C" stopOpacity={0.4}/>
+                      <stop offset="0%" stopColor="#E0DA3C" stopOpacity={0.35}/>
+                      <stop offset="50%" stopColor="#DA00A3" stopOpacity={0.15}/>
                       <stop offset="100%" stopColor="#E0DA3C" stopOpacity={0}/>
                     </linearGradient>
+                    <linearGradient id="flyLineGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#E0DA3C"/>
+                      <stop offset="50%" stopColor="#DA00A3"/>
+                      <stop offset="100%" stopColor="#E0DA3C"/>
+                    </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 11, fontWeight: 900, fill: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em' }} 
+                    tick={{ fontSize: 11, fontWeight: 900, fill: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em' }} 
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      background: '#252220', 
-                      border: '1px solid #DA00A3', 
-                      borderRadius: '12px',
-                      color: '#fff',
-                      fontFamily: 'Montserrat',
-                      fontWeight: 700,
-                    }} 
-                    labelStyle={{ color: '#E0DA3C', fontWeight: 900, textTransform: 'uppercase' }}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Area 
                     type="monotone" 
                     dataKey="movimientos" 
-                    stroke="#E0DA3C" 
+                    stroke="url(#flyLineGrad)" 
                     strokeWidth={3} 
                     fillOpacity={1} 
                     fill="url(#flyChartGrad)" 
-                    dot={{ r: 5, fill: '#E0DA3C', strokeWidth: 2, stroke: '#252220' }} 
-                    activeDot={{ r: 7, fill: '#DA00A3', strokeWidth: 2, stroke: '#fff' }}
+                    dot={{ r: 5, fill: '#E0DA3C', strokeWidth: 3, stroke: '#252220' }} 
+                    activeDot={{ r: 8, fill: '#DA00A3', strokeWidth: 3, stroke: '#fff' }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="fly-chart-empty">
-                <Activity size={40} />
+                <div className="fly-chart-empty-icon">
+                  <Activity size={40} />
+                </div>
                 <p>SIN DATOS DE ACTIVIDAD</p>
+                <span className="fly-chart-empty-hint">Los datos aparecerán cuando registres movimientos</span>
               </div>
             )}
           </div>
@@ -353,20 +455,25 @@ const Dashboard = () => {
         <div className="fly-zones-card">
           <div className="fly-card-header">
             <div>
-              <h2 className="fly-card-title">SECCIONES</h2>
+              <h2 className="fly-card-title">
+                <Layers size={20} style={{ verticalAlign: '-4px', marginRight: 8 }} />
+                SECCIONES
+              </h2>
               <p className="fly-card-sub">ACCESO RAPIDO A ZONAS</p>
             </div>
           </div>
           <div className="fly-zones-grid">
-            {zones.map(z => (
+            {zones.map((z, idx) => (
               <button
                 key={z.id}
-                className={`fly-zone-tile fly-zone-${z.zone}`}
+                className={`fly-zone-tile fly-zone-${z.zone} fly-zone-tile--3d`}
                 onClick={() => navigate(z.route)}
+                style={{'--zone-delay': `${idx * 60}ms`}}
               >
                 <div className="fly-zone-icon">{z.icon}</div>
                 <span className="fly-zone-title">{z.title.toUpperCase()}</span>
                 <div className="fly-zone-corner" />
+                <div className="fly-zone-glow" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -382,7 +489,9 @@ const Dashboard = () => {
               MOVIMIENTOS DEL DIA
             </h2>
             <p className="fly-card-sub">
-              {movDate === todayStr ? 'HOY · TIEMPO REAL' : movDate.toUpperCase()}
+              {movDate === todayStr ? (
+                <><span className="fly-pulse-dot fly-pulse-dot--inline" /> EN VIVO · TIEMPO REAL</>
+              ) : movDate.toUpperCase()}
             </p>
           </div>
           <div className="fly-card-controls">
@@ -399,9 +508,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {dayMovements.length === 0 ? (
+        {loadingDayMov ? (
           <div className="fly-mov-empty">
-            <Package size={48} />
+            <Loader2 size={36} className="fly-loader" />
+            <p className="fly-mov-empty-title">CARGANDO...</p>
+          </div>
+        ) : dayMovements.length === 0 ? (
+          <div className="fly-mov-empty">
+            <div className="fly-mov-empty-icon-wrap">
+              <Package size={48} />
+            </div>
             <p className="fly-mov-empty-title">SIN MOVIMIENTOS</p>
             <p className="fly-mov-empty-sub">No hay actividad registrada en esta fecha</p>
           </div>
@@ -413,12 +529,17 @@ const Dashboard = () => {
               <span style={{ textAlign: 'center' }}>CANT.</span>
               <span style={{ textAlign: 'right' }}>REGISTRO</span>
             </div>
-            {dayMovements.slice(0, 15).map(mov => {
+            {dayMovements.slice(0, 15).map((mov, idx) => {
               const cfg = actionColors[mov.action] || { color: 'var(--fly-white)', label: mov.action, Icon: Activity };
               const { Icon } = cfg;
               const ts = mov.timestamp?.toDate ? mov.timestamp.toDate() : new Date(mov.timestamp);
               return (
-                <div key={mov.id} className="fly-mov-row">
+                <div 
+                  key={mov.id} 
+                  className="fly-mov-row fly-mov-row--stagger" 
+                  style={{ '--stagger': idx, '--action-color': cfg.color }}
+                >
+                  <div className="fly-mov-accent-bar" style={{ background: cfg.color }} />
                   {/* Fila superior: badge+nombre | cantidad */}
                   <div className="fly-mov-top-row">
                     <div className="fly-mov-main">
@@ -442,22 +563,22 @@ const Dashboard = () => {
                       {(() => { const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details); return (<>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text || '—'}</span>
                         {supervisorName && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', padding: '2px 7px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.03em' }}>
+                          <span className="fly-mov-supervisor-badge">
                             👤 {supervisorName}
                           </span>
                         )}
                         {isApproval && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.6rem', fontWeight: 800, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 7px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          <span className="fly-mov-approval-badge">
                             ✓ Aprobado
                           </span>
                         )}
                         {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
                           <a href={facturaUrl} target="_blank" rel="noopener noreferrer">
-                            <img src={facturaUrl} alt="factura" style={{ width: 36, height: 28, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
+                            <img src={facturaUrl} alt="factura" className="fly-mov-thumb" onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
                           </a>
                         )}
                         {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.68rem', color: '#a78bfa', textDecoration: 'none', flexShrink: 0 }}>📄 PDF</a>
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="fly-mov-pdf-link">📄 PDF</a>
                         )}
                       </>); })()}
                     </div>
@@ -473,6 +594,13 @@ const Dashboard = () => {
                 </div>
               );
             })}
+            {dayMovements.length > 15 && (
+              <div className="fly-mov-overflow">
+                <button className="fly-btn fly-btn-ghost" onClick={() => navigate('/transactions')}>
+                  + {dayMovements.length - 15} movimientos más →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>
