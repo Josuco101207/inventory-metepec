@@ -542,37 +542,40 @@ const DatabaseAdminView = () => {
       <Header />
 
       <div className="db-admin-container">
-        {/* Header */}
-        <div className="db-admin-header">
-          <div className="db-admin-header-left">
-            <Database size={28} className="db-admin-icon" />
-            <div>
-              <h1 className="db-admin-title">Gestión de Categorías</h1>
-              <p className="db-admin-sub">Crea categorías que generan tablas automáticamente en Supabase</p>
-            </div>
+        {/* Hero Header Fluido */}
+        <div className="db-admin-hero">
+          <div className="db-fluid-bg">
+            <div className="db-fluid-orb db-orb-1" />
+            <div className="db-fluid-orb db-orb-2" />
+            <div className="db-fluid-orb db-orb-3" />
+            <div className="db-fluid-overlay" />
           </div>
-          <div className="db-admin-header-actions">
-            <button type="button" className="db-btn db-btn-secondary" onClick={handleBackup} disabled={backingUp}>
-              {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              Respaldo
-            </button>
-            <button type="button" className="db-btn db-btn-secondary" onClick={() => { fetchTables(); reloadCategories(); }}>
-              <RefreshCw size={16} /> Actualizar
-            </button>
-            <button
-              type="button"
-              className="db-btn db-btn-primary db-btn-new-cat"
-              onClick={() => {
-                console.log('[DB Admin] Button clicked, current showCreateForm:', showCreateForm);
-                setShowCreateForm(v => {
-                  console.log('[DB Admin] Setting showCreateForm to:', !v);
-                  return !v;
-                });
-              }}
-            >
-              {showCreateForm ? <X size={16} /> : <Plus size={16} />}
-              {showCreateForm ? 'Cancelar' : 'Nueva Categoría'}
-            </button>
+          
+          <div className="db-admin-header-content">
+            <div className="db-admin-header-left">
+              <Database size={48} className="db-admin-icon" />
+              <div>
+                <h1 className="db-admin-title">Gestión de Categorías</h1>
+                <p className="db-admin-sub">Estructura y Base de Datos Dinámica</p>
+              </div>
+            </div>
+            
+            <div className="db-admin-header-actions">
+              <button type="button" className="db-btn" onClick={handleBackup} disabled={backingUp}>
+                {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} RESPALDO
+              </button>
+              <button type="button" className="db-btn" onClick={() => { fetchTables(); reloadCategories(); }}>
+                <RefreshCw size={16} /> ACTUALIZAR
+              </button>
+              <button
+                type="button"
+                className="db-btn db-btn-primary db-btn-new-cat"
+                onClick={() => setShowCreateForm(v => !v)}
+              >
+                {showCreateForm ? <X size={16} /> : <Plus size={16} />}
+                {showCreateForm ? 'CANCELAR' : 'NUEVA CATEGORÍA'}
+              </button>
+            </div>
           </div>
         </div>
 
