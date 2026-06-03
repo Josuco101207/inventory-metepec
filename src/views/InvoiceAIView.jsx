@@ -71,11 +71,8 @@ const InvoiceAIView = () => {
 
   const handleConfirm = useCallback((confirmedData) => {
     setFinalResult(confirmedData);
-    // Autorizar salidas automáticamente con la factura recién confirmada
-    const facturaId = confirmedData?.header?.folio || facturaStorageUrl || `factura_${Date.now()}`;
-    autorizarConFactura(facturaId, facturaStorageUrl);
-    toast.success('Factura vinculada — puedes registrar salidas autorizadas con esta factura durante 15 min.');
-  }, [setFinalResult, autorizarConFactura, facturaStorageUrl]);
+    toast.success('Factura registrada y productos agregados al inventario.');
+  }, [setFinalResult]);
 
   const handleReset = useCallback(() => {
     reset();
