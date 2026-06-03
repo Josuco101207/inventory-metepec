@@ -292,7 +292,7 @@ const Dashboard = () => {
           </div>
           <div className="fd-chart-wrap">
             {mounted && globalStats.activity?.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
+              <ResponsiveContainer width="99%" height={250}>
                 <AreaChart data={globalStats.activity}>
                   <defs>
                     <linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1">
