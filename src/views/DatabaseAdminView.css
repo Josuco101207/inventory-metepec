@@ -328,6 +328,67 @@
 
 .db-admin-restricted { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; gap: 1rem; text-align: center; color: rgba(255,255,255,0.5); }
 
+.db-table-columns {
+  padding: 0 1.5rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.db-table-col {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: 0.2s;
+}
+.db-table-col:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.db-col-name {
+  font-weight: 800;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #fff;
+  font-size: 0.8rem;
+  flex: 1;
+}
+
+.db-col-type {
+  opacity: 0.5;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.db-col-required {
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--fly-yellow);
+  letter-spacing: 0.05em;
+  background: rgba(226, 255, 0, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.db-loading-sm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  grid-column: 1 / -1;
+}
+
 /* Edit Form Modal Override */
 .db-table-card .db-create-form { background: rgba(20,20,22,0.9); border: 1px solid rgba(255,255,255,0.1); margin: 0 1rem 1rem; }
 
