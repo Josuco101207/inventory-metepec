@@ -1,139 +1,165 @@
-import React from 'react';
-import { User, Shield, Clock, TrendingUp, BarChart3, Mail, Calendar, Activity, Package, Zap } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { User, Shield, Clock, TrendingUp, BarChart3, Mail, Calendar, Activity, Package, Zap, Hash, Database } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
-import FlyPattern from '../components/FlyPattern';
+import { useCategories } from '../context/CategoriesContext';
 import './ProfileView.css';
 
 const ProfileView = () => {
   const { userData, isAdmin } = useAuth();
-  const { movements, items } = useInventory();
+  const { movements, items, connectionStatus } = useInventory();
+  const { categories } = useCategories();
 
-  const myMovements = movements.filter(m => m.user === (userData?.name || userData?.displayName || userData?.email));
+  // Compute metrics
+  const myMovements = useMemo(() => 
+    movements.filter(m => m.user === (userData?.name || userData?.displayName || userData?.email)),
+  [movements, userData]);
+  
   const myActionsCount = myMovements.length;
+  
+  const progressPercent = movements.length > 0 ? Math.min(100, Math.round((myActionsCount / movements.length) * 100)) : 0;
+  
+  const totalTables = categories.filter(c => c.tableName).length;
 
   return (
     <div className="fly-profile-view">
-      <FlyPattern fixed opacity={0.04} />
+      {/* Fondos de Orbes Fluidos */}
+      <div className="profile-fluid-bg">
+        <div className="profile-orb profile-orb-1" />
+        <div className="profile-orb profile-orb-2" />
+        <div className="profile-orb profile-orb-3" />
+      </div>
       
       <div className="fly-profile-container">
         
-        {/* Profile Header */}
-        <div className="fly-profile-header">
-          <div className="fly-profile-bg-accent"></div>
-          
-          <div className="fly-profile-avatar-wrapper">
-            <div className="fly-profile-avatar">
-              <User size={48} />
+        {/* 1. TARJETA DE IDENTIDAD (ID CARD) */}
+        <div className="profile-id-card">
+          <div className="profile-avatar-container">
+            <div className="profile-avatar-glow" />
+            <div className="profile-avatar">
+              <User size={56} strokeWidth={1.5} />
             </div>
           </div>
           
-          <h1 className="fly-profile-name">{userData?.name || userData?.displayName || 'Usuario'}</h1>
-          
-          <div className="fly-profile-email">
-            <Mail size={14} />
-            {userData?.email}
-          </div>
-          
-          <div className={`fly-profile-role ${isAdmin ? 'fly-role-admin' : ''}`}>
-            <Shield size={14} />
-            {userData?.role || 'Usuario'}
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="fly-profile-stats">
-          <div className="fly-stat-card">
-            <div className="fly-stat-icon fly-stat-blue">
-              <Activity size={20} />
+          <div className="profile-info">
+            <div className={`profile-role-badge ${isAdmin ? 'admin' : ''}`}>
+              <Shield size={14} />
+              {userData?.role || 'Operador Central'}
             </div>
-            <div className="fly-stat-content">
-              <span className="fly-stat-value">{myActionsCount}</span>
-              <span className="fly-stat-label">Mis Movimientos</span>
-            </div>
-          </div>
-          
-          <div className="fly-stat-card">
-            <div className="fly-stat-icon fly-stat-green">
-              <Package size={20} />
-            </div>
-            <div className="fly-stat-content">
-              <span className="fly-stat-value">{items.length}</span>
-              <span className="fly-stat-label">SKUs Totales</span>
-            </div>
-          </div>
-          
-          <div className="fly-stat-card">
-            <div className="fly-stat-icon fly-stat-purple">
-              <Zap size={20} />
-            </div>
-            <div className="fly-stat-content">
-              <span className="fly-stat-value">100%</span>
-              <span className="fly-stat-label">Estado Activo</span>
+            
+            <h1 className="profile-name">
+              {userData?.name || userData?.displayName || 'Usuario Fly'}
+            </h1>
+            
+            <div className="profile-meta">
+              <div className="profile-meta-item">
+                <Mail size={16} />
+                {userData?.email || 'usuario@flyextreme.com'}
+              </div>
+              <div className="profile-meta-item">
+                <Activity size={16} />
+                Estado: {connectionStatus === 'online' ? 'Sincronizado' : 'Offline'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Activity Section */}
-        <div className="fly-profile-section">
-          <div className="fly-section-header">
-            <div>
-              <h2 className="fly-section-title">Actividad Reciente</h2>
-              <p className="fly-section-sub">Tus últimos movimientos en el sistema</p>
+        {/* 2. HUD DE ESTADÍSTICAS */}
+        <div className="profile-hud-grid">
+          {/* Card 1 */}
+          <div className="hud-card hud-yellow">
+            <div className="hud-icon-wrapper">
+              <div className="hud-icon"><TrendingUp size={20} /></div>
+              <span className="hud-label">Mis Operaciones</span>
             </div>
-            <div className="fly-section-icon">
+            <div className="hud-value-container">
+              <span className="hud-value">{myActionsCount}</span>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 600 }}>/ {movements.length}</span>
+            </div>
+            <div className="hud-bar-bg">
+              <div className="hud-bar-fill" style={{ width: `${progressPercent}%` }} />
+            </div>
+          </div>
+          
+          {/* Card 2 */}
+          <div className="hud-card hud-cyan">
+            <div className="hud-icon-wrapper">
+              <div className="hud-icon"><Package size={20} /></div>
+              <span className="hud-label">SKUs Base de Datos</span>
+            </div>
+            <div className="hud-value-container">
+              <span className="hud-value">{items.length}</span>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 600 }}>items</span>
+            </div>
+            <div className="hud-bar-bg">
+              <div className="hud-bar-fill" style={{ width: '100%' }} />
+            </div>
+          </div>
+          
+          {/* Card 3 */}
+          <div className="hud-card hud-magenta">
+            <div className="hud-icon-wrapper">
+              <div className="hud-icon"><Database size={20} /></div>
+              <span className="hud-label">Categorías (Tablas)</span>
+            </div>
+            <div className="hud-value-container">
+              <span className="hud-value">{totalTables}</span>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 600 }}>registradas</span>
+            </div>
+            <div className="hud-bar-bg">
+              <div className="hud-bar-fill" style={{ width: '100%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* 3. LÍNEA DE TIEMPO DE ACTIVIDAD */}
+        <div className="profile-section">
+          <div className="section-header">
+            <div className="section-icon">
               <Clock size={24} />
             </div>
+            <div className="section-titles">
+              <h2>Línea de Tiempo Operativa</h2>
+              <p>Historial de tus últimos registros en el sistema Fly Extreme</p>
+            </div>
           </div>
           
-          <div className="fly-activity-list">
-            {myMovements.length > 0 ? myMovements.slice(0, 5).map(mov => (
-              <div key={mov.id} className="fly-activity-item">
-                <div 
-                  className={`fly-activity-dot ${mov.action === 'Entrada' ? 'fly-dot-green' : 'fly-dot-red'}`}
-                ></div>
-                <div className="fly-activity-content">
-                  <p className="fly-activity-action">{mov.action}: {mov.item}</p>
-                  <p className="fly-activity-date">
-                    <Calendar size={12} />
-                    {mov.timestamp ? (typeof mov.timestamp === 'string' ? new Date(mov.timestamp).toLocaleString() : (mov.timestamp.toDate ? mov.timestamp.toDate().toLocaleString() : mov.timestamp.toLocaleString())) : mov.time}
-                  </p>
+          <div className="timeline-container">
+            {myMovements.length > 0 ? myMovements.slice(0, 10).map((mov, idx) => (
+              <div key={mov.id || idx} className="timeline-item">
+                <div className={`timeline-dot action-${mov.action}`}></div>
+                <div className="timeline-content">
+                  <h3 className="timeline-action">{mov.action}</h3>
+                  <div className="timeline-details">
+                    <div className="timeline-detail">
+                      <Package size={14} />
+                      <span>{mov.item}</span>
+                    </div>
+                    {mov.qty && (
+                      <div className="timeline-detail">
+                        <Hash size={14} />
+                        <span>Cantidad: {mov.qty}</span>
+                      </div>
+                    )}
+                    <div className="timeline-detail">
+                      <Calendar size={14} />
+                      <span>
+                        {mov.timestamp 
+                          ? (typeof mov.timestamp === 'string' 
+                              ? new Date(mov.timestamp).toLocaleString() 
+                              : (mov.timestamp.toDate ? mov.timestamp.toDate().toLocaleString() : mov.timestamp.toLocaleString())) 
+                          : mov.time}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )) : (
-              <div className="fly-empty-activity">
-                <Activity size={32} />
-                <p>Aún no has registrado movimientos</p>
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+                <Activity size={32} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                <p style={{ margin: 0, fontWeight: 600 }}>Aún no has registrado movimientos operativos.</p>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="fly-profile-section">
-          <div className="fly-section-header">
-            <div>
-              <h2 className="fly-section-title">Métricas del Sistema</h2>
-              <p className="fly-section-sub">Estadísticas generales del inventario</p>
-            </div>
-            <div className="fly-section-icon">
-              <BarChart3 size={24} />
-            </div>
-          </div>
-          
-          <div className="fly-metrics-grid">
-            <div className="fly-metric-card">
-              <span className="fly-metric-label">Total Artículos</span>
-              <span className="fly-metric-value">{items.length}</span>
-            </div>
-            <div className="fly-metric-card">
-              <span className="fly-metric-label">Movimientos Totales</span>
-              <span className="fly-metric-value">{movements.length}</span>
-            </div>
-            <div className="fly-metric-card">
-              <span className="fly-metric-label">Estado del Sistema</span>
-              <span className="fly-metric-value fly-status-online">EN LÍNEA</span>
-            </div>
           </div>
         </div>
 
