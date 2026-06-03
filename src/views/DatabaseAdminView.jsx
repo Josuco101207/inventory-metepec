@@ -157,8 +157,23 @@ const DatabaseAdminView = () => {
            if (col.required) def += ' NOT NULL';
            if (col.type === 'int4' && (safeName === 'qty' || safeName === 'stock_min')) def += ' DEFAULT 0';
            sql += `ALTER TABLE public."${cat.tableName}" ADD COLUMN IF NOT EXISTS ${def};\n`;
-        } else if (col.originalName !== safeName) {
-           sql += `ALTER TABLE public."${cat.tableName}" RENAME COLUMN "${col.originalName}" TO "${safeName}";\n`;
+        } else {
+           if (col.originalName !== safeName) {
+             sql += `ALTER TABLE public."${cat.tableName}" RENAME COLUMN "${col.originalName}" TO "${safeName}";\n`;
+           }
+           
+           const origCol = originalColumns.find(c => c.originalName === col.originalName);
+           if (origCol && origCol.type !== col.type) {
+             let castExpr = `USING "${safeName}"::${col.type}`;
+             if (col.type === 'int4') {
+               castExpr = `USING NULLIF(regexp_replace("${safeName}"::text, '[^0-9.-]', '', 'g'), '')::int4`;
+             } else if (col.type === 'float8') {
+               castExpr = `USING NULLIF(regexp_replace("${safeName}"::text, '[^0-9.-]', '', 'g'), '')::float8`;
+             } else if (col.type === 'bool') {
+               castExpr = `USING ("${safeName}"::text IN ('true', '1', 't', 'y', 'yes'))`;
+             }
+             sql += `ALTER TABLE public."${cat.tableName}" ALTER COLUMN "${safeName}" TYPE ${col.type} ${castExpr};\n`;
+           }
         }
       }
 
@@ -808,7 +823,7 @@ const DatabaseAdminView = () => {
                             />
                             <div className="db-select-wrapper">
                               <TypeIcon size={14} style={{ color: typeInfo.color }} />
-                              <select className="db-select" value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)} disabled={isOriginal}>
+                              <select className="db-select" value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)}>
                                 {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                               </select>
                             </div>
