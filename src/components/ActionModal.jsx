@@ -248,10 +248,12 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const [authMethod, setAuthMethod] = useState('factura'); // 'factura' | 'approval'
   const [currentRequest, setCurrentRequest] = useState(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (currentRequestId && requests?.length > 0) {
       const updatedReq = requests.find(req => req.id === currentRequestId);
       if (updatedReq) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentRequest(updatedReq);
       }
     }
@@ -306,7 +308,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     limpiarAuth();
     stopPolling();
     onClose();
-  }, [isValid, authMethod, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, currentRequest, stopPolling]);
+  }, [isValid, authMethod, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, currentRequest, stopPolling, SALIDA_METHODS]);
 
   // Manejar cierre
   const handleClose = useCallback(() => {

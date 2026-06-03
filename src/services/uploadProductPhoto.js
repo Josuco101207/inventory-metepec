@@ -7,7 +7,7 @@ const BUCKET = 'productos';
  * Genera un nombre único para el archivo.
  * Formato: {año}/{mes}/{timestamp}-{random}.jpg
  */
-function buildPath(file) {
+function buildPath() {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -36,7 +36,7 @@ export async function uploadProductPhoto(file) {
     }
   }
 
-  const path = buildPath(fileToUpload);
+  const path = buildPath();
 
   const { data, error } = await supabase.storage
     .from(BUCKET)

@@ -22,7 +22,6 @@ const FlyPattern = ({ opacity = 0.04, fixed = false, zIndex = 0 }) => {
   // Grid de 14 columnas y 14 filas
   const cols = 14;
   const rows = 14;
-  const cellSize = `${100 / cols}%`;
 
   const shapes = [];
   const palette = ['var(--fly-yellow)', 'var(--fly-magenta)', 'var(--zone-boliche)', 'var(--zone-arcade)', 'var(--zone-hachas)'];

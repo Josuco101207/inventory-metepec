@@ -6,7 +6,6 @@ import { processInvoice } from '../services/invoiceAI';
 import { uploadFactura } from '../services/uploadFactura';
 import { toast } from 'sonner';
 import { useInvoiceAI } from '../context/InvoiceAIContext';
-import { useSalidaAuth } from '../context/SalidaAuthContext';
 import './InvoiceAIView.css';
 
 const InvoiceAIView = () => {
@@ -67,7 +66,7 @@ const InvoiceAIView = () => {
     }
   }, [file, setProcessing, setProcessedData, backToUpload]);
 
-  const { autorizarConFactura } = useSalidaAuth();
+
 
   const handleConfirm = useCallback((confirmedData) => {
     setFinalResult(confirmedData);

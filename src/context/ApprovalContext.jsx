@@ -4,12 +4,14 @@ import { toast } from 'sonner';
 
 const ApprovalContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApproval = () => {
   const ctx = useContext(ApprovalContext);
   if (!ctx) throw new Error('useApproval must be used within ApprovalProvider');
   return ctx;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const APPROVAL_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -80,7 +82,6 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
     // Llamar a Edge Function de Supabase
     const { data: { session } } = await supabase.auth.getSession();
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',

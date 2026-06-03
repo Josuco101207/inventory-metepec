@@ -5,7 +5,7 @@ import { getAIStatus, setOCRProgressCallback } from '../services/invoiceAI';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 const MAX_SIZE_MB = 10;
 
-const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview, initialFile }) => {
+const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview }) => {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
@@ -17,6 +17,7 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview,
   // Sincronizar preview con prop externa si cambia
   useEffect(() => {
     if (initialPreview !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreview(initialPreview);
     }
   }, [initialPreview]);

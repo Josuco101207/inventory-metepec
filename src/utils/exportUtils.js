@@ -7,9 +7,6 @@ export const exportToExcel = async (data, filename, category = "General") => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Reporte');
 
-  // 1. Configuración de Título y Metadatos
-  const now = new Date();
-  
   // 1. Configuración de Título Estilo Banner (Negro y Naranja)
   worksheet.getRow(1).height = 40;
   worksheet.mergeCells('A1:H4'); // Espacio negro superior
@@ -103,7 +100,7 @@ export const exportToExcel = async (data, filename, category = "General") => {
       row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3E0' } };
     }
 
-    row.eachCell((cell, colNumber) => {
+    row.eachCell((cell) => {
       cell.border = {
         top: { style: 'thin', color: { argb: 'FFCC6600' } },
         left: { style: 'thin', color: { argb: 'FFCC6600' } },
@@ -125,7 +122,7 @@ export const exportToExcel = async (data, filename, category = "General") => {
   };
 
   // 5. Generar y Descargar
-  const buffer = await workbook.xlsx.writeBuffer();
+
   
   // --- ADDING DASHBOARD SHEET ---
   const dashSheet = workbook.addWorksheet('Métricas');

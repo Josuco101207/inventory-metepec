@@ -3,12 +3,11 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Package, Activity, MoreHorizontal } from 'lucide-react';
 import { useCategories } from '../context/CategoriesContext';
 import { CATEGORY_ICONS } from '../config/categories';
-import { useAuth } from '../context/AuthContext';
+
 import './MobileTabBar.css';
 
 const MobileTabBar = ({ onMorePress }) => {
   const { categories } = useCategories();
-  const { isAdmin } = useAuth();
 
   // Get first category for the Inventario tab
   const firstCat = categories[0];

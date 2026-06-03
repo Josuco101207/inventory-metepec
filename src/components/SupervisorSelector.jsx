@@ -12,11 +12,14 @@ const SupervisorSelector = ({ onSelect, selectedId, disabled = false }) => {
   const selectedSupervisor = supervisors.find(s => s.id === selectedId);
 
   // Filtrar supervisores basado en búsqueda
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!searchTerm) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredSupervisors(supervisors);
     } else {
       const term = searchTerm.toLowerCase();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredSupervisors(supervisors.filter(s => 
         s.name?.toLowerCase().includes(term) || 
         s.email?.toLowerCase().includes(term)

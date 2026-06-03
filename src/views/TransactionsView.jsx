@@ -82,7 +82,7 @@ const toLocalDateString = (date) => {
 };
 
 const TransactionsView = () => {
-  const { movements, loading, annulMovement } = useInventory();
+  const { movements, annulMovement } = useInventory();
   const { isAdmin, userData } = useAuth();
   const { categoryToRoute } = useCategories();
   const navigate = useNavigate();
@@ -113,7 +113,7 @@ const TransactionsView = () => {
   // Refresh today when realtime pushes new movements
   useEffect(() => {
     if (selectedDate === todayStr) loadDayMovements(todayStr);
-  }, [movements.length, todayStr]);
+  }, [movements.length, todayStr, selectedDate, loadDayMovements]);
 
   const filteredMovements = dayMovements;
 
@@ -161,17 +161,17 @@ const TransactionsView = () => {
           { label: 'TOTAL', value: totalToday, foot: 'MOVIMIENTOS', Icon: Activity, accent: 'var(--fly-yellow)' },
           { label: 'ENTRADAS', value: entries, foot: 'ALTAS / INGRESOS', Icon: ArrowUpCircle, accent: '#8dc63f' },
           { label: 'SALIDAS', value: exits, foot: 'BAJAS / EGRESOS', Icon: ArrowDownCircle, accent: '#f97316' },
-        ].map(({ label, value, foot, Icon, accent }) => (
-          <div key={label} style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon size={22} color={accent} />
+        ].map((item) => (
+          <div key={item.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: `${item.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <item.Icon size={22} color={item.accent} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-              <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', color: accent, textTransform: 'uppercase' }}>{label}</span>
-              <span style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--fly-white)', lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</span>
-              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{foot}</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', color: item.accent, textTransform: 'uppercase' }}>{item.label}</span>
+              <span style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--fly-white)', lineHeight: 1, letterSpacing: '-0.03em' }}>{item.value}</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{item.foot}</span>
             </div>
-            <div style={{ position: 'absolute', right: -10, bottom: -10, width: 70, height: 70, borderRadius: '50%', background: `${accent}11` }} />
+            <div style={{ position: 'absolute', right: -10, bottom: -10, width: 70, height: 70, borderRadius: '50%', background: `${item.accent}11` }} />
           </div>
         ))}
       </div>

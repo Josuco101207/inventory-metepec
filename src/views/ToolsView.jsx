@@ -198,15 +198,6 @@ const ToolsView = () => {
     return () => observer.disconnect();
   }, [filteredTools.length]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full w-full flex-col gap-4">
-        <Loader2 className="animate-spin text-blue-500" size={48} />
-        <p className="text-gray-500 font-bold">Cargando herramientas...</p>
-      </div>
-    );
-  }
-
   const userName = userData?.name || userData?.displayName || 'Jonathan';
 
   const handleDelete = useCallback((id, name) => {
@@ -258,6 +249,15 @@ const ToolsView = () => {
       await completeMaintenance(tool.id, userName);
     }
   }, [completeMaintenance, userName]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full w-full flex-col gap-4">
+        <Loader2 className="animate-spin text-blue-500" size={48} />
+        <p className="text-gray-500 font-bold">Cargando herramientas...</p>
+      </div>
+    );
+  }
 
   const visibleTools = filteredTools.slice(0, visibleCount);
   const canEditTools = canEditIn('Herramientas');

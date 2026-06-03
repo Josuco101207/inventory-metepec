@@ -94,7 +94,7 @@ export const useInventoryItems = ({
       console.error('[updateStock] ERROR:', err);
       toast.error(`Error: ${err.message}`, { duration: 6000 });
     }
-  }, [addMovement, getTableName, getValidColumns, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
 
   const loanItem = useCallback(async (itemId, borrower, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
@@ -267,7 +267,7 @@ export const useInventoryItems = ({
     } catch (err) {
       toast.error(`Error en auditoría: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
 
   const addItem = useCallback(async (newItem, userName = 'Jonathan', facturaUrl = null) => {
     const tableName = getTableName(newItem.category);
@@ -314,7 +314,7 @@ export const useInventoryItems = ({
       console.error('Add item error:', err);
       toast.error(`Error al crear: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, mapToDbFields, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsState]);
 
   const deleteItem = useCallback(async (itemId, userName = 'Jonathan') => {
     const item = itemsRef.current.find(i => i.id === itemId);
@@ -341,7 +341,7 @@ export const useInventoryItems = ({
 
     try {
       if (tableName) {
-        const { category: _cat, _tableName, id, created_at, createdAt, ...rawFields } = updatedFields;
+        const { category: _cat, _tableName, id: _id, created_at: _created_at, createdAt: _createdAt, ...rawFields } = updatedFields;
         const dbFields = mapToDbFields(rawFields, validColumns, fieldMappings);
 
         const changes = [];
@@ -376,7 +376,7 @@ export const useInventoryItems = ({
       console.error('Edit item error:', err);
       toast.error(`Error al editar: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
 
   const bulkAddItems = useCallback(async (itemsArray) => {
     try {
@@ -388,7 +388,7 @@ export const useInventoryItems = ({
           const validColumns = getValidColumns(item.category);
           const fieldMappings = getFieldMappings(item.category);
           
-          const { category: _cat, _tableName, id, createdAt, created_at, ...rawFields } = item;
+          const { category: _cat, _tableName, id: _id, createdAt: _createdAt, created_at: _created_at, ...rawFields } = item;
           const initialItem = {
             ...rawFields,
             qty: parseInt(item.qty) || 0,
@@ -410,7 +410,7 @@ export const useInventoryItems = ({
       console.error('bulkAddItems error:', err);
       toast.error(`Error en importación: ${err.message}`, { id: 'bulk-add' });
     }
-  }, [getTableName, getValidColumns, mapToDbFields, setItemsState]);
+  }, [getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsState]);
 
   const deleteItemsByCategory = useCallback(async (category, userName = 'Jonathan') => {
     try {

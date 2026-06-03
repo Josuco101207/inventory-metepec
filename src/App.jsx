@@ -64,16 +64,50 @@ import { ThemeProvider } from './context/ThemeContext';
 import { InvoiceAIProvider } from './context/InvoiceAIContext';
 import { SalidaAuthProvider } from './context/SalidaAuthContext';
 import { ApprovalProvider } from './context/ApprovalContext';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { Loader2, Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState as useStateR } from 'react';
 import { CategoriesProvider, useCategories } from './context/CategoriesContext';
 import ApprovalActionView from './views/ApprovalActionView';
 
+const ViewProtectedRoute = ({ viewId, children }) => {
+  const { loading, userData, isAdmin } = useAuth();
+  
+  const hasViewAccess = (vId) => {
+    if (isAdmin) return true;
+    const role = userData?.role;
+    const staffViews = ['invoice-ai', 'manual-entry'];
+    if (staffViews.includes(vId) && (role === 'almacenista' || role === 'supervisor')) return true;
+    const defaultAllowed = ['dashboard', 'profile'];
+    if (defaultAllowed.includes(vId)) return true;
+    if (!userData) return false;
+    if (!userData.allowedViews) return true;
+    return userData.allowedViews.includes(vId);
+  };
+
+  if (loading) return null;
+  if (hasViewAccess(viewId)) return children;
+  
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in">
+      <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-6">
+        <Lock size={40} />
+      </div>
+      <h2 className="text-2xl font-black mb-2">Acceso Restringido</h2>
+      <p className="text-muted max-w-xs mx-auto mb-8">
+        No tienes permisos para ver esta sección. Contacta a Jonathan para solicitar acceso.
+      </p>
+      <button className="btn-apple-primary px-8" onClick={() => window.location.href = '/'}>
+        Volver al Inicio
+      </button>
+    </div>
+  );
+};
+
 const RootApp = () => {
-  const { user, loading, userData, isAdmin } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const { categories, loading: catsLoading } = useCategories();
-  const { loadError, loading: invLoading, syncInventory } = useInventory();
+  const { loadError, syncInventory } = useInventory();
   const [sidebarOpen, setSidebarOpen] = useStateR(false);
   const { isMobile } = useIsMobile();
 
@@ -98,40 +132,6 @@ const RootApp = () => {
       </div>
     );
   }
-
-  const hasViewAccess = (viewId) => {
-    if (isAdmin) return true;
-    const role = userData?.role;
-    // almacenista y supervisor tienen acceso a carga de facturas y entradas manuales
-    const staffViews = ['invoice-ai', 'manual-entry'];
-    if (staffViews.includes(viewId) && (role === 'almacenista' || role === 'supervisor')) return true;
-    const defaultAllowed = ['dashboard', 'profile'];
-    if (defaultAllowed.includes(viewId)) return true;
-    if (!userData) return false;
-    // Retrocompatibilidad: Si no tiene el campo (usuario antiguo), tiene acceso
-    if (!userData.allowedViews) return true;
-    return userData.allowedViews.includes(viewId);
-  };
-
-  const ViewProtectedRoute = ({ viewId, children }) => {
-    if (loading) return null;
-    if (hasViewAccess(viewId)) return children;
-    
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in">
-        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-6">
-          <Lock size={40} />
-        </div>
-        <h2 className="text-2xl font-black mb-2">Acceso Restringido</h2>
-        <p className="text-muted max-w-xs mx-auto mb-8">
-          No tienes permisos para ver esta sección. Contacta a Jonathan para solicitar acceso.
-        </p>
-        <button className="btn-apple-primary px-8" onClick={() => window.location.href = '/'}>
-          Volver al Inicio
-        </button>
-      </div>
-    );
-  };
 
   if (!user) {
     return (

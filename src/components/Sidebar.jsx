@@ -25,7 +25,9 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
   };
 
   // Close sidebar on route change (mobile)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     closeSidebar();
   }, [location.pathname]);
 

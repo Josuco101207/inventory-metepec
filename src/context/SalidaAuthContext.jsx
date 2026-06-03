@@ -6,12 +6,14 @@ const AUTH_EXPIRY_MS = 15 * 60 * 1000; // 15 minutos de validez
 
 const SalidaAuthContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSalidaAuth = () => {
   const ctx = useContext(SalidaAuthContext);
   if (!ctx) throw new Error('useSalidaAuth must be used within SalidaAuthProvider');
   return ctx;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SALIDA_METHODS = {
   NONE: 'none',
   FACTURA: 'factura',
@@ -47,7 +49,7 @@ export const SalidaAuthProvider = ({ children }) => {
         if (parsed.autorizadoAt && isExpired(parsed.autorizadoAt)) {
           localStorage.removeItem(STORAGE_KEY);
         } else if (parsed.method && parsed.method !== SALIDA_METHODS.NONE) {
-          setAuthState(parsed);
+          setTimeout(() => setAuthState(parsed), 0);
         }
       }
     } catch (e) {
@@ -82,7 +84,7 @@ export const SalidaAuthProvider = ({ children }) => {
     const remainingTime = AUTH_EXPIRY_MS - timeSinceAuth;
 
     if (remainingTime <= 0) {
-      limpiarAuth();
+      setTimeout(() => limpiarAuth(), 0);
       return;
     }
 

@@ -11,6 +11,12 @@ import './MobileInventoryCard.css';
 const MobileInventoryCard = React.memo(({ item, zoneColor, isAdmin, isStaff, canEditIn, categoryTitle, handlers }) => {
   const [actionsOpen, setActionsOpen] = useState(false);
 
+  const handleAction = useCallback((fn) => {
+    setActionsOpen(false);
+    // Small delay so the bottom sheet closes smoothly before triggering action
+    setTimeout(() => fn(item), 300);
+  }, [item]);
+
   if (!item) return null;
 
   const isCritical = (item.qty || 0) <= (item.threshold || 0);
@@ -19,12 +25,6 @@ const MobileInventoryCard = React.memo(({ item, zoneColor, isAdmin, isStaff, can
   const barPct = Math.min(((item.qty || 0) / Math.max((item.threshold || 1) * 3, 1)) * 100, 100);
 
   const avatarClass = `mic-avatar mic-avatar-${zoneColor || 'arcade'}`;
-
-  const handleAction = useCallback((fn) => {
-    setActionsOpen(false);
-    // Small delay so the bottom sheet closes smoothly before triggering action
-    setTimeout(() => fn(item), 300);
-  }, [item]);
 
   const hasActions = (isStaff || canEditIn(categoryTitle)) || isAdmin;
 

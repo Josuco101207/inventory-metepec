@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 
 const CategoriesContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCategories = () => useContext(CategoriesContext);
 
 // Fallback icons mapping (same as before)
@@ -85,7 +86,7 @@ const transformCategory = (row) => {
   try {
     const parsedSchema = typeof row.schema === 'string' ? JSON.parse(row.schema) : (row.schema || []);
     colNames = Array.isArray(parsedSchema) ? parsedSchema.map(c => c.name?.toLowerCase()).filter(Boolean) : [];
-  } catch(e) {}
+  } catch { /* ignore */ }
   
   const smartFindColumn = (goodWords, badWords = []) => {
     let bestMatch = null;

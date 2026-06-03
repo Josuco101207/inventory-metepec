@@ -24,7 +24,7 @@ export const fetchItems = async (tableName) => {
 
 export const insertItem = async (tableName, item) => {
   if (!tableName) throw new Error('No table name');
-  const { id, createdAt, created_at, ...rest } = item;
+  const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = item;
   const { data, error } = await supabase
     .from(tableName)
     .insert([rest])
@@ -36,7 +36,7 @@ export const insertItem = async (tableName, item) => {
 
 export const updateItem = async (tableName, itemId, updates) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
-  const { id, createdAt, created_at, ...rest } = updates;
+  const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = updates;
   const { data, error } = await supabase
     .from(tableName)
     .update(rest)
@@ -99,7 +99,7 @@ export const fetchMovementsByDate = async (dateStr) => {
 
 export const insertMovement = async (movement) => {
   try {
-    const { id, ...rest } = movement;
+    const { id: _id, ...rest } = movement;
     const { data, error } = await supabase
       .from('movements')
       .insert([rest])
@@ -147,7 +147,7 @@ export const fetchPersonnel = async () => {
 
 export const insertPersonnel = async (person) => {
   try {
-    const { id, createdAt, created_at, ...rest } = person;
+    const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = person;
     const { data, error } = await supabase
       .from('personnel')
       .insert([rest])

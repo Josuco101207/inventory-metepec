@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useCategories } from '../context/CategoriesContext';
@@ -17,10 +17,7 @@ const emptyLine = (category = '') => ({
   category,
 });
 
-const fmt = (n, currency = 'MXN') => {
-  const v = parseFloat(n) || 0;
-  return v.toLocaleString('es-MX', { style: 'currency', currency, minimumFractionDigits: 2 });
-};
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 
 const ManualEntryView = () => {
   const { userData, isAdmin: isSystemAdmin, loading: authLoading } = useAuth();
@@ -41,7 +38,6 @@ const ManualEntryView = () => {
   const facturaFileRef = React.useRef(null);
   const facturaCameraRef = React.useRef(null);
 
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
 
   const handleFacturaFile = useCallback((file) => {
     if (!file) return;
@@ -71,21 +67,6 @@ const ManualEntryView = () => {
 
   const categoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
 
-  // Construir mapa de subcategorías existentes por categoría
-  const subcategoriesMap = useMemo(() => {
-    const map = {};
-    items.forEach(i => {
-      if (i.category && i.subcategory) {
-        if (!map[i.category]) map[i.category] = new Set();
-        map[i.category].add(i.subcategory);
-      }
-    });
-    // Convert sets to sorted arrays
-    Object.keys(map).forEach(k => {
-      map[k] = [...map[k]].sort();
-    });
-    return map;
-  }, [items]);
 
   // Helper para obtener el schema de una categoría (sin campos del sistema)
   const getCategorySchema = useCallback((categoryTitle) => {
@@ -245,7 +226,7 @@ const ManualEntryView = () => {
     } finally {
       setSaving(false);
     }
-  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName, clearFactura]);
+  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName, clearFactura, facturaFile]);
 
   if (authLoading) {
     return (

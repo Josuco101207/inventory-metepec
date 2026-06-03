@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { Building2, Save, MapPin, Phone, Globe, Trash2, AlertOctagon, Plus, Tag, Map, Bell, Moon, History, ChevronRight, X, FileSpreadsheet, Wrench } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
-import { useAuth } from '../context/AuthContext';
-import { exportFullDatabase } from '../utils/exportUtils';
-import { toast } from 'sonner';
+
 import { useCategories } from '../context/CategoriesContext';
 import FlyPattern from '../components/FlyPattern';
 import './SettingsView.css';
 
 const SettingsView = () => {
-  const { items, brands, locations, subcategories, addBrand, deleteBrand, addLocation, deleteLocation, addSubcategory, deleteSubcategory, clearDatabaseCategories } = useInventory();
-  const { isAdmin } = useAuth();
+  const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
   const { categories: CATEGORIES } = useCategories();
-  const [newBrand, setNewBrand] = useState('');
-  
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
   // Location Builder State
   const [locType1, setLocType1] = useState('Estante');
   const [locId1, setLocId1] = useState('');
@@ -34,22 +30,6 @@ const SettingsView = () => {
     setLocId1('');
     setLocId2('');
     setShowSubLevel(false);
-  };
-  const [newSubcategoryName, setNewSubcategoryName] = useState('');
-  const [categoryToClear, setCategoryToClear] = useState(CATEGORIES[0]?.title || '');
-
-  const ALL_CATEGORIES = CATEGORIES.map(cat => cat.title);
-
-  const [companyInfo, setCompanyInfo] = useState({
-    name: 'Constructora Alfa',
-    address: 'Av. Industrial 123, Ciudad de México',
-    phone: '+52 55 1234 5678',
-    website: 'www.constructoraalfa.com',
-    currency: 'MXN'
-  });
-
-  const handleSave = () => {
-    toast.success("Configuración guardada correctamente");
   };
 
   const IOSSwitch = ({ checked, onChange }) => (

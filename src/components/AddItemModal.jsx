@@ -37,7 +37,7 @@ const HIDDEN_FIELDS = [
 
 const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
   const { getCategoryByTitle } = useCategories();
-  const { locations, items, subcategories, brands } = useInventory();
+  const { locations, subcategories, brands } = useInventory();
 
   // Get schema from the category
   const catConfig = useMemo(() => getCategoryByTitle(category) || {}, [category, getCategoryByTitle]);

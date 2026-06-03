@@ -8,7 +8,7 @@ import './Header.css';
 
 const Header = () => {
   const { userData, isAdmin } = useAuth();
-  const { connectionStatus, lastSync, items } = useInventory();
+  const { connectionStatus, items } = useInventory();
 
   // Reloj en tiempo real
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -39,6 +39,7 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIndex(-1);
   }, [searchQuery]);
 

@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const STEPS = {
   UPLOAD: 'upload',
@@ -11,6 +11,7 @@ const STORAGE_KEY = 'dicrejart_invoice_ai_state';
 
 const InvoiceAIContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useInvoiceAI = () => {
   const context = useContext(InvoiceAIContext);
   if (!context) {
@@ -36,10 +37,12 @@ export const InvoiceAIProvider = ({ children }) => {
         const parsed = JSON.parse(saved);
         // Solo restauramos si hay datos procesados para evitar reprocesar
         if (parsed.extractedData && parsed.step !== STEPS.UPLOAD) {
-          setStep(parsed.step);
-          setExtractedData(parsed.extractedData);
-          setFacturaStorageUrl(parsed.facturaStorageUrl);
-          setResult(parsed.result);
+          setTimeout(() => {
+            setStep(parsed.step);
+            setExtractedData(parsed.extractedData);
+            setFacturaStorageUrl(parsed.facturaStorageUrl);
+            setResult(parsed.result);
+          }, 0);
           // No restauramos file y previewUrl para evitar problemas con Blobs
           // El usuario puede volver a cargar la imagen si es necesario
         }

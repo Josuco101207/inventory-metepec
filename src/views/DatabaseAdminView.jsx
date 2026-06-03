@@ -327,7 +327,7 @@ const DatabaseAdminView = () => {
             if (tableRes.ok) {
               backupData.tables[cat.table_name] = await tableRes.json();
             }
-          } catch (e) {
+          } catch {
             console.warn(`Could not backup table ${cat.table_name}`);
           }
         }

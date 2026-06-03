@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
+import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
@@ -18,7 +18,7 @@ import './ToolsView.css';
 import './ParquesView.css';
 
 const TableRow = memo(({ 
-  item, index, isAdmin, isStaff, canEdit, 
+  item, isAdmin, isStaff, canEdit, 
   onEdit, onDelete, onAction, onAudit 
 }) => {
   if (!item) return null;
@@ -279,11 +279,10 @@ const ParquesView = () => {
         <div className="parques-body">
           {filteredItems.length > 0 ? (
             <>
-              {filteredItems.slice(0, visibleCount).map((item, index) => (
+              {filteredItems.slice(0, visibleCount).map((item) => (
                 <TableRow 
                   key={item.id}
                   item={item}
-                  index={index}
                   isAdmin={isAdmin}
                   isStaff={isStaff}
                   canEdit={canEditIn('Parques')}

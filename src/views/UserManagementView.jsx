@@ -49,17 +49,7 @@ const deleteUser = (id) => {
   setUsers(filtered);
 };
 
-const addUser = (userData) => {
-  const users = getUsers();
-  const newUser = { 
-    ...userData, 
-    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-    createdAt: new Date().toISOString()
-  };
-  users.push(newUser);
-  setUsers(users);
-  return newUser;
-};
+
 
 // Mini toggle checkbox button
 const PermToggle = ({ active, onClick, color, disabled }) => (
@@ -118,10 +108,8 @@ const UserManagementView = () => {
 
       if (error) throw error;
 
-      // Merge Supabase profiles with localStorage passwords (passwords never go to Supabase)
-      const localUsers = getUsers();
+      // Merge Supabase profiles (passwords never go to Supabase)
       const merged = (profiles || []).map(p => {
-        const local = localUsers.find(u => u.email === p.email || u.id === p.id);
         return {
           id: p.id,
           email: p.email,
@@ -331,12 +319,7 @@ const UserManagementView = () => {
     }
   };
 
-  const roleStyle = (role) => ({
-    admin:       { bg: '#f0f7ff', color: '#0071e3', border: '#bfdbfe' },
-    almacenista: { bg: '#fff8f0', color: '#ea580c', border: '#fed7aa' },
-    supervisor:  { bg: '#f0fff4', color: '#16a34a', border: '#bbf7d0' },
-    user:        { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' },
-  }[role] || { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' });
+
 
   const summaryText = (u) => {
     if (u.role === 'admin') return { text: 'Acceso ilimitado', color: '#0071e3', bg: '#f0f7ff', border: '#bfdbfe' };
@@ -373,7 +356,6 @@ const UserManagementView = () => {
             {users.map(u => {
               const isExpanded = expandedUserId === u.id;
               const isAdminUser = u.role === 'admin';
-              const rs = roleStyle(u.role);
               const allowedCats = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c));
               const editableCats = (u.editableCategories || []).filter(c => ALL_CATEGORIES.includes(c));
               const ss = summaryText(u);

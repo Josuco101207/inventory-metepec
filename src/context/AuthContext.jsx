@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 const AuthContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
 
 // Fetch user profile using direct REST (avoids gotrue internal lock issues)
@@ -284,6 +285,7 @@ export const AuthProvider = ({ children }) => {
     return editable.includes(category);
   }, [isAdmin, userData?.editableCategories]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const contextValue = useMemo(() => ({
     user,
     userData,

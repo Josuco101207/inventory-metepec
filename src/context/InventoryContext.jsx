@@ -291,7 +291,6 @@ export const InventoryProvider = ({ children }) => {
 
     const channels = [];
     let subscribedCount = 0;
-    const totalChannels = categories.filter(c => c.tableName).length + 1;
 
     const onChannelReady = () => {
       subscribedCount++;
@@ -431,7 +430,7 @@ export const InventoryProvider = ({ children }) => {
         setLocationsState(prev => [...prev, added]);
         toast.success(`Ubicación agregada`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Error al agregar ubicación');
     }
   }, []);
@@ -443,7 +442,7 @@ export const InventoryProvider = ({ children }) => {
         setLocationsState(prev => prev.filter(l => l.id !== id));
         toast.success(`Ubicación eliminada`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Error al eliminar ubicación');
     }
   }, []);
@@ -455,7 +454,7 @@ export const InventoryProvider = ({ children }) => {
         setSubcategoriesState(prev => [...prev, added]);
         toast.success(`Subcategoría agregada`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Error al agregar subcategoría');
     }
   }, []);
@@ -467,12 +466,12 @@ export const InventoryProvider = ({ children }) => {
         setSubcategoriesState(prev => prev.filter(s => s.id !== id));
         toast.success(`Subcategoría eliminada`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Error al eliminar subcategoría');
     }
   }, []);
 
-  const wipeAllData = useCallback((currentUserId) => {
+  const wipeAllData = useCallback(() => {
     if (isAutoWiping) return;
     try {
       setIsAutoWiping(true);
@@ -589,4 +588,5 @@ export const InventoryProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useInventory = () => useContext(InventoryContext);

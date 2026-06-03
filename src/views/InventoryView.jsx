@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ActionModal from '../components/ActionModal';
 import AddItemModal from '../components/AddItemModal';
 import ItemDetailModal from '../components/ItemDetailModal';
@@ -108,7 +108,7 @@ const NeonItemCard = React.memo(({ item, categoryTitle, isAdmin, isStaff, canEdi
 
 /* ── VISTA PRINCIPAL ── */
 const InventoryView = ({ categoryTitle }) => {
-  const { items, updateStock, addItem, deleteItem, editItem, returnItem, auditStock, loading } = useInventory();
+  const { items, updateStock, addItem, deleteItem, editItem, auditStock, loading } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
   const { isMobile } = useIsMobile();
@@ -124,7 +124,6 @@ const InventoryView = ({ categoryTitle }) => {
   const [facturaModalItem, setFacturaModalItem] = useState(null);
   const [detailModalItem, setDetailModalItem] = useState(null);
   const [activeInvoiceIndex, setActiveInvoiceIndex] = useState(0);
-  const [imageError, setImageError] = useState(false);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,10 +131,7 @@ const InventoryView = ({ categoryTitle }) => {
   const [activeSubcategory, setActiveSubcategory] = useState('TODAS');
   
   const [filteredItems, setFilteredItems] = useState([]);
-  const [isFiltering, setIsFiltering] = useState(false);
   const workerRef = useRef(null);
-
-  useEffect(() => { setImageError(false); }, [facturaModalItem, activeInvoiceIndex]);
 
   // Observer
   useEffect(() => {
@@ -154,7 +150,6 @@ const InventoryView = ({ categoryTitle }) => {
     workerRef.current.onmessage = (e) => {
       setFilteredItems(e.data);
       setVisibleCount(30);
-      setIsFiltering(false);
     };
     return () => workerRef.current.terminate();
   }, []);
@@ -168,7 +163,6 @@ const InventoryView = ({ categoryTitle }) => {
   // Trigger Filter
   useEffect(() => {
     if (!workerRef.current) return;
-    setIsFiltering(true);
     workerRef.current.postMessage({
       items, searchTerm: debouncedSearch, categoryTitle, activeSubcategory,
       selectedBrand: 'Todas', selectedLocation: 'Todas'

@@ -17,7 +17,7 @@ const Button = ({
   fullWidth = false,
   children,
   className = '',
-  as: Tag = 'button',
+  // as: Tag = 'button',
   style,
   ...rest
 }) => {

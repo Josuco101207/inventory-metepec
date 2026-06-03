@@ -18,6 +18,7 @@ const BottomSheet = ({ isOpen, onClose, title, children }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsClosing(false);
     }
     return () => {

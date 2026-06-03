@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
-import { useTheme } from '../context/ThemeContext';
+
 import {
   ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, Tooltip, BarChart, Bar
 } from 'recharts';
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { CATEGORY_ICONS, categoryToRoute } from '../config/categories';
 import { useCategories } from '../context/CategoriesContext';
-import { toast } from 'sonner';
+
 import FlyLogo from './FlyLogo';
 import Header from './Header';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
@@ -384,12 +384,12 @@ const Dashboard = () => {
               <span>No hay actividad registrada en esta fecha</span>
             </div>
           ) : (
-            <div className="fd-feed-list">
+        <div className="fd-feed-list">
               {dayMovs.slice(0, 12).map((mov, idx) => {
                 const cfg = actionMap[mov.action] || { color:'var(--fly-white)', bg:'rgba(255,255,255,0.05)', label:mov.action, Icon:Activity };
                 const { Icon } = cfg;
                 const ts = mov.timestamp?.toDate ? mov.timestamp.toDate() : new Date(mov.timestamp);
-                const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
+                const { text, supervisorName, isApproval } = parseMovDetails(mov.details);
                 return (
                   <div key={mov.id} className="fd-feed-row" style={{'--fi': idx}}>
                     <div className="fd-feed-icon" style={{background: cfg.bg, color: cfg.color}}>
