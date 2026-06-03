@@ -90,6 +90,18 @@ const DatabaseAdminView = () => {
   const [originalColumns, setOriginalColumns] = useState([]);
   const [updating, setUpdating] = useState(false);
 
+  const normalizeType = (pgType) => {
+    if (!pgType) return 'text';
+    const t = pgType.toLowerCase();
+    if (t === 'integer' || t === 'int4' || t === 'smallint' || t === 'bigint') return 'int4';
+    if (t === 'boolean' || t === 'bool') return 'bool';
+    if (t.includes('timestamp') || t === 'timestamptz') return 'timestamptz';
+    if (t === 'double precision' || t === 'numeric' || t === 'real' || t === 'float8') return 'float8';
+    if (t === 'json' || t === 'jsonb') return 'jsonb';
+    if (t === 'uuid') return 'uuid';
+    return 'text';
+  };
+
   const startEditCategory = (cat) => {
     setEditingCatId(cat.id);
     setEditCatTitle(cat.title);
@@ -100,7 +112,7 @@ const DatabaseAdminView = () => {
     const schemaCols = Array.isArray(cat.schema) ? cat.schema : [];
     const initialCols = schemaCols.map(c => ({
       name: c.name,
-      type: c.type,
+      type: normalizeType(c.type),
       required: false,
       originalName: c.name
     }));
