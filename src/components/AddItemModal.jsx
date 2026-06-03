@@ -200,7 +200,7 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                           <input ref={photoFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePhotoFile(e.target.files?.[0])} />
                           <input ref={photoCameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => handlePhotoFile(e.target.files?.[0])} />
                         </div>
-                      ) : field.name === 'location' ? (
+                      ) : (field.name === 'location' || field.name === 'localizacion') ? (
                         <select
                           name={field.name}
                           value={formData[field.name] || ''}
@@ -210,6 +210,18 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                           <option value="">Seleccionar ubicación...</option>
                           {locations.map(loc => (
                             <option key={loc.id} value={loc.name}>{loc.name}</option>
+                          ))}
+                        </select>
+                      ) : (field.name === 'brand' || field.name === 'marca') ? (
+                        <select
+                          name={field.name}
+                          value={formData[field.name] || ''}
+                          onChange={handleChange}
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--surface)' }}
+                        >
+                          <option value="">Seleccionar marca...</option>
+                          {brands.map(b => (
+                            <option key={b.id} value={b.name}>{b.name}</option>
                           ))}
                         </select>
                       ) : (field.name === 'subcategory' || field.name === 'subcategoria') ? (
@@ -327,7 +339,7 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                             <input ref={photoFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePhotoFile(e.target.files?.[0])} />
                             <input ref={photoCameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => handlePhotoFile(e.target.files?.[0])} />
                           </div>
-                        ) : field.name === 'location' ? (
+                        ) : (field.name === 'location' || field.name === 'localizacion') ? (
                           <select
                             name={field.name}
                             value={formData[field.name] || ''}
@@ -337,6 +349,18 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                             <option value="">Seleccionar ubicación...</option>
                             {locations.map(loc => (
                               <option key={loc.id} value={loc.name}>{loc.name}</option>
+                            ))}
+                          </select>
+                        ) : (field.name === 'brand' || field.name === 'marca') ? (
+                          <select
+                            name={field.name}
+                            value={formData[field.name] || ''}
+                            onChange={handleChange}
+                            className="w-full"
+                          >
+                            <option value="">Seleccionar marca...</option>
+                            {brands.map(b => (
+                              <option key={b.id} value={b.name}>{b.name}</option>
                             ))}
                           </select>
                         ) : (field.name === 'subcategory' || field.name === 'subcategoria') ? (
