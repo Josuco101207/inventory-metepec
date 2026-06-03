@@ -298,7 +298,7 @@ export const InventoryProvider = ({ children }) => {
     };
 
     const onChannelError = (err) => {
-      console.warn('[Inventory] Realtime channel error', err);
+      console.warn('[Inventory] Realtime channel error', err || 'Conexión inestable (posible recarga/Fast Refresh)');
       setConnectionStatus('reconnecting');
     };
 
