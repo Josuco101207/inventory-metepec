@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { User, Shield, Clock, TrendingUp, BarChart3, Mail, Calendar, Activity, Package, Zap, Hash, Database, Hexagon, Crosshair, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -15,6 +15,38 @@ const ProfileView = () => {
     movements.filter(m => m.user === (userData?.name || userData?.displayName || userData?.email)),
   [movements, userData]);
   
+  const [logFilter, setLogFilter] = useState('Recientes');
+  const [dateFilter, setDateFilter] = useState('');
+
+  const filteredMovements = useMemo(() => {
+    let filtered = myMovements;
+
+    if (logFilter === 'Entradas') {
+      filtered = filtered.filter(m => m.action === 'Entrada' || m.action === 'Alta');
+    } else if (logFilter === 'Salidas') {
+      filtered = filtered.filter(m => m.action === 'Salida');
+    }
+
+    if (dateFilter) {
+      filtered = filtered.filter(m => {
+        const movDate = m.timestamp 
+          ? (typeof m.timestamp === 'string' 
+              ? new Date(m.timestamp)
+              : (m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp))) 
+          : new Date(m.time);
+          
+        if (isNaN(movDate.getTime())) return true;
+        
+        // Format to local date string (YYYY-MM-DD)
+        const localDate = new Date(movDate.getTime() - (movDate.getTimezoneOffset() * 60000))
+                            .toISOString().split('T')[0];
+        return localDate === dateFilter;
+      });
+    }
+
+    return filtered;
+  }, [myMovements, logFilter, dateFilter]);
+
   const myActionsCount = myMovements.length;
   const progressPercent = movements.length > 0 ? Math.min(100, Math.round((myActionsCount / movements.length) * 100)) : 0;
   const totalTables = categories.filter(c => c.tableName).length;
@@ -63,7 +95,6 @@ const ProfileView = () => {
                     <Shield size={14} />
                     <span>{userData?.role || 'Operador Central'}</span>
                   </div>
-                  <div className="auth-level">AUTH-LVL: {isAdmin ? 'OMEGA' : 'BETA'}</div>
                 </div>
                 
                 <h1 className="profile-name-glitch" data-text={userData?.name || userData?.displayName || 'Usuario Fly'}>
@@ -179,14 +210,31 @@ const ProfileView = () => {
               <h2>Bitácora del Sistema</h2>
             </div>
             <div className="log-filters">
-              <span className="log-filter-btn active">Recientes</span>
-              <span className="log-filter-btn">Entradas</span>
-              <span className="log-filter-btn">Salidas</span>
+              <input 
+                type="date" 
+                className="log-date-picker" 
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                title="Filtrar por fecha"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'var(--fly-white)',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  marginRight: '12px',
+                  outline: 'none',
+                  fontSize: '0.85rem'
+                }}
+              />
+              <span className={`log-filter-btn ${logFilter === 'Recientes' ? 'active' : ''}`} onClick={() => setLogFilter('Recientes')}>Recientes</span>
+              <span className={`log-filter-btn ${logFilter === 'Entradas' ? 'active' : ''}`} onClick={() => setLogFilter('Entradas')}>Entradas</span>
+              <span className={`log-filter-btn ${logFilter === 'Salidas' ? 'active' : ''}`} onClick={() => setLogFilter('Salidas')}>Salidas</span>
             </div>
           </div>
 
           <div className="log-timeline-advanced">
-            {myMovements.length > 0 ? myMovements.slice(0, 8).map((mov, idx) => (
+            {filteredMovements.length > 0 ? filteredMovements.slice(0, 8).map((mov, idx) => (
               <div key={mov.id || idx} className="advanced-log-entry">
                 <div className="log-connector">
                   <div className={`log-node action-${mov.action}`}>
