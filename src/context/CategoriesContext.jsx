@@ -180,10 +180,37 @@ export const CategoriesProvider = ({ children }) => {
               const realSchema = await Promise.race([schemaPromise, timeoutPromise]);
               
               if (realSchema && realSchema.length > 0) {
-                return { ...cat, schema: realSchema };
+                // Recalculate fieldMappings based on the REAL physical columns
+                const colNames = realSchema.map(c => c.name?.toLowerCase()).filter(Boolean);
+                
+                const smartFindColumn = (goodWords, badWords = []) => {
+                  let bestMatch = null;
+                  let maxScore = 0;
+                  for (const col of colNames) {
+                    if (col === 'id' || col === 'created_at' || col === 'updated_at') continue;
+                    let score = 0;
+                    const lowerCol = col.toLowerCase();
+                    if (goodWords.includes(lowerCol)) score += 100;
+                    else {
+                      for (const w of goodWords) if (lowerCol.includes(w)) score += 30;
+                    }
+                    for (const w of badWords) if (lowerCol.includes(w)) score -= 100;
+                    if (score > maxScore) { maxScore = score; bestMatch = col; }
+                  }
+                  return bestMatch;
+                };
+
+                const newFieldMappings = {
+                  name: smartFindColumn(['nombre', 'titulo', 'title', 'producto', 'articulo', 'name', 'nom'], ['desc', 'obs', 'detal']) || 'name',
+                  qty: smartFindColumn(['cantidad', 'canticad', 'stock', 'existencias', 'piezas', 'qty', 'cant', 'can', 'unidades', 'uds', 'pz', 'num', 'total'], ['min', 'limit', 'alert', 'thresh', 'bajo', 'max']) || 'qty',
+                  observaciones: smartFindColumn(['detalles', 'notas', 'descripcion', 'observaciones', 'obs', 'coment'], ['nom', 'name', 'tit']) || 'observaciones',
+                  threshold: smartFindColumn(['stock_min', 'minimo', 'min', 'threshold', 'limite', 'alerta', 'bajo'], ['nom', 'name']) || 'threshold'
+                };
+
+                return { ...cat, schema: realSchema, fieldMappings: newFieldMappings };
               }
             } catch (err) {
-              console.warn(`[Categories] Schema fetch failed for ${cat.tableName}:`, err.message);
+              console.warn(`[Categories] Schema fetch failed for ${cat.tableName}`, err);
             }
             // Fallback to the static schema from the categories table
             return cat;
