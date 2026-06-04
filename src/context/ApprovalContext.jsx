@@ -338,6 +338,7 @@ export const ApprovalProvider = ({ children }) => {
   const startPolling = useCallback((requestId) => {
     if (pollingRef.current.active && pollingRef.current.requestId === requestId) return;
     
+    if (pollingRef.current.timeoutId) clearTimeout(pollingRef.current.timeoutId);
     pollingRef.current = { active: true, requestId };
     setPollingActive(true);
     setCurrentRequestId(requestId);
@@ -353,16 +354,23 @@ export const ApprovalProvider = ({ children }) => {
         return;
       }
       
-      setTimeout(poll, 3000); // Check every 3 seconds
+      pollingRef.current.timeoutId = setTimeout(poll, 3000); // Check every 3 seconds
     };
     
     poll();
   }, [checkRequestStatus]);
 
   const stopPolling = useCallback(() => {
+    if (pollingRef.current.timeoutId) clearTimeout(pollingRef.current.timeoutId);
     pollingRef.current = { active: false, requestId: null };
     setPollingActive(false);
     setCurrentRequestId(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current.timeoutId) clearTimeout(pollingRef.current.timeoutId);
+    };
   }, []);
 
   // ─── Reactivar solicitud ───

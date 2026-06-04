@@ -116,6 +116,14 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic Validation
+    const nameField = catConfig?.fieldMappings?.name || 'name';
+    if (!formData[nameField] || String(formData[nameField]).trim() === '') {
+      toast.error('El nombre del artículo es obligatorio');
+      return;
+    }
+
     setSaving(true);
     try {
       let finalData = { ...formData };

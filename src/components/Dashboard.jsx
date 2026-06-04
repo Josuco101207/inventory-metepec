@@ -114,11 +114,14 @@ const Dashboard = () => {
   useEffect(() => { loadMov(movDate); }, [movDate, loadMov]);
   useEffect(() => { if (movDate === today) loadMov(today); }, [movements.length, today, movDate, loadMov]);
 
-  const dayMovs = dayMovsRemote ?? movements.filter(m => {
-    if (!m.timestamp) return false;
-    const ts = typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
-    return toLocalDate(ts) === movDate;
-  });
+  const dayMovs = useMemo(() => {
+    if (dayMovsRemote) return dayMovsRemote;
+    return movements.filter(m => {
+      if (!m.timestamp) return false;
+      const ts = typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+      return toLocalDate(ts) === movDate;
+    });
+  }, [dayMovsRemote, movements, movDate]);
 
   const lowStock = useMemo(() => items.filter(i => (i.qty||0) <= (i.threshold||0)), [items]);
 
@@ -235,7 +238,13 @@ const Dashboard = () => {
         </div>
 
         {/* ── CARD: Critical Stock ── */}
-        <div className="fd-card fd-card--stat fd-card--stat-alert" onClick={() => setCritModal(true)} role="button" tabIndex={0}>
+        <div 
+          className="fd-card fd-card--stat fd-card--stat-alert" 
+          onClick={() => setCritModal(true)} 
+          role="button" 
+          tabIndex={0}
+          onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCritModal(true); } }}
+        >
           <div className="fd-stat-glow" aria-hidden="true" />
           {(globalStats.critical || lowStock.length) > 0 && <div className="fd-stat-pulse" />}
           <div className="fd-stat-header">
@@ -359,7 +368,7 @@ const Dashboard = () => {
                 const ts = mov.timestamp?.toDate ? mov.timestamp.toDate() : new Date(mov.timestamp);
                 const { text, supervisorName, isApproval } = parseMovDetails(mov.details);
                 return (
-                  <div key={mov.id} className="fd-feed-row" style={{'--fi': idx}}>
+                  <div key={mov.id || `mov-${idx}`} className="fd-feed-row" style={{'--fi': idx}}>
                     <div className="fd-feed-icon" style={{background: cfg.bg, color: cfg.color}}>
                       <Icon size={16}/>
                     </div>
@@ -403,8 +412,8 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="fd-crit-list">
-              {lowStock.slice(0,500).map(item => (
-                <div key={item.id} className="fd-crit-row">
+              {lowStock.slice(0,500).map((item, idx) => (
+                <div key={item.id || `lowstock-mob-${idx}`} className="fd-crit-row">
                   <div className="fd-crit-info">
                     <span className="fd-crit-name">{item.name}</span>
                     <span className="fd-crit-cat">{item.category || 'GENERAL'}</span>
@@ -439,8 +448,8 @@ const Dashboard = () => {
               <div className="fd-crit-empty"><Zap size={28}/><h4>Todo en orden</h4><p>No hay artículos con stock crítico</p></div>
             ) : (
               <div className="fd-crit-list">
-                {lowStock.slice(0,500).map(item => (
-                  <div key={item.id} className="fd-crit-row">
+                {lowStock.slice(0,500).map((item, idx) => (
+                  <div key={item.id || `lowstock-desk-${idx}`} className="fd-crit-row">
                     <div className="fd-crit-info">
                       <span className="fd-crit-name">{item.name}</span>
                       <span className="fd-crit-cat">{item.category || 'GENERAL'}</span>

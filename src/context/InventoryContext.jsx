@@ -367,13 +367,18 @@ export const InventoryProvider = ({ children }) => {
   }, [loadAllItems]);
 
   const bulkAddPersonnel = useCallback(async (personnelArray) => {
-    const results = await Promise.all(personnelArray.map(person => sbInsertPersonnel({
-      ...person,
-      created_at: new Date().toISOString()
-    })));
-    const valid = results.filter(Boolean);
-    setPersonnelState(prev => [...prev, ...valid]);
-    toast.success(`Personal importado: ${valid.length} trabajadores añadidos`);
+    try {
+      const results = await Promise.allSettled(personnelArray.map(person => sbInsertPersonnel({
+        ...person,
+        created_at: new Date().toISOString()
+      })));
+      const valid = results.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+      setPersonnelState(prev => [...prev, ...valid]);
+      toast.success(`Personal importado: ${valid.length} trabajadores añadidos`);
+    } catch (err) {
+      console.error('Error importando personal:', err);
+      toast.error('Error importando personal');
+    }
   }, []);
 
   const addWorker = useCallback(async (workerData) => {

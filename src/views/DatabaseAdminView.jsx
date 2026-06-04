@@ -353,16 +353,18 @@ const DatabaseAdminView = () => {
     }
   };
 
-  const fetchTables = useCallback(async () => {
+  const fetchTables = useCallback(async (options = { ignore: false }) => {
     setLoadingTables(true);
     try {
       const data = await rpcCall('get_public_tables');
-      setTables(data || []);
+      if (!options.ignore) setTables(data || []);
     } catch (err) {
-      console.error('Error fetching tables:', err);
-      setTables([]);
+      if (!options.ignore) {
+        console.error('Error fetching tables:', err);
+        setTables([]);
+      }
     } finally {
-      setLoadingTables(false);
+      if (!options.ignore) setLoadingTables(false);
     }
   }, []);
 
@@ -375,7 +377,11 @@ const DatabaseAdminView = () => {
     }
   };
 
-  useEffect(() => { fetchTables(); }, [fetchTables]);
+  useEffect(() => {
+    const opts = { ignore: false };
+    fetchTables(opts);
+    return () => { opts.ignore = true; };
+  }, [fetchTables]);
 
   const handleToggleTable = (name) => {
     if (expandedTable === name) {

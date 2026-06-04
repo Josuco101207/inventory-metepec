@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 
 const ThemeContext = createContext();
 
@@ -11,8 +11,10 @@ export const ThemeProvider = ({ children }) => {
     localStorage.removeItem('darkMode');
   }, []);
 
+  const value = useMemo(() => ({ isDarkMode: false, toggleDarkMode: () => {} }), []);
+
   return (
-    <ThemeContext.Provider value={{ isDarkMode: false, toggleDarkMode: () => {} }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

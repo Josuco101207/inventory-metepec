@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 /**
  * Mapeo de encabezados de Excel a campos de la base de datos Firestore.
@@ -89,6 +89,49 @@ const getFuzzySignature = (str) => {
     .replace(/(.)\1+/g, '$1'); // Colapsar letras repetidas (pp -> p, ss -> s, etc)
 };
 
+const getCellValue = (cell) => {
+  if (!cell || cell.value === null || cell.value === undefined) return '';
+  if (typeof cell.value === 'object' && cell.value.result !== undefined) return cell.value.result;
+  if (typeof cell.value === 'object' && cell.value.text !== undefined) return cell.value.text;
+  return cell.value;
+};
+
+const extractJsonData = (worksheet) => {
+  const jsonData = [];
+  const headers = [];
+  
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) {
+      row.eachCell((cell, colNumber) => {
+        headers[colNumber] = getCellValue(cell);
+      });
+    } else {
+      const rowData = {};
+      row.eachCell((cell, colNumber) => {
+        if (headers[colNumber]) {
+          rowData[headers[colNumber]] = getCellValue(cell);
+        }
+      });
+      // push only if the row has at least one valid value
+      if (Object.keys(rowData).length > 0) jsonData.push(rowData);
+    }
+  });
+  return jsonData;
+};
+
+const extractRawGrid = (worksheet) => {
+  const grid = [];
+  worksheet.eachRow((row, rowNumber) => {
+    const rowData = [];
+    row.eachCell((cell, colNumber) => {
+      rowData[colNumber - 1] = getCellValue(cell);
+    });
+    grid[rowNumber - 1] = rowData;
+  });
+  // Ensure we don't have undefined gaps in rows/columns, map them to ''
+  return grid.map(row => Array.from(row || [], cell => cell || ''));
+};
+
 /**
  * Procesa un archivo Excel y devuelve un array de objetos agrupados e inteligentes.
  */
@@ -96,14 +139,13 @@ export const processInventoryExcel = (file, currentCategory) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(e.target.result);
+        const worksheet = workbook.worksheets[0];
         
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        const jsonData = extractJsonData(worksheet);
 
         if (jsonData.length === 0) {
           reject("El archivo Excel está vacío.");
@@ -165,14 +207,13 @@ export const processPersonnelExcel = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(e.target.result);
+        const worksheet = workbook.worksheets[0];
         
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        const jsonData = extractJsonData(worksheet);
 
         if (jsonData.length === 0) {
           reject("El archivo Excel está vacío.");
@@ -237,17 +278,18 @@ export const processParquesExcel = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(e.target.result);
 
         const allItems = [];
         const sheetSummary = [];
 
-        workbook.SheetNames.forEach(sheetName => {
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '', header: 1 });
+        workbook.worksheets.forEach(worksheet => {
+          const sheetName = worksheet.name;
+          // Obtenemos una matriz 2D cruda en lugar de jsonData para emular header: 1
+          const jsonData = extractRawGrid(worksheet);
 
           if (jsonData.length < 4) {
             sheetSummary.push({ sheet: sheetName, count: 0, skipped: true });
@@ -262,8 +304,7 @@ export const processParquesExcel = (file) => {
           const parkKeywords = ['PAQUETE', 'PRESENTACION', 'PIEZAS', 'CANTIDAD', 'NO.'];
 
           for (let i = 0; i < Math.min(jsonData.length, 10); i++) {
-            const row = jsonData[i];
-            if (!row) continue;
+            const row = jsonData[i] || [];
 
             const foundHeaders = row.filter(cell =>
               cell && parkKeywords.includes(String(cell).trim().toUpperCase())

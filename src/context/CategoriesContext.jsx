@@ -176,8 +176,10 @@ export const CategoriesProvider = ({ children }) => {
             if (!cat.tableName) return cat;
             try {
               const schemaPromise = fetchTableSchema(cat.tableName);
-              const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 5000));
+              let timer;
+              const timeoutPromise = new Promise(resolve => timer = setTimeout(() => resolve(null), 5000));
               const realSchema = await Promise.race([schemaPromise, timeoutPromise]);
+              if (timer) clearTimeout(timer);
               
               if (realSchema && realSchema.length > 0) {
                 // Recalculate fieldMappings based on the REAL physical columns

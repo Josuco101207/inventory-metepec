@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 
 const STEPS = {
   UPLOAD: 'upload',
@@ -31,25 +31,26 @@ export const InvoiceAIProvider = ({ children }) => {
 
   // Cargar estado desde localStorage al montar
   useEffect(() => {
+    let timeoutId;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Solo restauramos si hay datos procesados para evitar reprocesar
         if (parsed.extractedData && parsed.step !== STEPS.UPLOAD) {
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             setStep(parsed.step);
             setExtractedData(parsed.extractedData);
             setFacturaStorageUrl(parsed.facturaStorageUrl);
             setResult(parsed.result);
           }, 0);
-          // No restauramos file y previewUrl para evitar problemas con Blobs
-          // El usuario puede volver a cargar la imagen si es necesario
         }
       }
     } catch (e) {
       console.error('Error loading invoice AI state:', e);
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // Guardar estado en localStorage cuando cambia
@@ -71,20 +72,26 @@ export const InvoiceAIProvider = ({ children }) => {
   const reset = useCallback(() => {
     setStep(STEPS.UPLOAD);
     setFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setPreviewUrl(null);
     setFacturaStorageUrl(null);
     setExtractedData(null);
     setResult(null);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [previewUrl]);
 
   // Establecer archivo seleccionado
   const setFileSelected = useCallback((selectedFile) => {
     setFile(selectedFile);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     if (selectedFile?.type.startsWith('image/')) {
       setPreviewUrl(URL.createObjectURL(selectedFile));
     }
-  }, []);
+  }, [previewUrl]);
 
   // Establecer datos extra├¡dos
   const setProcessedData = useCallback((data, storageUrl) => {
@@ -109,7 +116,7 @@ export const InvoiceAIProvider = ({ children }) => {
     setStep(STEPS.PROCESSING);
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     // Estado
     step,
     file,
@@ -126,7 +133,10 @@ export const InvoiceAIProvider = ({ children }) => {
     setFinalResult,
     backToUpload,
     setProcessing,
-  };
+  }), [
+    step, file, previewUrl, facturaStorageUrl, extractedData, result,
+    reset, setFileSelected, setProcessedData, setFinalResult, backToUpload, setProcessing
+  ]);
 
   return (
     <InvoiceAIContext.Provider value={value}>

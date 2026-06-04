@@ -51,7 +51,7 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           supabase: ['@supabase/supabase-js'],
           ui: ['lucide-react', 'recharts', 'sonner', 'react-window'],
-          utils: ['xlsx', 'qrcode.react']
+          utils: ['exceljs', 'qrcode.react']
         }
       }
     }

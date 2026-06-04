@@ -158,7 +158,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
     const userName = userData?.name || userData?.email || 'Sistema (IA)';
     setSubmitting(true);
     try {
-      for (const item of accepted) {
+      const results = await Promise.allSettled(accepted.map(async (item) => {
         let detallesStr = '';
         if (item.detallesExtra && typeof item.detallesExtra === 'object') {
           const keys = Object.keys(item.detallesExtra);
@@ -193,6 +193,11 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
             `Ingreso Factura ${header.folio} | ${header.proveedor}${detallesStr}${facturaStorageUrl ? ' | factura_url:' + facturaStorageUrl : ''}`
           );
         }
+      }));
+
+      const errors = results.filter(r => r.status === 'rejected');
+      if (errors.length > 0) {
+        throw new Error(`${errors.length} items fallaron. Revisa la conexión.`);
       }
 
       toast.success(`${accepted.length} productos procesados correctamente`);

@@ -16,10 +16,13 @@ const ApprovalActionView = ({ action }) => {
 
   // Cargar la solicitud
   useEffect(() => {
+    let ignore = false;
     const loadRequest = async () => {
       try {
         const { data, error } = await supabase
           .rpc('get_approval_request_by_token', { p_id: id, p_token: token });
+
+        if (ignore) return;
 
         if (error || !data || data.length === 0) {
           setStatus('error');
@@ -39,12 +42,14 @@ const ApprovalActionView = ({ action }) => {
           setStatus('confirming');
         }
       } catch (err) {
+        if (ignore) return;
         setStatus('error');
         setErrorMsg(err.message || 'Error al cargar la solicitud.');
       }
     };
 
     if (id) loadRequest();
+    return () => { ignore = true; };
   }, [id, action, token]);
 
   const handleApprove = async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -91,7 +91,7 @@ const UserManagementView = () => {
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async (options = { ignore: false }) => {
     setLoading(true);
     try {
       const { data: profiles, error } = await supabase
@@ -99,6 +99,7 @@ const UserManagementView = () => {
         .select('*')
         .order('name', { ascending: true });
 
+      if (options.ignore) return;
       if (error) throw error;
 
       // Merge Supabase profiles (passwords never go to Supabase)
@@ -118,19 +119,22 @@ const UserManagementView = () => {
       merged.sort((a, b) => (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase()));
       setUsers(merged);
     } catch (err) {
+      if (options.ignore) return;
       console.error('[UserMgmt] Error loading profiles:', err.message);
       // Fallback to localStorage
       const data = getUsers();
       data.sort((a, b) => (a.displayName || a.name || '').toLowerCase().localeCompare((b.displayName || b.name || '').toLowerCase()));
       setUsers(data);
     } finally {
-      setLoading(false);
+      if (!options.ignore) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    const opts = { ignore: false };
+    loadUsers(opts);
+    return () => { opts.ignore = true; };
+  }, [loadUsers]);
 
   const handleCreateUser = async (e) => {
     e.preventDefault();

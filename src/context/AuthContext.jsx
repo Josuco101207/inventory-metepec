@@ -62,10 +62,11 @@ export const AuthProvider = ({ children }) => {
 
   // Load user profile with timeout protection
   const loadProfile = useCallback(async (sessionUser) => {
+    let timer;
     try {
       const profilePromise = fetchProfile(sessionUser.id);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 6000)
+        timer = setTimeout(() => reject(new Error('Profile fetch timeout')), 6000)
       );
 
       const profile = await Promise.race([profilePromise, timeoutPromise]);
@@ -73,6 +74,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Profile fetch error (using fallback data):', err.message);
       setUserData(buildUserData(sessionUser, null));
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }, [buildUserData]);
 

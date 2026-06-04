@@ -48,23 +48,30 @@ const TransactionsView = () => {
   const [dayMovements, setDayMovements] = useState([]);
   const [loadingDay, setLoadingDay] = useState(false);
 
-  const loadDayMovements = useCallback(async (dateStr) => {
-    setLoadingDay(true);
-    try {
-      const data = await fetchMovementsByDate(dateStr);
-      setDayMovements(data);
-    } catch (err) {
-      console.error('[Transactions] fetchMovementsByDate error:', err);
-      setDayMovements([]);
-    } finally {
-      setLoadingDay(false);
-    }
-  }, []);
-
-  // Consolidate both fetches into one to prevent race conditions and duplicate network calls
   useEffect(() => {
-    loadDayMovements(selectedDate);
-  }, [selectedDate, loadDayMovements, selectedDate === todayStr ? movements.length : null]);
+    let ignore = false;
+    const loadDayMovements = async () => {
+      setLoadingDay(true);
+      try {
+        const data = await fetchMovementsByDate(selectedDate);
+        if (!ignore) {
+          setDayMovements(data);
+        }
+      } catch (err) {
+        if (!ignore) {
+          console.error('[Transactions] fetchMovementsByDate error:', err);
+          setDayMovements([]);
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingDay(false);
+        }
+      }
+    };
+    
+    loadDayMovements();
+    return () => { ignore = true; };
+  }, [selectedDate, selectedDate === todayStr ? movements.length : null]);
 
   const filteredMovements = dayMovements;
 

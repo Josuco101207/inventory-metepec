@@ -247,6 +247,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const [motivo, setMotivo] = useState('');
   const [authMethod, setAuthMethod] = useState('factura'); // 'factura' | 'approval'
   const [currentRequest, setCurrentRequest] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -278,8 +279,8 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   }, [startPolling]);
 
   // Manejar confirmación de salida
-  const handleConfirm = useCallback(() => {
-    if (!isValid) return;
+  const handleConfirm = useCallback(async () => {
+    if (!isValid || isSubmitting) return;
 
     let authDetails;
     
@@ -299,16 +300,24 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
       authDetails = `Motivo: ${motivo.trim()} | approval_id:${currentRequest.id} | supervisor_id:${currentRequest.supervisor_id} | autorizado_por:${currentRequest.metadata?.supervisor_name || 'Supervisor'}`;
     }
 
-    onConfirm(item.id, -parsedQty, authDetails);
+    setIsSubmitting(true);
+    try {
+      await onConfirm(item.id, -parsedQty, authDetails);
 
-    // Limpiar estado local
-    setQty(1);
-    setMotivo('');
-    setCurrentRequest(null);
-    limpiarAuth();
-    stopPolling();
-    onClose();
-  }, [isValid, authMethod, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, currentRequest, stopPolling, SALIDA_METHODS]);
+      // Limpiar estado local
+      setQty(1);
+      setMotivo('');
+      setCurrentRequest(null);
+      limpiarAuth();
+      stopPolling();
+      onClose();
+    } catch (err) {
+      console.error("Error confirmando salida:", err);
+      toast.error(err.message || 'Error al procesar la salida');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isValid, isSubmitting, authMethod, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, currentRequest, stopPolling, SALIDA_METHODS]);
 
   // Manejar cierre
   const handleClose = useCallback(() => {
@@ -430,14 +439,14 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
 
       {/* Botones */}
       <div className="flex gap-4">
-        <button className="btn-apple-secondary flex-1" onClick={handleClose}>Cancelar</button>
+        <button className="btn-apple-secondary flex-1" onClick={handleClose} disabled={isSubmitting}>Cancelar</button>
         <button
           className="flex-1 btn-apple-danger"
           onClick={handleConfirm}
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           title={!isValid ? 'Completa todos los campos y la autorización' : ''}
         >
-          Confirmar Salida
+          {isSubmitting ? <><Loader2 size={16} className="am-spin" style={{marginRight: 8}}/> Procesando...</> : 'Confirmar Salida'}
         </button>
       </div>
     </div>

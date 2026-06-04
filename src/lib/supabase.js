@@ -34,7 +34,10 @@ export const supabase = createClient(
 
         // Merge AbortSignal into init options
         const [input, init = {}] = args;
-        const mergedInit = { ...init, signal: controller.signal };
+        const mergedSignal = init.signal 
+          ? AbortSignal.any([init.signal, controller.signal]) 
+          : controller.signal;
+        const mergedInit = { ...init, signal: mergedSignal };
 
         return fetch(input, mergedInit).finally(() => clearTimeout(timeoutId));
       },

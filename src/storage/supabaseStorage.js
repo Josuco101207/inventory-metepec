@@ -24,37 +24,52 @@ export const fetchItems = async (tableName) => {
 
 export const insertItem = async (tableName, item) => {
   if (!tableName) throw new Error('No table name');
-  const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = item;
-  const { data, error } = await supabase
-    .from(tableName)
-    .insert([rest])
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  try {
+    const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = item;
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert([rest])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error(`[SupabaseStorage] insertItem(${tableName}):`, err.message);
+    throw err;
+  }
 };
 
 export const updateItem = async (tableName, itemId, updates) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
-  const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = updates;
-  const { data, error } = await supabase
-    .from(tableName)
-    .update(rest)
-    .eq('id', itemId)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  try {
+    const { id: _id, createdAt: _createdAt, created_at: _created_at, ...rest } = updates;
+    const { data, error } = await supabase
+      .from(tableName)
+      .update(rest)
+      .eq('id', itemId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error(`[SupabaseStorage] updateItem(${tableName}, ${itemId}):`, err.message);
+    throw err;
+  }
 };
 
 export const deleteItem = async (tableName, itemId) => {
   if (!tableName || !itemId) throw new Error('Missing table or id');
-  const { error } = await supabase
-    .from(tableName)
-    .delete()
-    .eq('id', itemId);
-  if (error) throw error;
-  return true;
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq('id', itemId);
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error(`[SupabaseStorage] deleteItem(${tableName}, ${itemId}):`, err.message);
+    throw err;
+  }
 };
 
 // ─── MOVEMENTS ───

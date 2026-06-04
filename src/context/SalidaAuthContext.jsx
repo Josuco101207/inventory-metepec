@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'dicrejart_salida_auth';
@@ -42,6 +42,7 @@ export const SalidaAuthProvider = ({ children }) => {
 
   // Cargar desde localStorage al montar, descartar si expiró
   useEffect(() => {
+    let timeoutId;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -49,12 +50,15 @@ export const SalidaAuthProvider = ({ children }) => {
         if (parsed.autorizadoAt && isExpired(parsed.autorizadoAt)) {
           localStorage.removeItem(STORAGE_KEY);
         } else if (parsed.method && parsed.method !== SALIDA_METHODS.NONE) {
-          setTimeout(() => setAuthState(parsed), 0);
+          timeoutId = setTimeout(() => setAuthState(parsed), 0);
         }
       }
     } catch (e) {
       console.error('[SalidaAuth] Error loading state:', e);
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // Persistir cuando cambia
@@ -157,17 +161,19 @@ export const SalidaAuthProvider = ({ children }) => {
     return null;
   }, [isAutorizado, authState]);
 
+  const value = useMemo(() => ({
+    authState,
+    isAutorizado,
+    autorizarConFactura,
+    autorizarConSupervisor,
+    autorizarConAprobacion,
+    limpiarAuth,
+    buildAuthDetails,
+    SALIDA_METHODS,
+  }), [authState, isAutorizado, autorizarConFactura, autorizarConSupervisor, autorizarConAprobacion, limpiarAuth, buildAuthDetails]);
+
   return (
-    <SalidaAuthContext.Provider value={{
-      authState,
-      isAutorizado,
-      autorizarConFactura,
-      autorizarConSupervisor,
-      autorizarConAprobacion,
-      limpiarAuth,
-      buildAuthDetails,
-      SALIDA_METHODS,
-    }}>
+    <SalidaAuthContext.Provider value={value}>
       {children}
     </SalidaAuthContext.Provider>
   );
