@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Building2, Save, MapPin, Phone, Globe, Trash2, AlertOctagon, Plus, Tag, Map, Bell, Moon, History, ChevronRight, X, FileSpreadsheet, Wrench } from 'lucide-react';
+import { MapPin, Trash2, Plus, Tag, X, Wrench } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 
-import { useCategories } from '../context/CategoriesContext';
-import FlyPattern from '../components/FlyPattern';
 import './SettingsView.css';
 
 const SettingsView = () => {
   const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
-  const { categories: CATEGORIES } = useCategories();
+  
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  
   // Location Builder State
   const [locType1, setLocType1] = useState('Estante');
   const [locId1, setLocId1] = useState('');
@@ -32,200 +31,190 @@ const SettingsView = () => {
     setShowSubLevel(false);
   };
 
-  const IOSSwitch = ({ checked, onChange }) => (
-    <label className="ios-switch">
-      <input type="checkbox" checked={checked} onChange={onChange} />
-      <span className="ios-slider"></span>
-    </label>
-  );
-
   return (
     <div className="fly-settings-view">
-      <FlyPattern fixed opacity={0.04} />
       
       <div className="fly-settings-container">
+        
+        {/* CABECERA PREMIUM */}
         <header className="fly-settings-header">
-          <div className="fly-sh-left">
-            <div className="fly-sh-icon"><Wrench size={26} /></div>
-            <h1>Ajustes y Configuración<span>Administra parámetros del sistema</span></h1>
+          <div className="fly-sh-icon">
+            <Wrench size={28} strokeWidth={2.5} />
           </div>
+          <h1>
+            Ajustes y Configuración
+            <span>Panel de administración de parámetros del sistema</span>
+          </h1>
         </header>
 
-        <div className="fly-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {/* Tarjeta de Localizaciones */}
-          <div className="fly-s-card">
-            <div className="fly-s-card-header">
-              <MapPin size={20} />
-              <h2>Localizaciones</h2>
+        <div className="fly-settings-grid">
+          
+          {/* TARJETA LOCALIZACIONES */}
+          <div className="fly-glass-card">
+            <div className="fly-gc-header">
+              <MapPin size={24} className="fly-gc-icon" />
+              <div>
+                <h2>Constructor de Localizaciones</h2>
+                <p className="fly-gc-desc">Define y clasifica las zonas de almacenamiento disponibles.</p>
+              </div>
             </div>
-            <div className="fly-s-card-content">
-              <p style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', marginBottom: '1rem' }}>
-                Añade o elimina las ubicaciones donde se puede encontrar inventario.
-              </p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <select 
-                    value={locType1} 
-                    onChange={e => setLocType1(e.target.value)}
-                    style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
-                  >
-                    {type1Options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Ej: 3, A..." 
-                    value={locId1} 
-                    onChange={e => setLocId1(e.target.value)}
-                    style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
-                    onKeyDown={e => {
-                      if(e.key === 'Enter') handleAddLocation();
-                    }}
-                  />
-                </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="fly-premium-input-group">
+                <select 
+                  className="fly-premium-select"
+                  value={locType1} 
+                  onChange={e => setLocType1(e.target.value)}
+                >
+                  {type1Options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <input 
+                  type="text" 
+                  className="fly-premium-input"
+                  placeholder="Ej: 3, A, Almacén 1..." 
+                  value={locId1} 
+                  onChange={e => setLocId1(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddLocation()}
+                />
+              </div>
 
-                {showSubLevel && (
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)' }}>
+              {showSubLevel && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px dashed rgba(255,255,255,0.1)' }}>
+                  <div className="fly-premium-input-group" style={{ flex: 1 }}>
                     <select 
+                      className="fly-premium-select"
                       value={locType2} 
                       onChange={e => setLocType2(e.target.value)}
-                      style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
                     >
                       {type2Options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                     <input 
                       type="text" 
-                      placeholder="Ej: 4, B..." 
+                      className="fly-premium-input"
+                      placeholder="Identificador..." 
                       value={locId2} 
                       onChange={e => setLocId2(e.target.value)}
-                      style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--text-color)' }}
-                      onKeyDown={e => {
-                        if(e.key === 'Enter') handleAddLocation();
-                      }}
+                      onKeyDown={e => e.key === 'Enter' && handleAddLocation()}
                     />
-                    <button 
-                      onClick={() => { setShowSubLevel(false); setLocId2(''); }}
-                      style={{ background: 'transparent', border: 'none', color: 'hsl(var(--danger))', cursor: 'pointer', padding: '4px' }}
-                      title="Quitar sub-nivel"
-                    >
-                      <X size={18} />
-                    </button>
                   </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
-                  {!showSubLevel ? (
-                    <button 
-                      onClick={() => setShowSubLevel(true)}
-                      style={{ background: 'transparent', border: '1px dashed var(--border-color)', color: 'hsl(var(--text-muted))', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                    >
-                      <Plus size={14} /> Añadir sub-nivel
-                    </button>
-                  ) : <div></div>}
-                  
                   <button 
-                    className="fly-btn fly-btn-primary" 
-                    onClick={handleAddLocation}
-                    disabled={!locId1.trim()}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}
+                    className="fly-btn-ghost"
+                    style={{ padding: '0.6rem', color: '#ff3b30' }}
+                    onClick={() => { setShowSubLevel(false); setLocId2(''); }}
+                    title="Remover Sub-nivel"
                   >
-                    <Plus size={18} /> Guardar
+                    <X size={20} />
                   </button>
                 </div>
-              </div>
+              )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
-                {locations.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px dashed var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    No hay localizaciones registradas
-                  </div>
-                ) : (
-                  locations.map(loc => (
-                    <div key={loc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <span style={{ fontWeight: 500 }}>{loc.name}</span>
-                      <button 
-                        onClick={() => {
-                          if(window.confirm(`¿Seguro que deseas eliminar la ubicación "${loc.name}"?`)) {
-                            deleteLocation(loc.id);
-                          }
-                        }}
-                        style={{ background: 'transparent', border: 'none', color: 'hsl(var(--danger))', cursor: 'pointer', padding: '4px', opacity: 0.8 }}
-                        title="Eliminar"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Tarjeta de Subcategorías */}
-          <div className="fly-s-card">
-            <div className="fly-s-card-header">
-              <Tag size={20} />
-              <h2>Subcategorías</h2>
-            </div>
-            <div className="fly-s-card-content">
-              <p style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', marginBottom: '1rem' }}>
-                Añade o elimina subcategorías para clasificar los artículos.
-              </p>
-              
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nombre de la subcategoría" 
-                  value={newSubcategoryName} 
-                  onChange={e => setNewSubcategoryName(e.target.value)}
-                  style={{ flex: 1, padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)' }}
-                  onKeyDown={e => {
-                    if(e.key === 'Enter' && newSubcategoryName.trim()) {
-                      addSubcategory(newSubcategoryName.trim());
-                      setNewSubcategoryName('');
-                    }
-                  }}
-                />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                {!showSubLevel ? (
+                  <button className="fly-btn-ghost" onClick={() => setShowSubLevel(true)}>
+                    <Plus size={16} /> Añadir Nivel Secundario
+                  </button>
+                ) : <div />}
+                
                 <button 
-                  className="fly-btn fly-btn-primary" 
-                  onClick={() => {
-                    if(newSubcategoryName.trim()) {
-                      addSubcategory(newSubcategoryName.trim());
-                      setNewSubcategoryName('');
-                    }
-                  }}
-                  disabled={!newSubcategoryName.trim()}
+                  className="fly-btn-neon" 
+                  onClick={handleAddLocation}
+                  disabled={!locId1.trim()}
                 >
-                  <Plus size={18} />
+                  <Plus size={18} /> Registrar
                 </button>
               </div>
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
-                {subcategories.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '1.5rem', background: 'var(--background)', borderRadius: '8px', border: '1px dashed var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    No hay subcategorías registradas
+            <div className="fly-glass-list">
+              {locations.length === 0 ? (
+                <div className="fly-empty-state">
+                  No hay zonas registradas aún en el sistema.
+                </div>
+              ) : (
+                locations.map(loc => (
+                  <div key={loc.id} className="fly-glass-list-item">
+                    <span className="fly-list-item-name">{loc.name}</span>
+                    <button 
+                      className="fly-btn-icon-danger"
+                      onClick={() => {
+                        if(window.confirm(`¿Seguro que deseas eliminar la ubicación "${loc.name}"?`)) {
+                          deleteLocation(loc.id);
+                        }
+                      }}
+                      title="Eliminar Ubicación"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-                ) : (
-                  subcategories.map(sub => (
-                    <div key={sub.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <span style={{ fontWeight: 500 }}>{sub.name}</span>
-                      <button 
-                        onClick={() => {
-                          if(window.confirm(`¿Seguro que deseas eliminar la subcategoría "${sub.name}"?`)) {
-                            deleteSubcategory(sub.id);
-                          }
-                        }}
-                        style={{ background: 'transparent', border: 'none', color: 'hsl(var(--danger))', cursor: 'pointer', padding: '4px', opacity: 0.8 }}
-                        title="Eliminar"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+                ))
+              )}
             </div>
           </div>
+
+          {/* TARJETA SUBCATEGORÍAS */}
+          <div className="fly-glass-card">
+            <div className="fly-gc-header">
+              <Tag size={24} className="fly-gc-icon" />
+              <div>
+                <h2>Subcategorías Globales</h2>
+                <p className="fly-gc-desc">Añade etiquetas secundarias para una mejor trazabilidad.</p>
+              </div>
+            </div>
+            
+            <div className="fly-premium-input-group" style={{ marginBottom: '1rem' }}>
+              <input 
+                type="text" 
+                className="fly-premium-input"
+                placeholder="Nombre de la subcategoría..." 
+                value={newSubcategoryName} 
+                onChange={e => setNewSubcategoryName(e.target.value)}
+                onKeyDown={e => {
+                  if(e.key === 'Enter' && newSubcategoryName.trim()) {
+                    addSubcategory(newSubcategoryName.trim());
+                    setNewSubcategoryName('');
+                  }
+                }}
+              />
+              <button 
+                className="fly-btn-neon" 
+                onClick={() => {
+                  if(newSubcategoryName.trim()) {
+                    addSubcategory(newSubcategoryName.trim());
+                    setNewSubcategoryName('');
+                  }
+                }}
+                disabled={!newSubcategoryName.trim()}
+              >
+                <Plus size={18} />
+              </button>
+            </div>
+
+            <div className="fly-glass-list">
+              {subcategories.length === 0 ? (
+                <div className="fly-empty-state">
+                  No hay etiquetas secundarias registradas.
+                </div>
+              ) : (
+                subcategories.map(sub => (
+                  <div key={sub.id} className="fly-glass-list-item">
+                    <span className="fly-list-item-name">{sub.name}</span>
+                    <button 
+                      className="fly-btn-icon-danger"
+                      onClick={() => {
+                        if(window.confirm(`¿Seguro que deseas eliminar la etiqueta "${sub.name}"?`)) {
+                          deleteSubcategory(sub.id);
+                        }
+                      }}
+                      title="Eliminar Etiqueta"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
