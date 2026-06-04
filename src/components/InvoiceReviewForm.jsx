@@ -21,7 +21,7 @@ const MatchBadge = ({ score, isExact, isNew }) => {
 };
 
 const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, facturaStorageUrl }) => {
-  const { items: inventoryItems, addItem, updateStock } = useInventory();
+  const { items: inventoryItems, addItem, updateStock, locations, subcategories, brands } = useInventory();
   const { categories } = useCategories();
   const { userData } = useAuth();
   const [header, setHeader] = useState(extractedData.header);
@@ -69,6 +69,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
         matches,
         accepted: true,
         detallesExtra: item.detallesExtra || {}, // Ensure we keep the extra details!
+        dynamicFields: item.detallesExtra || {}, // Pre-fill with any extra details parsed from invoice
       };
     });
     setItems(mapped);
@@ -84,6 +85,20 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
         copy[idx].importe = qty * price;
         copy[idx].iva = qty * price * IVA_RATE;
       }
+      return copy;
+    });
+  }, []);
+
+  const updateDynamicField = useCallback((idx, fieldName, value) => {
+    setItems(prev => {
+      const copy = [...prev];
+      copy[idx] = { 
+        ...copy[idx], 
+        dynamicFields: {
+          ...(copy[idx].dynamicFields || {}),
+          [fieldName]: value
+        }
+      };
       return copy;
     });
   }, []);
@@ -168,6 +183,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
             precioUnitario: item.precioUnitario,
             iva: item.iva,
             unidad: item.unidad,
+            ...(item.dynamicFields || {})
           }, userName, facturaStorageUrl || null);
         } else if (item.mappedItemId) {
           await updateStock(
@@ -386,6 +402,71 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                               {categoryTitles.map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                           </div>
+                          
+                          {/* DYNAMIC FIELDS FROM CATEGORY SCHEMA */}
+                          {(() => {
+                            const catConfig = categories.find(c => c.title === item.category) || {};
+                            const schema = catConfig.schema || [];
+                            // Hide fields we already manage natively
+                            const HIDDEN = ['id', 'created_at', 'updated_at', 'status', 'prestados', 'borrowedBy', 'lentBy', 'loanDate', 'name', 'qty', 'threshold', 'category', 'observaciones', 'importe', 'precio_unitario', 'precioUnitario', 'iva', 'unidad', 'foto_url', 'descripcion'];
+                            const visibleFields = schema.filter(f => !HIDDEN.includes(f.name));
+
+                            if (visibleFields.length === 0) return null;
+
+                            return visibleFields.map(field => {
+                              const dbTypeToInput = (dbType) => {
+                                if (!dbType) return 'text';
+                                const t = dbType.toLowerCase();
+                                if (t.includes('int') || t === 'float8' || t === 'numeric' || t === 'float4') return 'number';
+                                if (t.includes('bool')) return 'checkbox';
+                                if (t.includes('date') || t.includes('timestamp')) return 'date';
+                                return 'text';
+                              };
+                              const inputType = dbTypeToInput(field.type);
+                              const val = (item.dynamicFields || {})[field.name];
+
+                              return (
+                                <div className="iv-field" key={field.name}>
+                                  <label className="irf-dynamic-label">{field.label || field.name} <span style={{color: 'var(--fly-yellow)'}}>*</span></label>
+                                  {inputType === 'checkbox' ? (
+                                    <label className="flex items-center gap-2 cursor-pointer" style={{fontSize: '0.82rem', color: '#fff', paddingTop: '0.2rem', paddingBottom: '0.2rem'}}>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={!!val} 
+                                        onChange={(e) => updateDynamicField(idx, field.name, e.target.checked)} 
+                                      />
+                                      <span>{val ? 'Sí' : 'No'}</span>
+                                    </label>
+                                  ) : (field.name === 'location' || field.name === 'localizacion') ? (
+                                    <select className="iv-input" value={val || ''} onChange={(e) => updateDynamicField(idx, field.name, e.target.value)}>
+                                      <option value="">Seleccionar...</option>
+                                      {locations?.map(loc => <option key={loc.id} value={loc.name}>{loc.name}</option>)}
+                                    </select>
+                                  ) : (field.name === 'brand' || field.name === 'marca') ? (
+                                    <select className="iv-input" value={val || ''} onChange={(e) => updateDynamicField(idx, field.name, e.target.value)}>
+                                      <option value="">Seleccionar...</option>
+                                      {brands?.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                                    </select>
+                                  ) : (field.name === 'subcategory' || field.name === 'subcategoria') ? (
+                                    <select className="iv-input" value={val || ''} onChange={(e) => updateDynamicField(idx, field.name, e.target.value)}>
+                                      <option value="">Seleccionar...</option>
+                                      {subcategories?.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                                    </select>
+                                  ) : (
+                                    <input 
+                                      className="iv-input" 
+                                      type={inputType} 
+                                      step={inputType === 'number' ? 'any' : undefined}
+                                      value={val ?? ''} 
+                                      onChange={(e) => updateDynamicField(idx, field.name, e.target.value)}
+                                      placeholder={`Ingresa ${field.label || field.name}...`}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            });
+                          })()}
+                          
                           <div className="iv-field">
                             <label>IVA (16%)</label>
                             <input className="iv-input" value={fmt(item.iva)} readOnly style={{ opacity: 0.7 }} />
