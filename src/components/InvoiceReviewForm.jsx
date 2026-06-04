@@ -13,11 +13,11 @@ const IVA_RATE = 0.16;
 const UNITS = ['PZA', 'KG', 'M', 'LT', 'ML', 'CM', 'ROLLO', 'CAJA', 'PAR', 'JGO', 'BOLSA', 'PAQUETE'];
 
 const MatchBadge = ({ score, isExact, isNew }) => {
-  if (isNew) return <div className="irf-led irf-led-new" title="Producto Nuevo" />;
-  if (isExact) return <div className="irf-led irf-led-exact" title="Coincidencia Exacta" />;
-  if (score >= 0.7) return <div className="irf-led irf-led-high" title={`Alta (${Math.round(score * 100)}%)`} />;
-  if (score >= 0.5) return <div className="irf-led irf-led-mid" title={`Parcial (${Math.round(score * 100)}%)`} />;
-  return <div className="irf-led irf-led-low" title={`Baja (${Math.round(score * 100)}%)`} />;
+  if (isNew) return <div className="irf-led irf-led-new" title="Producto Nuevo"><span className="irf-led-dot" /><span className="irf-led-label">NUEVO</span></div>;
+  if (isExact) return <div className="irf-led irf-led-exact" title="Coincidencia Exacta"><span className="irf-led-dot" /><span className="irf-led-label">{Math.round(score * 100)}%</span></div>;
+  if (score >= 0.7) return <div className="irf-led irf-led-high" title={`Alta (${Math.round(score * 100)}%)`}><span className="irf-led-dot" /><span className="irf-led-label">{Math.round(score * 100)}%</span></div>;
+  if (score >= 0.5) return <div className="irf-led irf-led-mid" title={`Parcial (${Math.round(score * 100)}%)`}><span className="irf-led-dot" /><span className="irf-led-label">{Math.round(score * 100)}%</span></div>;
+  return <div className="irf-led irf-led-low" title={`Baja (${Math.round(score * 100)}%)`}><span className="irf-led-dot" /><span className="irf-led-label">{Math.round(score * 100)}%</span></div>;
 };
 
 const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, facturaStorageUrl }) => {
