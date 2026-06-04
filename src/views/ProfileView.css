@@ -6,7 +6,7 @@
   min-height: 100vh;
   padding: 0 2rem 4rem;
   position: relative;
-  background: #09090b; /* Much deeper dark */
+  background: transparent;
   color: var(--fly-white);
   font-family: var(--font-body);
   overflow-x: hidden;
