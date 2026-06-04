@@ -239,7 +239,11 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.75rem !important;
-  transition: var(--transition-fly);
+  transition: all 0.5s ease !important;
+}
+
+.nav-item svg {
+  transition: all 0.5s ease !important;
 }
 
 .nav-item:hover {
