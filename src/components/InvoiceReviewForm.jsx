@@ -203,7 +203,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
     } finally {
       setSubmitting(false);
     }
-  }, [items, header, userData, addItem, updateStock, onConfirm, totals]);
+  }, [items, header, userData, addItem, updateStock, onConfirm, totals, facturaStorageUrl]);
 
   const fmt = (n) => {
     const v = parseFloat(n) || 0;

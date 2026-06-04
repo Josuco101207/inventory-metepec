@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
@@ -597,7 +597,7 @@ export const ApprovalProvider = ({ children }) => {
     fetchSupervisors();
   }, [fetchSupervisors]);
 
-  const value = {
+  const value = useMemo(() => ({
     requests,
     supervisors,
     loading,
@@ -615,7 +615,12 @@ export const ApprovalProvider = ({ children }) => {
     fetchPendingApprovals,
     approveRequest,
     rejectRequest
-  };
+  }), [
+    requests, supervisors, loading, error, pollingActive, currentRequestId,
+    fetchSupervisors, createApprovalRequest, checkRequestStatus, startPolling,
+    stopPolling, reactivateRequest, cancelRequest, fetchUserRequests,
+    fetchPendingApprovals, approveRequest, rejectRequest
+  ]);
 
   return (
     <ApprovalContext.Provider value={value}>

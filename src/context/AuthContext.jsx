@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       return { success: false, error: error.message };
@@ -169,9 +169,9 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
     return { success: true, user: data.user, session: data.session };
-  };
+  }, [loadProfile]);
   
-  const signup = async (email, password, name) => {
+  const signup = useCallback(async (email, password, name) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -181,9 +181,9 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: error.message };
     }
     return { success: true, user: data.user };
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
     } catch (err) {
@@ -191,7 +191,7 @@ export const AuthProvider = ({ children }) => {
     }
     setUser(null);
     setUserData(null);
-  };
+  }, []);
 
   // Temporizador de inactividad para seguridad
   useEffect(() => {
@@ -261,7 +261,7 @@ export const AuthProvider = ({ children }) => {
       });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [user]);
+  }, [user, logout]);
 
   const { isAdmin, isStaff } = useMemo(() => {
     const admin = userData?.role === 'admin';
@@ -285,7 +285,6 @@ export const AuthProvider = ({ children }) => {
     return editable.includes(category);
   }, [isAdmin, userData?.editableCategories]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const contextValue = useMemo(() => ({
     user,
     userData,
@@ -297,7 +296,7 @@ export const AuthProvider = ({ children }) => {
     isStaff,
     canAddTo,
     canEditIn
-  }), [user, userData, loading, isAdmin, isStaff, canAddTo, canEditIn]);
+  }), [user, userData, loading, isAdmin, isStaff, canAddTo, canEditIn, login, signup, logout]);
 
   return (
     <AuthContext.Provider value={contextValue}>

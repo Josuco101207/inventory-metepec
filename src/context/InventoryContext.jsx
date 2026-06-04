@@ -289,10 +289,7 @@ export const InventoryProvider = ({ children }) => {
   useEffect(() => {
     if (!user || catsLoading || !categories.length) return;
 
-    let isSubscribed = false;
-
     const onChannelReady = () => {
-      isSubscribed = true;
       setConnectionStatus('online');
       setLastSync(new Date());
     };
@@ -529,6 +526,7 @@ export const InventoryProvider = ({ children }) => {
     fetchMoreItems: () => {},
     hasMore: false,
   }), [
+    categories,
     items,
     movements,
     personnel,
