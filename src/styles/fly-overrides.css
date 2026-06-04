@@ -259,16 +259,16 @@ button {
 }
 
 .nav-item:hover {
-  background: rgba(224, 218, 60, 0.08) !important;
+  background: transparent !important;
   color: var(--fly-yellow) !important;
 }
 
 .nav-item.active {
-  background: rgba(224, 218, 60, 0.15) !important;
+  background: transparent !important;
   color: var(--fly-yellow) !important;
   font-weight: 900 !important;
-  border: 1px solid rgba(224, 218, 60, 0.3) !important;
-  box-shadow: 0 0 15px rgba(224, 218, 60, 0.15);
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .nav-item.active svg {
