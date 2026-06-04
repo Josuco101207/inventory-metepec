@@ -52,26 +52,19 @@ const deleteUser = (id) => {
 
 
 // Mini toggle checkbox button
-const PermToggle = ({ active, onClick, color, disabled }) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    style={{
-      width: 28, height: 28,
-      borderRadius: 8,
-      border: `2px solid ${active ? color : '#e2e8f0'}`,
-      background: active ? `${color}18` : '#f8fafc',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      cursor: disabled ? 'default' : 'pointer',
-      transition: 'all 0.15s',
-      flexShrink: 0,
-    }}
-    title={active ? 'Quitar permiso' : 'Dar permiso'}
-  >
-    {active && <span style={{ width: 10, height: 10, borderRadius: 3, background: color, display: 'block' }} />}
-  </button>
-);
-
+const PermToggle = ({ active, onClick, color, disabled }) => {
+  const isOrange = color === '#ea580c';
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`fly-switch-btn ${active ? (isOrange ? 'active-orange' : 'active') : ''}`}
+      title={active ? 'Quitar permiso' : 'Dar permiso'}
+    >
+      <span className="fly-switch-knob" />
+    </button>
+  );
+};
 const UserManagementView = () => {
   const { user: currentUser } = useAuth();
   const { categories, categoryToViewId } = useCategories();
@@ -368,44 +361,50 @@ const UserManagementView = () => {
               return (
                 <div key={u.id} className={`fly-team-card ${isExpanded ? 'fly-card-expanded' : ''}`}>
                   
-                  {/* User Row */}
-                  <div className="fly-team-row">
-                    {/* Avatar with initials */}
-                    <div className={`fly-team-avatar ${isAdminUser ? 'fly-avatar-admin' : 'fly-avatar-user'}`}>
-                      <span className="fly-avatar-initials">{initials}</span>
-                    </div>
+                  {/* Card Main Info */}
+                  <div className="fly-team-card-main">
+                    
+                    <div className="fly-team-card-header">
+                      {/* Avatar with initials */}
+                      <div className={`fly-team-avatar ${isAdminUser ? 'fly-avatar-admin' : 'fly-avatar-user'}`}>
+                        <span className="fly-avatar-initials">{initials}</span>
+                      </div>
 
-                    {/* Name + email + progress */}
-                    <div className="fly-team-info">
-                      <div className="fly-team-name-row">
-                        <p className="fly-team-name">{u.displayName || u.name}</p>
-                        <span className={`fly-role-pill ${u.role}`}>
-                          {u.role === 'admin' && <Shield size={10} />}
-                          {u.role === 'almacenista' && <Warehouse size={10} />}
-                          {u.role === 'supervisor' && <ShieldCheck size={10} />}
-                          {u.role === 'user' && <User size={10} />}
-                          {(u.role || 'user').toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="fly-team-email-row">
-                        <p className="fly-team-email"><Mail size={12} /> {u.email}</p>
-                      </div>
-                      {!isAdminUser && (
-                        <div className="fly-team-perm-bar-wrap">
-                          <div className="fly-team-perm-bar">
-                            <div className="fly-team-perm-bar-fill" style={{ width: `${permPct}%` }} />
-                          </div>
-                          <span className="fly-team-perm-pct">{permPct}% acceso</span>
+                      {/* Name + email */}
+                      <div className="fly-team-info">
+                        <div className="fly-team-name-row">
+                          <p className="fly-team-name" title={u.displayName || u.name}>{u.displayName || u.name}</p>
                         </div>
-                      )}
+                        <div className="fly-team-email-row">
+                          <p className="fly-team-email" title={u.email}><Mail size={12} /> {u.email}</p>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Summary */}
-                    <span className={`fly-summary-pill fly-summary-${isAdminUser ? 'admin' : allowedCats.length === 0 ? 'none' : 'partial'}`}>
-                      {ss.text}
-                    </span>
+                    <div className="fly-role-badge-container">
+                      <span className={`fly-role-pill ${u.role}`}>
+                        {u.role === 'admin' && <Shield size={10} />}
+                        {u.role === 'almacenista' && <Warehouse size={10} />}
+                        {u.role === 'supervisor' && <ShieldCheck size={10} />}
+                        {u.role === 'user' && <User size={10} />}
+                        {(u.role || 'user').toUpperCase()}
+                      </span>
+                      
+                      <span className={`fly-summary-pill fly-summary-${isAdminUser ? 'admin' : allowedCats.length === 0 ? 'none' : 'partial'}`}>
+                        {ss.text}
+                      </span>
+                    </div>
 
-                    {/* Actions */}
+                    {!isAdminUser && (
+                      <div className="fly-team-perm-bar-wrap">
+                        <div className="fly-team-perm-bar">
+                          <div className="fly-team-perm-bar-fill" style={{ width: `${permPct}%` }} />
+                        </div>
+                        <span className="fly-team-perm-pct">{permPct}%</span>
+                      </div>
+                    )}
+
+                    {/* Actions at the bottom of the card */}
                     <div className="fly-team-actions">
                       {!isAdminUser && (
                         <button
@@ -413,8 +412,7 @@ const UserManagementView = () => {
                           className={`fly-action-btn ${isExpanded ? 'fly-action-active' : ''}`}
                           title="Gestionar permisos"
                         >
-                          <Lock size={14} />
-                          {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          <Lock size={14} /> Permisos
                         </button>
                       )}
                       <button onClick={() => toggleRole(u)} title="Cambiar rol" className="fly-action-btn fly-action-icon">
@@ -429,7 +427,7 @@ const UserManagementView = () => {
                     </div>
                   </div>
 
-                  {/* Permissions Panel */}
+                  {/* Permissions Panel (Expanded State) */}
                   {isExpanded && !isAdminUser && (
                     <div className="fly-permissions-panel">
                       <div className="fly-permissions-grid">
@@ -508,18 +506,11 @@ const UserManagementView = () => {
                       </div>
 
                       {/* Save button */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 4px' }}>
+                      <div className="fly-perm-save-panel">
                         <button
                           onClick={() => savePermissions(u)}
                           disabled={saving}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '10px 24px', borderRadius: 12,
-                            background: saving ? '#94a3b8' : '#0071e3',
-                            color: '#fff', border: 'none', cursor: saving ? 'default' : 'pointer',
-                            fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.02em',
-                            transition: 'all 0.2s',
-                          }}
+                          className="fly-btn-save"
                         >
                           {saving
                             ? <><Loader2 size={16} className="animate-spin" /> Guardando...</>
