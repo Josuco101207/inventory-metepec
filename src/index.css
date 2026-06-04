@@ -82,6 +82,13 @@ h1, h2, h3, h4 {
   width: 100vw;
   max-width: 100vw;
   overflow: hidden;
+  /* Fly Extreme: gradiente sutil dark-first sobre FlyPattern */
+  background: linear-gradient(
+    135deg, 
+    hsla(var(--bg-main), 0.92) 0%, 
+    hsla(var(--bg-main), 0.88) 50%,
+    hsla(var(--bg-main), 0.92) 100%
+  );
 }
 
 .main-content {
@@ -92,14 +99,7 @@ h1, h2, h3, h4 {
   overflow-y: auto;
   padding: 2rem;
   transition: background-color 0.3s;
-  
-  /* Fly Extreme: gradiente sutil dark-first sobre FlyPattern */
-  background: linear-gradient(
-    135deg, 
-    hsla(var(--bg-main), 0.92) 0%, 
-    hsla(var(--bg-main), 0.88) 50%,
-    hsla(var(--bg-main), 0.92) 100%
-  );
+  background: transparent;
 }
 
 .main-content--mobile {
