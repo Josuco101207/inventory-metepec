@@ -60,11 +60,6 @@ const ProfileView = () => {
       {/* Fondos de Orbes Fluidos y Grid */}
       <div className="profile-bg-layer">
         <div className="profile-grid-overlay"></div>
-        <div className="profile-fluid-bg">
-          <div className="profile-orb profile-orb-1" />
-          <div className="profile-orb profile-orb-2" />
-          <div className="profile-orb profile-orb-3" />
-        </div>
       </div>
       
       <div className="fly-profile-container">
