@@ -264,14 +264,15 @@ button {
 }
 
 .nav-item.active {
-  background: var(--fly-yellow) !important;
-  color: var(--fly-dark) !important;
+  background: rgba(224, 218, 60, 0.15) !important;
+  color: var(--fly-yellow) !important;
   font-weight: 900 !important;
-  box-shadow: var(--shadow-glow-yellow);
+  border: 1px solid rgba(224, 218, 60, 0.3) !important;
+  box-shadow: 0 0 15px rgba(224, 218, 60, 0.15);
 }
 
 .nav-item.active svg {
-  color: var(--fly-dark) !important;
+  color: var(--fly-yellow) !important;
 }
 
 .sidebar-footer {
