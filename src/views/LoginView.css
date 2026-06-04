@@ -616,8 +616,8 @@
   }
 }
 
-/* MOBILE — Bottom sheet style */
-@media (max-width: 540px) {
+/* MOBILE — Exact Mockup Replication */
+@media (max-width: 768px) {
   .fly-login-screen {
     padding: 0;
     align-items: stretch;
@@ -630,35 +630,111 @@
     max-width: 100%;
     border: none;
     box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: transparent; /* Keep the app's dark background */
   }
 
+  /* Hide the desktop branding completely */
   .fly-login-brand {
-    padding: 2rem 1.25rem 1.5rem;
+    display: none;
   }
 
+  /* Main Form Card */
   .fly-login-card {
-    padding: 1.75rem 1.25rem 2rem;
+    padding: 2rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .fly-login-mega-title {
-    font-size: clamp(2rem, 9vw, 2.5rem);
+  .fly-login-card-body {
+    width: 100%;
+    max-width: 320px; /* Match the narrow look of the mockup */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
+  /* Mobile Logo */
+  .fly-mobile-logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .fly-login-card-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  /* Yellow Title */
   .fly-login-card-title {
-    font-size: 1.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--fly-yellow);
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0;
+    text-align: center;
   }
 
-  .fly-login-card-sub {
+  .fly-login-form {
+    width: 100%;
+    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fly-field {
+    gap: 0.25rem;
+  }
+
+  /* Labels */
+  .fly-field label {
+    font-family: var(--font-body);
+    font-weight: 600;
     font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7); /* Light gray */
+    letter-spacing: 0;
+    text-transform: none;
+    margin-left: 1rem;
   }
 
-  .fly-login-feature {
-    padding: 0.6rem 0.8rem;
+  /* Dark Pill Inputs */
+  .fly-field-wrap input {
+    background: #333333 !important; /* Dark gray */
+    border: none !important;
+    border-radius: 999px !important; /* Perfect Pill */
+    padding: 1rem 1.5rem !important;
+    font-size: 0.95rem;
+    color: #fff !important;
+    text-align: left;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5) !important;
   }
 
-  .fly-login-feature-text {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
+  .fly-field-wrap input:focus {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 2px var(--fly-yellow) !important;
+  }
+
+  /* Yellow Submit Pill */
+  .fly-login-submit {
+    margin-top: 1rem;
+    background: var(--fly-yellow);
+    color: #000;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1.2rem;
+    border-radius: 999px;
+    letter-spacing: 0;
+    text-transform: none;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(224, 218, 60, 0.3);
   }
 
   /* Reducir blobs decorativos en móvil para performance */
@@ -673,28 +749,8 @@
   }
 }
 
-/* MOBILE PEQUEÑO — Reducir aún más */
-@media (max-width: 380px) {
-  .fly-login-mega-title {
-    font-size: 1.85rem;
-  }
-
-  .fly-login-pitch {
-    font-size: 0.75rem;
-  }
-
-  .fly-login-card-title {
-    font-size: 1.3rem;
-  }
-
-  .fly-login-submit {
-    font-size: 0.75rem;
-    padding: 0.85rem 1rem;
-  }
-}
-
 /* PANTALLAS BAJAS — Reducir altura del brand */
-@media (max-height: 700px) and (min-width: 901px) {
+@media (max-height: 700px) and (min-width: 769px) {
   .fly-login-brand {
     min-height: 560px;
     padding: 2rem 2.25rem;

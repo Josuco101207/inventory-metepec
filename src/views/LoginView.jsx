@@ -22,7 +22,6 @@ const LoginView = () => {
     try {
       const result = await login(email, password);
       if (result?.success) {
-        // Non-blocking toast — UI transitions immediately
         setTimeout(() => toast.success('ACCESO CONCEDIDO'), 100);
       } else {
         const message = result?.error?.includes('Invalid login') 
@@ -50,13 +49,13 @@ const LoginView = () => {
     <div className="fly-login-screen">
       <FlyPattern fixed opacity={0.06} />
 
-      {/* Decorative geometric shapes (Bauhaus Pag. 17-19) */}
+      {/* Decorative geometric shapes */}
       <div className="fly-login-shape fly-login-shape-1" />
       <div className="fly-login-shape fly-login-shape-2" />
       <div className="fly-login-shape fly-login-shape-3" />
 
       <div className="fly-login-container">
-        {/* ═══ LADO IZQUIERDO: BRANDING ═══ */}
+        {/* ═══ LADO IZQUIERDO: BRANDING (DESKTOP) ═══ */}
         <aside className="fly-login-brand">
           <div className="fly-login-brand-top">
             <FlyLogo size={180} glow circular />
@@ -90,26 +89,26 @@ const LoginView = () => {
           </div>
         </aside>
 
-        {/* ═══ LADO DERECHO: FORMULARIO ═══ */}
+        {/* ═══ LADO DERECHO: FORMULARIO (AMBOS) ═══ */}
         <main className="fly-login-card">
          <div className="fly-login-card-body">
+          
           <header className="fly-login-card-header">
-            <span className="fly-login-step">PASO 01 / 01</span>
-            <h2 className="fly-login-card-title">IDENTIFICACION</h2>
-            <p className="fly-login-card-sub">
-              Ingresa tus credenciales para entrar al sistema.
-            </p>
+            {/* MOBILE ONLY LOGO */}
+            <div className="fly-mobile-logo-wrap">
+              <FlyLogo size={160} glow circular />
+            </div>
+
+            <h2 className="fly-login-card-title">IDENTIFICACIÓN</h2>
           </header>
 
           <form onSubmit={handleSubmit} className="fly-login-form">
             <div className="fly-field">
-              <label htmlFor="email">CORREO ELECTRONICO</label>
+              <label htmlFor="email">Correo Electronico</label>
               <div className="fly-field-wrap">
-                <Mail size={16} className="fly-field-icon" />
                 <input
                   id="email"
                   type="email"
-                  placeholder="tu@correo.com"
                   required
                   value={email}
                   onChange={handleInputChange(setEmail)}
@@ -119,28 +118,17 @@ const LoginView = () => {
             </div>
 
             <div className={`fly-field ${errorMsg ? 'fly-field-shake' : ''}`}>
-              <label htmlFor="password">CONTRASENA</label>
+              <label htmlFor="password">Contraseña</label>
               <div className="fly-field-wrap">
-                <Lock size={16} className="fly-field-icon" />
                 <input
                   id="password"
                   ref={(el) => { if (errorMsg && el) el.focus(); }}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
                   required
                   value={password}
                   onChange={handleInputChange(setPassword)}
                   autoComplete="current-password"
                 />
-                <button
-                  type="button"
-                  className="fly-field-action"
-                  onClick={() => setShowPassword(s => !s)}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
               </div>
             </div>
 
@@ -159,21 +147,11 @@ const LoginView = () => {
               {isAuthLoading ? (
                 <Loader2 className="fly-spin" size={18} />
               ) : (
-                <>
-                  ENTRAR AL SISTEMA <ArrowRight size={16} strokeWidth={3} />
-                </>
+                <>Iniciar Sesion</>
               )}
             </button>
           </form>
          </div>
-
-          <footer className="fly-login-footer">
-            <div className="fly-login-footer-line" />
-            <p className="fly-login-footer-text">
-              ¿Sin cuenta? Contacta al <strong>Administrador del Almacen</strong>.
-            </p>
-            <p className="fly-login-version">v1.0 · FLY EXTREME OS</p>
-          </footer>
         </main>
       </div>
     </div>
