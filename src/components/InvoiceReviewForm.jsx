@@ -407,8 +407,14 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                           {(() => {
                             const catConfig = categories.find(c => c.title === item.category) || {};
                             const schema = catConfig.schema || [];
-                            // Hide fields we already manage natively
-                            const HIDDEN = ['id', 'created_at', 'updated_at', 'status', 'prestados', 'borrowedBy', 'lentBy', 'loanDate', 'name', 'qty', 'threshold', 'category', 'observaciones', 'importe', 'precio_unitario', 'precioUnitario', 'iva', 'unidad', 'foto_url', 'descripcion'];
+                            const mappings = catConfig.fieldMappings || {};
+                            const mappedCols = [mappings.name, mappings.qty, mappings.observaciones, mappings.threshold].filter(Boolean);
+                            // Hide fields we already manage natively, plus mapped ones
+                            const HIDDEN = [
+                              'id', 'created_at', 'updated_at', 'status', 'prestados', 'borrowedBy', 'lentBy', 'loanDate', 
+                              'name', 'qty', 'threshold', 'category', 'observaciones', 'importe', 'precio_unitario', 'precioUnitario', 'iva', 'unidad', 'foto_url', 'descripcion',
+                              ...mappedCols
+                            ];
                             const visibleFields = schema.filter(f => !HIDDEN.includes(f.name));
 
                             if (visibleFields.length === 0) return null;
