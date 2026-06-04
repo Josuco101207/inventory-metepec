@@ -128,7 +128,6 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview 
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onClick={() => !disabled && fileRef.current?.click()}
       >
         {preview ? (
           <div className="iu-preview-wrap">
@@ -142,31 +141,31 @@ const InvoiceUploader = ({ onFileSelected, processing, disabled, initialPreview 
             <div className="iu-dropzone-icon">
               <Upload size={32} />
             </div>
-            <h3>Arrastra tu factura aquí</h3>
-            <p>o haz clic para seleccionar archivo</p>
-            <p className="iu-formats">JPG, PNG, WebP, PDF · Máx {MAX_SIZE_MB}MB</p>
+            <h3>Sube tu factura para extraer datos</h3>
+            <p>Arrastra tu archivo PDF o Imagen aquí</p>
+            
+            <div className="iu-actions-inline">
+              <button
+                className="fly-btn fly-btn-primary iu-action-btn-inline"
+                onClick={() => fileRef.current?.click()}
+                disabled={disabled}
+              >
+                <FileImage size={16} />
+                Explorar
+              </button>
+              <button
+                className="fly-btn fly-btn-secondary iu-action-btn-inline"
+                onClick={() => cameraRef.current?.click()}
+                disabled={disabled}
+              >
+                <Camera size={16} />
+                Tomar Foto
+              </button>
+            </div>
+
+            <p className="iu-formats">Soporta: JPG, PNG, WebP, PDF · Máx {MAX_SIZE_MB}MB</p>
           </div>
         )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="iu-actions">
-        <button
-          className="fly-btn fly-btn-primary iu-action-btn"
-          onClick={() => fileRef.current?.click()}
-          disabled={disabled}
-        >
-          <FileImage size={18} />
-          Subir Archivo
-        </button>
-        <button
-          className="fly-btn fly-btn-secondary iu-action-btn"
-          onClick={() => cameraRef.current?.click()}
-          disabled={disabled}
-        >
-          <Camera size={18} />
-          Tomar Foto
-        </button>
       </div>
 
       {/* Hidden inputs */}

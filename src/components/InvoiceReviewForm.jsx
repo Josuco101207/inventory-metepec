@@ -13,11 +13,11 @@ const IVA_RATE = 0.16;
 const UNITS = ['PZA', 'KG', 'M', 'LT', 'ML', 'CM', 'ROLLO', 'CAJA', 'PAR', 'JGO', 'BOLSA', 'PAQUETE'];
 
 const MatchBadge = ({ score, isExact, isNew }) => {
-  if (isNew) return <span className="irf-badge irf-badge-new"><PlusCircle size={12} /> Producto Nuevo</span>;
-  if (isExact) return <span className="irf-badge irf-badge-exact"><CheckCircle2 size={12} /> Coincidencia Exacta</span>;
-  if (score >= 0.7) return <span className="irf-badge irf-badge-high"><Sparkles size={12} /> Alta ({Math.round(score * 100)}%)</span>;
-  if (score >= 0.5) return <span className="irf-badge irf-badge-mid"><Search size={12} /> Parcial ({Math.round(score * 100)}%)</span>;
-  return <span className="irf-badge irf-badge-low"><AlertTriangle size={12} /> Baja ({Math.round(score * 100)}%)</span>;
+  if (isNew) return <div className="irf-led irf-led-new" title="Producto Nuevo" />;
+  if (isExact) return <div className="irf-led irf-led-exact" title="Coincidencia Exacta" />;
+  if (score >= 0.7) return <div className="irf-led irf-led-high" title={`Alta (${Math.round(score * 100)}%)`} />;
+  if (score >= 0.5) return <div className="irf-led irf-led-mid" title={`Parcial (${Math.round(score * 100)}%)`} />;
+  return <div className="irf-led irf-led-low" title={`Baja (${Math.round(score * 100)}%)`} />;
 };
 
 const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, facturaStorageUrl }) => {
@@ -285,32 +285,33 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
               <span className="irf-section-count">{items.length} items</span>
             </h3>
 
-            <div className="irf-items-list">
-              {items.map((item, idx) => (
-                <div key={item._key} className={`irf-item-card ${!item.accepted ? 'irf-item-rejected' : ''}`}>
-                  <div className="irf-item-main">
-                    {/* Row 1: Names + Badge */}
-                    <div className="irf-item-names">
-                      <div className="irf-item-original">
-                        <span className="irf-label-tiny">Original (Factura)</span>
-                        <span className="irf-original-text">{item.originalName}</span>
+            <div className="irf-table">
+              <div className="irf-table-header">
+                <div className="irf-th-name">Producto</div>
+                <div className="irf-th-qty">Cant.</div>
+                <div className="irf-th-price">Precio U.</div>
+                <div className="irf-th-total">Importe</div>
+                <div className="irf-th-actions">Acciones</div>
+              </div>
+              
+              <div className="irf-table-body">
+                {items.map((item, idx) => (
+                  <div key={item._key} className={`irf-tr ${!item.accepted ? 'irf-tr-rejected' : ''}`}>
+                    <div className="irf-tr-main">
+                      <div className="irf-td-name">
+                        <MatchBadge score={item.matchScore} isExact={item.isExact} isNew={item.isNew} />
+                        <div className="irf-td-name-inputs">
+                          <span className="irf-original-text" title={item.originalName}>{item.originalName}</span>
+                          <input
+                            className="iv-input irf-mapped-input"
+                            value={item.mappedName}
+                            onChange={(e) => updateItem(idx, 'mappedName', e.target.value)}
+                            placeholder="Nombre en sistema..."
+                          />
+                        </div>
                       </div>
-                      <div className="irf-item-arrow">→</div>
-                      <div className="irf-item-mapped">
-                        <span className="irf-label-tiny">Nombre en Sistema</span>
-                        <input
-                          className="iv-input irf-mapped-input"
-                          value={item.mappedName}
-                          onChange={(e) => updateItem(idx, 'mappedName', e.target.value)}
-                        />
-                      </div>
-                      <MatchBadge score={item.matchScore} isExact={item.isExact} isNew={item.isNew} />
-                    </div>
-
-                    {/* Row 2: Editable fields */}
-                    <div className="irf-item-fields">
-                      <div className="irf-mini-field">
-                        <label>Cantidad</label>
+                      
+                      <div className="irf-td-qty">
                         <input
                           className="iv-input"
                           type="number"
@@ -319,9 +320,6 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                           value={item.cantidad}
                           onChange={(e) => updateItem(idx, 'cantidad', e.target.value)}
                         />
-                      </div>
-                      <div className="irf-mini-field">
-                        <label>Unidad</label>
                         <select
                           className="iv-input"
                           value={item.unidad}
@@ -330,8 +328,8 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                           {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                         </select>
                       </div>
-                      <div className="irf-mini-field">
-                        <label>P. Unitario</label>
+                      
+                      <div className="irf-td-price">
                         <input
                           className="iv-input"
                           type="number"
@@ -341,83 +339,88 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                           onChange={(e) => updateItem(idx, 'precioUnitario', e.target.value)}
                         />
                       </div>
-                      <div className="irf-mini-field">
-                        <label>IVA (16%)</label>
-                        <input className="iv-input" value={fmt(item.iva)} readOnly style={{ opacity: 0.7 }} />
+                      
+                      <div className="irf-td-total">
+                        <span className="irf-importe">{fmt(item.importe)}</span>
                       </div>
-                      <div className="irf-mini-field">
-                        <label>Importe</label>
-                        <input className="iv-input irf-importe" value={fmt(item.importe)} readOnly />
-                      </div>
-                      <div className="irf-mini-field">
-                        <label>Categoría</label>
-                        <select
-                          className="iv-input"
-                          value={item.category}
-                          onChange={(e) => updateItem(idx, 'category', e.target.value)}
+                      
+                      <div className="irf-td-actions">
+                        <button 
+                          className={`irf-btn-icon ${expandedRow === idx ? 'active' : ''}`} 
+                          onClick={() => setExpandedRow(expandedRow === idx ? null : idx)} 
+                          title="Detalles y Coincidencias"
                         >
-                          {categoryTitles.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                          <Edit3 size={16} />
+                        </button>
+                        <button 
+                          className={`irf-btn-icon ${!item.accepted ? 'disabled' : 'success'}`} 
+                          onClick={() => updateItem(idx, 'accepted', !item.accepted)} 
+                          title={item.accepted ? "Excluir producto" : "Incluir producto"}
+                        >
+                          <CheckCircle2 size={16} />
+                        </button>
+                        <button 
+                          className="irf-btn-icon danger" 
+                          onClick={() => removeItem(idx)} 
+                          title="Eliminar de la lista"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
 
-                    {/* Row 3: Actions */}
-                    <div className="irf-item-actions">
-                      <button
-                        className="irf-action-btn"
-                        onClick={() => setExpandedRow(expandedRow === idx ? null : idx)}
-                        title="Ver coincidencias"
-                      >
-                        <Search size={14} /> Buscar Coincidencias
-                      </button>
-                      <button
-                        className="irf-action-btn"
-                        onClick={() => markAsNew(idx)}
-                        title="Marcar como nuevo"
-                      >
-                        <PlusCircle size={14} /> Nuevo Producto
-                      </button>
-                      <label className="irf-toggle-label">
-                        <input
-                          type="checkbox"
-                          checked={item.accepted}
-                          onChange={(e) => updateItem(idx, 'accepted', e.target.checked)}
-                        />
-                        <span>Incluir</span>
-                      </label>
-                      <button className="irf-action-btn irf-action-danger" onClick={() => removeItem(idx)}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Expanded: Match suggestions */}
-                  {expandedRow === idx && (
-                    <div className="irf-matches-panel">
-                      <p className="irf-matches-title">Coincidencias encontradas en inventario:</p>
-                      {item.matches.length > 0 ? (
-                        <div className="irf-matches-list">
-                          {item.matches.map((m, mi) => (
-                            <button
-                              key={mi}
-                              className="irf-match-option"
-                              onClick={() => selectMatch(idx, m)}
+                    {expandedRow === idx && (
+                      <div className="irf-tr-expanded">
+                        <div className="irf-expanded-fields">
+                          <div className="iv-field">
+                            <label>Categoría</label>
+                            <select
+                              className="iv-input"
+                              value={item.category}
+                              onChange={(e) => updateItem(idx, 'category', e.target.value)}
                             >
-                              <span className="irf-match-name">{m.item.name}</span>
-                              <span className="irf-match-cat">{m.item.category}</span>
-                              <span className={`irf-match-score ${m.score >= 0.7 ? 'high' : m.score >= 0.5 ? 'mid' : 'low'}`}>
-                                {Math.round(m.score * 100)}%
-                              </span>
-                            </button>
-                          ))}
+                              {categoryTitles.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div className="iv-field">
+                            <label>IVA (16%)</label>
+                            <input className="iv-input" value={fmt(item.iva)} readOnly style={{ opacity: 0.7 }} />
+                          </div>
+                          <button 
+                            className="irf-action-btn"
+                            onClick={() => markAsNew(idx)}
+                          >
+                            <PlusCircle size={14} /> Forzar como Nuevo
+                          </button>
                         </div>
-                      ) : (
-                        <p className="irf-no-matches">No se encontraron coincidencias en el inventario</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        
+                        <div className="irf-matches-panel">
+                          <p className="irf-matches-title">Sugerencias del Inventario:</p>
+                          {item.matches.length > 0 ? (
+                            <div className="irf-matches-list">
+                              {item.matches.slice(0, 3).map((m, mi) => (
+                                <button
+                                  key={mi}
+                                  className="irf-match-option"
+                                  onClick={() => selectMatch(idx, m)}
+                                >
+                                  <span className="irf-match-name">{m.item.name}</span>
+                                  <span className="irf-match-cat">{m.item.category}</span>
+                                  <span className={`irf-match-score ${m.score >= 0.7 ? 'high' : m.score >= 0.5 ? 'mid' : 'low'}`}>
+                                    {Math.round(m.score * 100)}%
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="irf-no-matches">No se encontraron sugerencias en el inventario.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
