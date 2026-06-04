@@ -129,6 +129,15 @@ const LoginView = () => {
                   onChange={handleInputChange(setPassword)}
                   autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  className="fly-field-action"
+                  onClick={() => setShowPassword(s => !s)}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
