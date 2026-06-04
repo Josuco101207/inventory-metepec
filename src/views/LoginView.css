@@ -280,6 +280,10 @@
   min-height: 0;
 }
 
+.fly-mobile-logo-wrap {
+  display: none; /* Hides the logo on desktop by default */
+}
+
 .fly-login-step {
   display: inline-block;
   font-family: var(--font-heading);
