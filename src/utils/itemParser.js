@@ -13,16 +13,12 @@ export const mapToDbFields = (rawFields, validColumns, fieldMappings = {}) => {
   const safeColumns = validColumns.filter(c => typeof c === 'string');
 
   for (const key of Object.keys(rawFields)) {
-    if (safeColumns.includes(key)) {
+    const mappedCol = fieldMappings[key];
+    // Prioritize explicit mappings
+    if (mappedCol && mappedCol !== key) {
+      dbFields[mappedCol] = rawFields[key];
+    } else if (safeColumns.length === 0 || safeColumns.includes(key)) {
       dbFields[key] = rawFields[key];
-    } else {
-      // Mapeo estricto utilizando el diccionario fieldMappings proporcionado
-      const mappedCol = fieldMappings[key];
-      if (mappedCol && safeColumns.includes(mappedCol)) {
-        if (dbFields[mappedCol] === undefined) {
-          dbFields[mappedCol] = rawFields[key];
-        }
-      }
     }
   }
   return dbFields;
