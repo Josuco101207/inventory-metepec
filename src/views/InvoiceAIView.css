@@ -765,7 +765,7 @@
 
 .irf-table-header {
   display: grid;
-  grid-template-columns: minmax(200px, 1.6fr) 120px 100px 100px 110px;
+  grid-template-columns: minmax(200px, 1.5fr) 80px 90px 100px 120px 110px;
   gap: 0.5rem;
   padding: 0 1.25rem 0.75rem;
   border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -823,7 +823,7 @@
 
 .irf-tr-main {
   display: grid;
-  grid-template-columns: minmax(200px, 1.6fr) 120px 100px 100px 110px;
+  grid-template-columns: minmax(200px, 1.5fr) 80px 90px 100px 120px 110px;
   gap: 0.5rem;
   padding: 0.85rem 1.25rem;
   align-items: center;
@@ -875,7 +875,6 @@
 /* Qty Column */
 .irf-td-qty {
   display: flex;
-  gap: 0.3rem;
 }
 
 .irf-td-qty .iv-input,
@@ -887,6 +886,7 @@
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .irf-td-qty .iv-input:focus,
@@ -895,9 +895,19 @@
   box-shadow: 0 0 10px -3px rgba(224, 218, 60, 0.2);
 }
 
-.irf-td-qty select {
-  padding-left: 0.2rem;
-  padding-right: 0.2rem;
+.irf-td-unit {
+  display: flex;
+}
+
+.irf-td-unit .iv-input {
+  padding: 0.4rem 0.3rem;
+  font-size: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s ease;
+  width: 100%;
+  text-align: center;
 }
 
 /* Total Column */
@@ -1375,9 +1385,10 @@
 
   .irf-td-name { order: 1; }
   .irf-td-qty { order: 2; }
-  .irf-td-price { order: 3; }
-  .irf-td-total { order: 4; text-align: left; }
-  .irf-td-actions { order: 5; justify-content: flex-start; }
+  .irf-td-unit { order: 3; }
+  .irf-td-price { order: 4; }
+  .irf-td-total { order: 5; text-align: left; }
+  .irf-td-actions { order: 6; justify-content: flex-start; }
 
   .iaiv-done-summary { grid-template-columns: 1fr; gap: 0.5rem; }
   .iaiv-done-card { padding: 2rem 1.25rem; }

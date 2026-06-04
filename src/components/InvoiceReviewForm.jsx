@@ -289,6 +289,7 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
               <div className="irf-table-header">
                 <div className="irf-th-name">Producto</div>
                 <div className="irf-th-qty">Cant.</div>
+                <div className="irf-th-unit">Unidad</div>
                 <div className="irf-th-price">Precio U.</div>
                 <div className="irf-th-total">Importe</div>
                 <div className="irf-th-actions">Acciones</div>
@@ -320,6 +321,9 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                           value={item.cantidad}
                           onChange={(e) => updateItem(idx, 'cantidad', e.target.value)}
                         />
+                      </div>
+
+                      <div className="irf-td-unit">
                         <select
                           className="iv-input"
                           value={item.unidad}
