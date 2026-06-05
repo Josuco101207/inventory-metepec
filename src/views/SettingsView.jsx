@@ -79,7 +79,7 @@ const SettingsView = () => {
               </div>
 
               {showSubLevel && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px dashed rgba(255,255,255,0.1)' }}>
+                <div className="fly-sublevel-container">
                   <div className="fly-premium-input-group" style={{ flex: 1 }}>
                     <select 
                       className="fly-premium-select"
@@ -98,8 +98,7 @@ const SettingsView = () => {
                     />
                   </div>
                   <button 
-                    className="fly-btn-ghost"
-                    style={{ padding: '0.6rem', color: '#ff3b30' }}
+                    className="fly-btn-ghost fly-btn-remove-sub"
                     onClick={() => { setShowSubLevel(false); setLocId2(''); }}
                     title="Remover Sub-nivel"
                   >
@@ -108,7 +107,7 @@ const SettingsView = () => {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+              <div className="fly-builder-actions">
                 {!showSubLevel ? (
                   <button className="fly-btn-ghost" onClick={() => setShowSubLevel(true)}>
                     <Plus size={16} /> Añadir Nivel Secundario

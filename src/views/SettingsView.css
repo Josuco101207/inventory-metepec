@@ -284,28 +284,131 @@
   font-weight: 600;
 }
 
-/* ═══ RESPONSIVE ═══ */
-@media (max-width: 900px) {
+/* ═══ BUILDER SPECIFICS ═══ */
+.fly-sublevel-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-left: 1rem;
+  border-left: 2px dashed rgba(255,255,255,0.1);
+}
+
+.fly-btn-remove-sub {
+  padding: 0.6rem;
+  color: #ff3b30;
+}
+
+.fly-builder-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+/* ═══ REDISEÑO MOBILE ═══ */
+@media (max-width: 768px) {
   .fly-settings-grid {
     grid-template-columns: 1fr;
   }
-  .fly-settings-header h1 {
-    font-size: 2rem;
-  }
-}
 
-@media (max-width: 600px) {
   .fly-settings-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
   }
+  
   .fly-settings-view {
-    padding: 0 1rem 3rem;
+    padding: 0 1rem 6rem;
   }
+
+  .fly-settings-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .fly-sh-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+  }
+
+  .fly-settings-header h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .fly-settings-header h1 span {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
   .fly-glass-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
   }
+
+  .fly-gc-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .fly-gc-header h2 {
+    font-size: 1.2rem;
+  }
+
   .fly-premium-input-group {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .fly-premium-select, .fly-premium-input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  .fly-sublevel-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding-left: 0;
+    border-left: none;
+    border-top: 2px dashed rgba(255,255,255,0.1);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .fly-btn-remove-sub {
+    width: 100%;
+    justify-content: center;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px dashed rgba(255, 59, 48, 0.3);
+  }
+
+  .fly-builder-actions {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .fly-builder-actions > button,
+  .fly-builder-actions > div {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fly-btn-neon {
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 14px;
+    justify-content: center;
+  }
+
+  .fly-glass-list-item {
+    flex-direction: row;
+    padding: 0.85rem 1rem;
   }
 }
