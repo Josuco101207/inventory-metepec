@@ -1360,35 +1360,214 @@
   .iu-actions-inline { flex-direction: column; gap: 0.75rem; }
   .iu-action-btn-inline { width: 100%; justify-content: center; }
 
-  .irf-split { grid-template-columns: 1fr; gap: 1rem; }
+  /* ─── REDISEÑO MOBILE REVISIÓN ─── */
+  .irf-container {
+    gap: 1.5rem;
+  }
+
+  .irf-split { grid-template-columns: 1fr; gap: 1.5rem; }
+
+  .irf-topbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 10, 12, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1rem;
+    border: 1px solid rgba(218, 0, 163, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(218, 0, 163, 0.1);
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    flex-wrap: wrap;
+  }
+
+  .irf-topbar h2 {
+    font-size: 1.15rem;
+    order: 0;
+    margin: 0;
+    text-align: center;
+    background: linear-gradient(135deg, #fff, var(--fly-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .irf-topbar .fly-btn-ghost {
+    padding: 0.6rem;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    min-width: unset;
+  }
+  
+  .irf-topbar .fly-btn-ghost svg { margin: 0; }
+  
+  .irf-topbar .fly-btn-primary {
+    width: 100%;
+    margin-top: 0.75rem;
+    order: 3;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--fly-magenta), var(--fly-yellow));
+    color: #000;
+    font-weight: 900;
+    text-transform: uppercase;
+    box-shadow: 0 8px 25px rgba(218, 0, 163, 0.4);
+  }
+
+  .irf-topbar > :nth-child(1) { order: 1; }
+  .irf-topbar > :nth-child(2) { order: 2; flex: 1; text-align: right; }
+  .irf-topbar > :nth-child(3) { order: 3; width: 100%; }
 
   .irf-preview-panel {
-    position: static;
-    max-height: 220px;
+    position: relative;
+    max-height: 200px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 174, 239, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 174, 239, 0.15);
     overflow: hidden;
   }
 
-  .irf-topbar {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+  .irf-preview-header {
+    background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), transparent);
+    color: #00aeef;
+    border-bottom: 1px solid rgba(0, 174, 239, 0.2);
+    font-size: 0.8rem;
   }
 
-  .irf-topbar h2 { font-size: 1.1rem; order: -1; }
-
-  .irf-tr-main {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+  .irf-section {
+    border-radius: 24px;
+    padding: 1.5rem 1.25rem;
+    background: linear-gradient(180deg, rgba(25, 25, 30, 0.8) 0%, rgba(15, 15, 18, 0.95) 100%);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
   }
+
+  .irf-section::before {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--fly-yellow), transparent);
+  }
+
+  .irf-section-title {
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+  }
+
+  .irf-header-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .irf-header-grid .iv-field label,
+  .irf-expanded-fields .iv-field label {
+    font-size: 0.65rem;
+    color: var(--fly-yellow);
+    opacity: 0.9;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  .irf-container .iv-input {
+    background: rgba(0,0,0,0.3) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 12px !important;
+    padding: 0.85rem 1rem !important;
+    color: #fff !important;
+    font-size: 0.95rem !important;
+    transition: all 0.3s !important;
+    width: 100%;
+  }
+  
+  .irf-container .iv-input:focus {
+    border-color: var(--fly-yellow) !important;
+    box-shadow: 0 0 15px rgba(224, 218, 60, 0.2) !important;
+    background: rgba(0,0,0,0.5) !important;
+  }
+
+  .irf-header-grid > :nth-child(2) {
+    grid-column: span 2;
+  }
+
+  .irf-table-body {
+    gap: 1.25rem;
+  }
+
+  .irf-tr {
+    background: linear-gradient(135deg, rgba(30, 30, 35, 0.8), rgba(20, 20, 25, 0.9));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  }
+
+  .irf-tr::before { display: none; }
 
   .irf-table-header { display: none; }
 
-  .irf-td-name { order: 1; }
-  .irf-td-qty { order: 2; }
-  .irf-td-unit { order: 3; }
-  .irf-td-price { order: 4; }
-  .irf-td-total { order: 5; text-align: left; }
-  .irf-td-actions { order: 6; justify-content: flex-start; }
+  .irf-tr-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 
+      "name name"
+      "qty unit"
+      "price total"
+      "actions actions";
+    gap: 1rem;
+  }
+
+  .irf-td-name { grid-area: name; flex-direction: column; align-items: flex-start; gap: 0.75rem; width: 100%; }
+  .irf-td-qty { grid-area: qty; }
+  .irf-td-unit { grid-area: unit; }
+  .irf-td-price { grid-area: price; }
+  .irf-td-total { grid-area: total; display: flex; align-items: center; justify-content: flex-end; }
+  .irf-td-actions { grid-area: actions; justify-content: center; padding-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); margin-top: 0.25rem; gap: 1rem; display: flex;}
+
+  .irf-td-name-inputs { width: 100%; }
+
+  .irf-mapped-input {
+    width: 100%;
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(218, 0, 163, 0.4) !important;
+    border-radius: 12px !important;
+    padding: 0.85rem !important;
+    font-size: 0.95rem !important;
+    color: #fff !important;
+  }
+
+  .irf-mapped-input:focus {
+    border-color: var(--fly-magenta) !important;
+    box-shadow: 0 0 20px rgba(218, 0, 163, 0.2) !important;
+  }
+
+  .irf-td-qty::before { content: "Cant."; font-size: 0.65rem; color: var(--fly-yellow); text-transform: uppercase; margin-bottom: 0.4rem; display: block; font-weight: 800;}
+  .irf-td-unit::before { content: "Unidad"; font-size: 0.65rem; color: var(--fly-yellow); text-transform: uppercase; margin-bottom: 0.4rem; display: block; font-weight: 800;}
+  .irf-td-price::before { content: "Precio U."; font-size: 0.65rem; color: var(--fly-yellow); text-transform: uppercase; margin-bottom: 0.4rem; display: block; font-weight: 800;}
+  .irf-td-total::before { content: "Importe"; font-size: 0.65rem; color: var(--fly-yellow); text-transform: uppercase; margin-right: 0.75rem; font-weight: 800;}
+
+  .irf-tr-main .iv-input {
+    width: 100% !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 10px !important;
+    padding: 0.75rem !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+  }
+
+  .irf-importe {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--zone-arcade);
+  }
+
+  .irf-btn-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
 
   .iaiv-done-summary { grid-template-columns: 1fr; gap: 0.5rem; }
   .iaiv-done-card { padding: 2rem 1.25rem; }
