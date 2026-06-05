@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     
     if (adminEmails.length === 0) {
       console.log('No admins found via DB query (likely RLS). Falling back to default admin email.');
-      adminEmails = ['josuco.mst@gmail.com'];
+      adminEmails = ['cesardelgado.diaz1@gmail.com'];
     }
 
     // 7. Construir el reporte en HTML
