@@ -638,10 +638,188 @@
 }
 
 @media (max-width: 600px) {
+  /* Retain fallback for extreme small desktop sizes if any, but hide if isMobile logic triggers */
   .fly-profile-container { padding-top: 2rem; }
   .fly-profile-view { padding: 0 1rem 3rem; }
   .profile-stats-grid { grid-template-columns: 1fr; }
   .primary-card { grid-column: span 1; }
   .profile-name-glitch { font-size: 2rem; }
   .log-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+  /* ── REDISEÑO EXTREMO MÓVIL (PERFIL) ── */
+  
+  .fly-profile-view { display: none !important; } /* Hide desktop view entirely */
+
+  .fly-profile-mobile {
+    min-height: 100vh;
+    background: #030303; /* Deepest black */
+    color: #fff;
+    font-family: 'Inter', system-ui, sans-serif;
+    padding-bottom: 5rem;
+    margin-top: -1rem; /* Adjust over mobile nav if needed */
+  }
+
+  /* ── 1. HEADER FLOTANTE ── */
+  .fpm-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(3, 3, 3, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .fpm-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .fpm-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin: 0;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, #888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .fpm-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255,255,255,0.05);
+  }
+  .fpm-status-badge.online { color: #00f0ff; background: rgba(0, 240, 255, 0.1); }
+  .fpm-status-badge.offline { color: #ff3b30; background: rgba(255, 59, 48, 0.1); }
+  
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .fpm-content { padding: 1.25rem; }
+
+  /* ── 2. USER CARD ── */
+  .fpm-user-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+  }
+
+  .fpm-avatar-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(226, 255, 0, 0.15), rgba(218, 0, 163, 0.15));
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .fpm-avatar-icon { color: #fff; }
+
+  .fpm-user-info { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+  .fpm-user-name { margin: 0; font-size: 1.2rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+  .fpm-user-role { font-size: 0.7rem; font-weight: 800; color: #00f0ff; text-transform: uppercase; letter-spacing: 0.05em; }
+  .fpm-user-email { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+
+  .fpm-admin-icon { color: rgba(0, 240, 255, 0.3); position: absolute; right: 1.25rem; top: 1.25rem; }
+
+  /* ── 3. QUICK STATS ── */
+  .fpm-quick-stats {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .fpm-stat-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+  }
+  .fpm-stat-icon { flex-shrink: 0; }
+  .fpm-stat-data { display: flex; flex-direction: column; }
+  .fpm-stat-val { font-size: 1.1rem; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 0.1rem; }
+  .fpm-stat-lbl { font-size: 0.6rem; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; }
+
+  /* ── 4. HUD METRICS ── */
+  .fpm-metrics { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+  
+  .fpm-metric-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 18px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .fpm-mc-header { display: flex; align-items: center; gap: 0.6rem; font-size: 0.65rem; font-weight: 800; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; }
+  .fpm-mc-body { display: flex; align-items: baseline; gap: 0.4rem; }
+  .fpm-mc-main { font-size: 2.2rem; font-weight: 900; line-height: 1; color: #fff; }
+  .fpm-mc-sub { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.3); }
+  
+  .fpm-mc-progress { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.05); overflow: hidden; margin-top: 0.2rem; }
+  .fpm-mc-bar { height: 100%; border-radius: 2px; }
+
+  /* Utilities */
+  .txt-yellow { color: var(--fly-yellow); }
+  .bg-yellow { background: var(--fly-yellow); box-shadow: 0 0 10px rgba(226, 255, 0, 0.4); }
+  .txt-cyan { color: #00f0ff; }
+  .txt-magenta { color: var(--fly-magenta); }
+
+  /* ── 5. TIMELINE / LOGS ── */
+  .fpm-logs-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .fpm-logs-header h3 { margin: 0; font-size: 1.15rem; font-weight: 800; color: #fff; }
+  
+  .fpm-log-filters { display: flex; gap: 0.5rem; }
+  .fpm-log-fbtn { font-size: 0.75rem; font-weight: 700; padding: 0.5rem 1rem; border-radius: 100px; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
+  .fpm-log-fbtn.active { background: #fff; color: #000; border-color: #fff; }
+
+  .fpm-log-list { display: flex; flex-direction: column; gap: 1rem; position: relative; }
+  
+  .fpm-log-item { display: flex; gap: 1rem; }
+  .fpm-log-dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; border: 2px solid #000; outline: 1px solid rgba(255,255,255,0.2); }
+  .fpm-log-dot.action-Entrada, .fpm-log-dot.action-Alta { background: var(--fly-yellow); outline-color: rgba(226,255,0,0.4); }
+  .fpm-log-dot.action-Salida { background: #ff3b30; outline-color: rgba(255,59,48,0.4); }
+  
+  .fpm-log-content { flex: 1; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 14px; }
+  .fpm-log-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 1rem; }
+  .fpm-log-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+  .fpm-log-time { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-family: monospace; }
+  
+  .fpm-log-bot { display: flex; justify-content: space-between; align-items: center; }
+  .fpm-log-action { font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+  .fpm-log-action.action-Entrada, .fpm-log-action.action-Alta { background: rgba(226,255,0,0.15); color: var(--fly-yellow); }
+  .fpm-log-action.action-Salida { background: rgba(255,59,48,0.15); color: #ff3b30; }
+  .fpm-log-qty { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.6); }
+
+  .fpm-log-empty { padding: 4rem 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.9rem; font-weight: 700; }
 }

@@ -3,12 +3,14 @@ import { User, Shield, Clock, TrendingUp, BarChart3, Mail, Calendar, Activity, P
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useCategories } from '../context/CategoriesContext';
+import useIsMobile from '../hooks/useIsMobile';
 import './ProfileView.css';
 
 const ProfileView = () => {
   const { userData, isAdmin } = useAuth();
   const { movements, items, connectionStatus } = useInventory();
   const { categories } = useCategories();
+  const { isMobile } = useIsMobile();
 
   // Compute metrics
   const myMovements = useMemo(() => 
@@ -54,6 +56,133 @@ const ProfileView = () => {
   // Additional mock metrics for a premium "HUD" feel
   const currentSessionLength = "02:45:10"; 
   const systemIntegrity = "Optimo";
+
+  if (isMobile) {
+    return (
+      <div className="fly-profile-mobile">
+        <div className="fpm-sticky-header">
+          <div className="fpm-header-top">
+            <h1 className="fpm-title">Perfil</h1>
+            <div className={`fpm-status-badge ${connectionStatus === 'online' ? 'online' : 'offline'}`}>
+              <div className="status-dot"></div>
+              {connectionStatus === 'online' ? 'Conectado' : 'Desconectado'}
+            </div>
+          </div>
+        </div>
+
+        <div className="fpm-content">
+          {/* USER INFO CARD */}
+          <div className="fpm-user-card">
+            <div className="fpm-avatar-wrap">
+              <User size={40} className="fpm-avatar-icon"/>
+            </div>
+            <div className="fpm-user-info">
+              <h2 className="fpm-user-name">{userData?.name || userData?.displayName || 'Usuario Fly'}</h2>
+              <span className="fpm-user-role">{userData?.role || 'Operador Central'}</span>
+              <span className="fpm-user-email">{userData?.email || 'usuario@flyextreme.com'}</span>
+            </div>
+            {isAdmin && <Shield size={24} className="fpm-admin-icon" />}
+          </div>
+
+          {/* QUICK STATS */}
+          <div className="fpm-quick-stats">
+            <div className="fpm-stat-box">
+              <Clock size={16} className="fpm-stat-icon txt-magenta" />
+              <div className="fpm-stat-data">
+                <span className="fpm-stat-val">{currentSessionLength}</span>
+                <span className="fpm-stat-lbl">SESIÓN</span>
+              </div>
+            </div>
+            <div className="fpm-stat-box">
+              <CheckCircle2 size={16} className="fpm-stat-icon txt-cyan" />
+              <div className="fpm-stat-data">
+                <span className="fpm-stat-val">{systemIntegrity}</span>
+                <span className="fpm-stat-lbl">SISTEMA</span>
+              </div>
+            </div>
+          </div>
+
+          {/* METRICS CARDS */}
+          <div className="fpm-metrics">
+            <div className="fpm-metric-card">
+              <div className="fpm-mc-header">
+                <TrendingUp size={16} className="txt-yellow" />
+                <span>ÍNDICE DE OPERACIONES</span>
+              </div>
+              <div className="fpm-mc-body">
+                <span className="fpm-mc-main">{myActionsCount}</span>
+                <span className="fpm-mc-sub">MOVIMIENTOS</span>
+              </div>
+              <div className="fpm-mc-progress">
+                <div className="fpm-mc-bar bg-yellow" style={{width: `${progressPercent}%`}}></div>
+              </div>
+            </div>
+
+            <div className="fpm-metric-card">
+              <div className="fpm-mc-header">
+                <Package size={16} className="txt-cyan" />
+                <span>BASE DE DATOS SKU</span>
+              </div>
+              <div className="fpm-mc-body">
+                <span className="fpm-mc-main">{items.length}</span>
+                <span className="fpm-mc-sub">ACTIVOS</span>
+              </div>
+            </div>
+
+            <div className="fpm-metric-card">
+              <div className="fpm-mc-header">
+                <Database size={16} className="txt-magenta" />
+                <span>ESTRUCTURA LÓGICA</span>
+              </div>
+              <div className="fpm-mc-body">
+                <span className="fpm-mc-main">{totalTables}</span>
+                <span className="fpm-mc-sub">TABLAS</span>
+              </div>
+            </div>
+          </div>
+
+          {/* BITÁCORA */}
+          <div className="fpm-logs-section">
+            <div className="fpm-logs-header">
+              <h3>Bitácora Reciente</h3>
+              <div className="fpm-log-filters">
+                <span className={`fpm-log-fbtn ${logFilter === 'Recientes' ? 'active' : ''}`} onClick={() => setLogFilter('Recientes')}>Todos</span>
+                <span className={`fpm-log-fbtn ${logFilter === 'Entradas' ? 'active' : ''}`} onClick={() => setLogFilter('Entradas')}>Ent</span>
+                <span className={`fpm-log-fbtn ${logFilter === 'Salidas' ? 'active' : ''}`} onClick={() => setLogFilter('Salidas')}>Sal</span>
+              </div>
+            </div>
+
+            <div className="fpm-log-list">
+              {filteredMovements.length > 0 ? filteredMovements.slice(0, 5).map((mov, idx) => (
+                <div key={mov.id || idx} className="fpm-log-item">
+                  <div className={`fpm-log-dot action-${mov.action}`}></div>
+                  <div className="fpm-log-content">
+                    <div className="fpm-log-top">
+                      <span className="fpm-log-name">{mov.item}</span>
+                      <span className="fpm-log-time">
+                        {mov.timestamp 
+                          ? (typeof mov.timestamp === 'string' 
+                              ? new Date(mov.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
+                              : (mov.timestamp.toDate ? mov.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : mov.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}))) 
+                          : mov.time}
+                      </span>
+                    </div>
+                    <div className="fpm-log-bot">
+                      <span className={`fpm-log-action action-${mov.action}`}>{mov.action}</span>
+                      {mov.qty && <span className="fpm-log-qty">{mov.qty} uds</span>}
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="fpm-log-empty">No hay registros.</div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fly-profile-view">
