@@ -9,6 +9,19 @@
   font-family: 'Inter', system-ui, sans-serif;
   padding-bottom: 5rem;
   overflow-x: hidden;
+  margin-top: -2rem; /* Sube la vista para que quede 100% pegada arriba (compensa el padding: 2rem de .main-content) */
+}
+
+@media (max-width: 1024px) {
+  .fly-inventory-view {
+    margin-top: -1.5rem; /* Compensa el padding: 1.5rem en tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .fly-inventory-view {
+    margin-top: 0; /* En móviles el padding ya es 0 */
+  }
 }
 
 /* ── 1. CABECERA FLUIDA (HERO) ── */
