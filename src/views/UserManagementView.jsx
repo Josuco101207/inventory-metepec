@@ -776,6 +776,39 @@ const UserManagementView = () => {
           </div>
         </div>
       )}
+
+      {/* Role Change Modal */}
+      {isRoleModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card animate-scale-up p-8">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 className="text-xl font-bold">Cambiar Rol</h3>
+              <button onClick={() => setIsRoleModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
+            </div>
+            <p className="text-sm text-muted mb-6">Selecciona el nuevo rol para <strong>{roleChangeUser?.name || roleChangeUser?.email}</strong>.</p>
+            <form onSubmit={handleUpdateRole} className="flex flex-col gap-4">
+              <div className="f-group">
+                <label>Rol</label>
+                <div className="relative">
+                  <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <select className="w-full" value={newRole} onChange={e => setNewRole(e.target.value)} style={{ paddingLeft: '2.5rem' }}>
+                    <option value="user">Usuario</option>
+                    <option value="almacenista">Almacenista</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-2">
+                <button type="button" className="btn-secondary flex-1" onClick={() => setIsRoleModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2">
+                  Actualizar Rol
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
