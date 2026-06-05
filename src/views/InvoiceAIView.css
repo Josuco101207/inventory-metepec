@@ -1368,19 +1368,16 @@
   .irf-split { grid-template-columns: 1fr; gap: 1.5rem; }
 
   .irf-topbar {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     background: rgba(10, 10, 12, 0.9);
     backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 1rem;
     border: 1px solid rgba(218, 0, 163, 0.3);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(218, 0, 163, 0.1);
-    position: sticky;
-    top: 10px;
-    z-index: 100;
-    flex-wrap: wrap;
+    position: relative;
+    margin-bottom: 0.5rem;
   }
 
   .irf-topbar h2 {
@@ -1394,18 +1391,13 @@
   }
   
   .irf-topbar .fly-btn-ghost {
-    padding: 0.6rem;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    min-width: unset;
+    display: none; /* Hide back button on mobile if needed, or re-layout */
   }
-  
-  .irf-topbar .fly-btn-ghost svg { margin: 0; }
   
   .irf-topbar .fly-btn-primary {
     width: 100%;
     margin-top: 0.75rem;
-    order: 3;
+    order: 1;
     padding: 1rem;
     font-size: 1rem;
     border-radius: 14px;
@@ -1569,12 +1561,31 @@
     border-radius: 12px;
   }
 
+  .irf-expanded-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    margin-top: 0.5rem;
+  }
+
+  .irf-expanded-fields .iv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .irf-expanded-fields .iv-input {
+    padding: 0.65rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
   .iaiv-done-summary { grid-template-columns: 1fr; gap: 0.5rem; }
   .iaiv-done-card { padding: 2rem 1.25rem; }
   .iaiv-file-ready { flex-direction: column; text-align: center; }
 }
 
 @media (max-width: 480px) {
-  .irf-expanded-fields { flex-direction: column; align-items: stretch; }
   .irf-matches-list { grid-template-columns: 1fr; }
 }
