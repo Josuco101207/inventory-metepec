@@ -24,8 +24,14 @@ export default async function handler(req, res) {
     const resendApiKey = process.env.VITE_RESEND_API_KEY;
     const emailFrom = process.env.VITE_EMAIL_FROM;
 
-    if (!supabaseUrl || !supabaseAnonKey || !resendApiKey || !emailFrom) {
-      throw new Error('Missing environment variables');
+    const missing = [];
+    if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
+    if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+    if (!resendApiKey) missing.push('VITE_RESEND_API_KEY');
+    if (!emailFrom) missing.push('VITE_EMAIL_FROM');
+
+    if (missing.length > 0) {
+      throw new Error(`Missing environment variables: ${missing.join(', ')}`);
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
