@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 // Vercel Serverless Function
 export default async function handler(req, res) {
@@ -18,23 +18,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 3. Inicializar Supabase y Resend
+    // 3. Inicializar Supabase y Nodemailer
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-    const resendApiKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
-    const emailFrom = process.env.VITE_EMAIL_FROM || 'onboarding@resend.dev';
+    const gmailEmail = process.env.GMAIL_EMAIL;
+    const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
     const missing = [];
     if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
     if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
-    if (!resendApiKey) missing.push('VITE_RESEND_API_KEY');
+    if (!gmailEmail) missing.push('GMAIL_EMAIL');
+    if (!gmailPassword) missing.push('GMAIL_APP_PASSWORD');
 
     if (missing.length > 0) {
-      throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+      console.error('Missing env vars:', missing);
+      return res.status(500).json({ error: `Missing environment variables: ${missing.join(', ')}` });
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    const resend = new Resend(resendApiKey);
+    
+    // Configurar el transporte SMTP de Gmail
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailEmail,
+        pass: gmailPassword,
+      },
+    });
 
     // 4. Calcular el rango de fechas de "Hoy" en hora de México (UTC-6)
     const now = new Date();
@@ -67,7 +77,7 @@ export default async function handler(req, res) {
     
     if (adminEmails.length === 0) {
       console.log('No admins found via DB query (likely RLS). Falling back to default admin email.');
-      adminEmails = ['cesardelgado.diaz1@gmail.com'];
+      adminEmails = ['josuco.mst@gmail.com'];
     }
 
     // 7. Construir el reporte en HTML
@@ -123,19 +133,19 @@ export default async function handler(req, res) {
       </div>
     `;
 
-    // 8. Enviar el correo
-    const { data: emailData, error: emailError } = await resend.emails.send({
-      from: emailFrom,
-      to: adminEmails,
+    // 8. Enviar el correo usando Nodemailer
+    const mailOptions = {
+      from: `"Sistema de Inventario" <${gmailEmail}>`,
+      to: adminEmails.join(', '),
       subject: `Reporte Diario de Inventario - ${day}/${month}/${year}`,
       html: htmlContent,
-    });
+    };
 
-    if (emailError) throw emailError;
+    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({ 
       success: true, 
-      message: `Report sent to ${adminEmails.length} admins.`,
+      message: `Report sent to ${adminEmails.length} admins (${adminEmails.join(', ')}).`,
       movements_count: movements.length 
     });
 
