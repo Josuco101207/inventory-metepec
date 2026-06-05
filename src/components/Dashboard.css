@@ -523,33 +523,42 @@
   /* ── ZONES ── */
   .fd-card--zones { 
     grid-column: 1 / 3; 
-    padding: 1.25rem 0 1.25rem 1.25rem; 
+    padding: 1.25rem; 
     border-radius: 24px; 
-    background: transparent;
-    border: none;
+    background: rgba(255,255,255,0.02);
   }
-  .fd-card--zones .fd-card-head { padding-right: 1.25rem; margin-bottom: 1rem; }
+  .fd-card--zones .fd-card-head { padding-right: 0; margin-bottom: 1rem; }
+  
   .fd-zones-list { 
-    flex-direction: row; 
-    overflow-x: auto; 
-    gap: 0.75rem; 
-    padding-bottom: 0.5rem; 
-    padding-right: 1.25rem;
-    scrollbar-width: none; 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem; 
+    padding-bottom: 0; 
+    padding-right: 0;
   }
-  .fd-zones-list::-webkit-scrollbar { display: none; }
+  
   .fd-zone { 
-    min-width: 130px; 
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 0.75rem;
-    padding: 1rem;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    width: 100%;
+    flex-direction: row; 
+    align-items: center; 
+    gap: 0.6rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-left: 3px solid currentColor;
   }
-  .fd-zone-icon { width: 36px; height: 36px; border-radius: 10px; }
-  .fd-zone-name { font-size: 0.65rem; }
+  .fd-zone-icon { 
+    width: 28px; 
+    height: 28px; 
+    border-radius: 7px; 
+    background: rgba(255,255,255,0.05);
+    color: currentColor; 
+  }
+  .fd-zone-name { 
+    font-size: 0.65rem; 
+    color: var(--fly-white);
+  }
   .fd-zone-arrow { display: none; }
 
   /* ── CHART & DISTRO ── */
