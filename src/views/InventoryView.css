@@ -398,15 +398,105 @@
 }
 
 @media (max-width: 768px) {
-  .neon-hero { padding: 2rem 1.5rem; min-height: 200px; border-radius: 0 0 24px 24px; }
-  .neon-title { font-size: 2.5rem; }
-  .neon-metrics-row { grid-template-columns: 1fr; margin-top: -2rem; gap: 1rem; }
-  .glass-metric { padding: 1rem; }
-  .neon-subcat-row { padding: 0 1.5rem; }
+  /* ── 1. CABECERA FLUIDA ── */
+  .neon-hero { 
+    padding: 2.5rem 1.5rem 2rem; 
+    min-height: 180px; 
+    border-radius: 0 0 32px 32px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+  }
+  .neon-hero-top { justify-content: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .neon-title { font-size: 2.8rem; text-shadow: 0 0 30px rgba(255,255,255,0.3); }
+  .neon-subtitle { font-size: 0.65rem; letter-spacing: 0.15em; margin-top: 0.75rem; }
+
+  /* ── 2. MÉTRICAS (SCROLL HORIZONTAL) ── */
+  .neon-metrics-row { 
+    display: flex; 
+    flex-direction: row; 
+    overflow-x: auto; 
+    gap: 0.75rem; 
+    padding: 0 1.5rem 1rem; 
+    margin-top: -2rem; 
+    scrollbar-width: none; 
+    align-items: stretch;
+  }
+  .neon-metrics-row::-webkit-scrollbar { display: none; }
+  .glass-metric { 
+    flex: 0 0 auto;
+    min-width: 150px; 
+    padding: 1rem 1.25rem; 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 0.75rem; 
+    border-radius: 20px;
+  }
+  .glass-icon-wrap { width: 36px; height: 36px; border-radius: 12px; }
+  .glass-icon-wrap svg { width: 18px; height: 18px; }
+  .g-val { font-size: 1.8rem; }
+  .g-lbl { font-size: 0.6rem; }
+
+  /* ── 3. CONTROLES ── */
+  .neon-controls { padding: 0.5rem 1.5rem 1.5rem; gap: 0.75rem; margin-top: 0; }
+  .neon-search-box { width: 100%; border-radius: 16px; padding: 0.85rem 1.25rem; }
+  .neon-actions-group { display: flex; flex-direction: row; flex-wrap: wrap; gap: 0.5rem; width: 100%; }
+  .glass-btn { flex: 1 1 calc(50% - 0.25rem); justify-content: center; padding: 0.8rem 0.5rem; font-size: 0.7rem; border-radius: 14px; }
   
-  .neon-card-content { flex-direction: column; align-items: stretch; gap: 1rem; }
-  .neon-stock-display { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; }
-  .n-stock-values { width: auto; flex-direction: column; align-items: flex-start; }
-  .n-bar-track { width: 100px; }
-  .neon-actions { justify-content: flex-end; }
+  .neon-subcat-row { padding: 0 1.5rem 1.5rem; }
+
+  /* ── 4. TARJETAS NEÓN ── */
+  .neon-inventory-list { padding: 0 1.5rem 3rem; }
+  .neon-cards-container { gap: 1rem; }
+  
+  .fly-neon-card { 
+    padding: 1.25rem; 
+    border-radius: 24px; 
+    gap: 1.25rem;
+  }
+  .neon-card-glow { width: 4px; }
+  .neon-card-content { flex-direction: column; align-items: stretch; gap: 1.25rem; }
+  
+  .neon-identity { gap: 1rem; align-items: flex-start; flex-direction: row; }
+  .neon-avatar-wrap { width: 54px; height: 54px; border-radius: 14px; }
+  .neon-name { font-size: 1.05rem; margin-bottom: 0.3rem; }
+  .neon-desc { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-width: 100%; font-size: 0.7rem; line-height: 1.4; }
+  .neon-tags { flex-wrap: wrap; gap: 0.4rem; }
+  .n-tag { padding: 0.2rem 0.5rem; }
+  
+  .neon-stock-display { 
+    width: 100%; 
+    flex-direction: column; 
+    align-items: stretch; 
+    gap: 0.85rem; 
+    background: rgba(0,0,0,0.25); 
+    padding: 1.25rem; 
+    border-radius: 16px; 
+    border: 1px solid rgba(255,255,255,0.03); 
+  }
+  .n-stock-values { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+  .n-stock-main { align-items: baseline; gap: 0.3rem; }
+  .n-qty { font-size: 1.8rem; }
+  .n-bar-track { width: 100%; height: 6px; border-radius: 6px; }
+  .n-bar-fill { border-radius: 6px; }
+  
+  .neon-actions { 
+    justify-content: space-between; 
+    gap: 0.5rem; 
+    flex-wrap: nowrap;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 1.25rem;
+  }
+  .n-btn { 
+    flex: 1; 
+    min-width: 0; 
+    height: 46px; 
+    border-radius: 14px; 
+  }
+  .n-btn svg { width: 18px; height: 18px; }
+
+  /* Modales en móvil */
+  .glass-modal-override { border-radius: 24px 24px 0 0 !important; margin-bottom: 0 !important; }
 }
