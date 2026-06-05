@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle2, XCircle, Clock, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ApprovalActionView = ({ action }) => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { user } = useAuth();
 
   const [status, setStatus] = useState('loading'); // loading | confirming | success | error | already_handled
   const [request, setRequest] = useState(null);
@@ -19,6 +21,27 @@ const ApprovalActionView = ({ action }) => {
     let ignore = false;
     const loadRequest = async () => {
       try {
+        // Verificar que el usuario actual es el supervisor asignado
+        const { data: rlsData, error: rlsError } = await supabase
+          .from('approval_requests')
+          .select('supervisor_id')
+          .eq('id', id)
+          .single();
+          
+        if (ignore) return;
+
+        if (rlsError || !rlsData) {
+          setStatus('error');
+          setErrorMsg('Acceso Denegado: No tienes permiso para procesar esta solicitud. Inicia sesión con la cuenta del supervisor asignado.');
+          return;
+        }
+
+        if (user?.id !== rlsData.supervisor_id) {
+          setStatus('error');
+          setErrorMsg('Acceso Denegado: Solo el supervisor original puede aprobar o rechazar esta solicitud.');
+          return;
+        }
+
         const { data, error } = await supabase
           .rpc('get_approval_request_by_token', { p_id: id, p_token: token });
 
@@ -50,7 +73,7 @@ const ApprovalActionView = ({ action }) => {
 
     if (id) loadRequest();
     return () => { ignore = true; };
-  }, [id, action, token]);
+  }, [id, action, token, user?.id]);
 
   const handleApprove = async () => {
     setProcessing(true);
