@@ -79,8 +79,9 @@ const DatabaseAdminView = () => {
   });
   const [expandedTable, setExpandedTable] = useState(null);
   const [tableColumns, setTableColumns] = useState({});
-  const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   // Edit category state
   const [editingCatId, setEditingCatId] = useState(null);
@@ -90,7 +91,6 @@ const DatabaseAdminView = () => {
   const [editCatZone, setEditCatZone] = useState('arcade');
   const [editColumns, setEditColumns] = useState([]);
   const [originalColumns, setOriginalColumns] = useState([]);
-  const [updating, setUpdating] = useState(false);
 
   const normalizeType = (pgType) => {
     if (!pgType) return 'text';
@@ -507,9 +507,15 @@ const DatabaseAdminView = () => {
   };
 
   // --- Delete category + table ---
-  const deleteCategory = async (cat) => {
-    if (!window.confirm(`¿Eliminar "${cat.title}" y toda su tabla? Esta acción es irreversible.`)) return;
+  const promptDeleteCategory = (cat) => {
+    setCategoryToDelete(cat);
+  };
+
+  const executeDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    const cat = categoryToDelete;
     setDeleting(cat.id);
+    setCategoryToDelete(null);
     try {
       // 1. Drop table
       await rpcCall('exec_sql', { query: `DROP TABLE IF EXISTS public."${cat.tableName}" CASCADE;` });
@@ -610,7 +616,7 @@ const DatabaseAdminView = () => {
                   <button className="fdm-btn-icon text-fly-blue" onClick={(e) => { e.stopPropagation(); startEditCategory(cat); }}>
                     <Edit2 size={18} />
                   </button>
-                  <button className="fdm-btn-icon text-fly-magenta" onClick={(e) => { e.stopPropagation(); deleteCategory(cat); }} disabled={deleting === cat.id}>
+                  <button className="fdm-btn-icon text-fly-magenta" onClick={(e) => { e.stopPropagation(); promptDeleteCategory(cat); }} disabled={deleting === cat.id}>
                     {deleting === cat.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                   </button>
                   <div className="fdm-chevron">
@@ -685,59 +691,79 @@ const DatabaseAdminView = () => {
           </div>
         </div>
 
-        {/* CREATE MODAL */}
+        {/* CREATE MODAL MOBILE */}
         {showCreateForm && (
           <div className="modal-overlay">
-            <div className="modal-card p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Nueva Categoría</h3>
-                <button onClick={() => setShowCreateForm(false)} className="text-gray-400"><X size={24} /></button>
+            <div className="modal-card animate-scale-up" style={{ padding: '1.5rem', background: 'linear-gradient(145deg, #18181b, #09090b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-black italic uppercase tracking-wider" style={{ background: 'linear-gradient(90deg, var(--fly-yellow), #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  NUEVA CATEGORÍA
+                </h3>
+                <button onClick={() => setShowCreateForm(false)} className="text-gray-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><X size={20} /></button>
               </div>
-              <div className="flex flex-col gap-4">
+              
+              <div className="flex flex-col gap-5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)', paddingRight: '4px' }}>
                 <div className="f-group">
-                  <label>Nombre</label>
-                  <input type="text" className="w-full" value={catTitle} onChange={(e) => setCatTitle(e.target.value)} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre</label>
+                  <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-fly-yellow transition-colors font-mono text-sm" placeholder="Ej. Inventario Fábrica" value={catTitle} onChange={(e) => setCatTitle(e.target.value)} />
                 </div>
+                
                 <div className="f-group">
-                  <label>Nombre corto</label>
-                  <input type="text" className="w-full" maxLength={14} value={catShortTitle} onChange={(e) => setCatShortTitle(e.target.value)} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre Corto</label>
+                  <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-fly-yellow transition-colors font-mono text-sm" placeholder="Máx 14 letras" maxLength={14} value={catShortTitle} onChange={(e) => setCatShortTitle(e.target.value)} />
                 </div>
-                <div className="flex gap-2">
+                
+                <div className="flex gap-3">
                   <div className="f-group flex-1">
-                    <label>Icono</label>
-                    <select className="w-full" value={catIcon} onChange={(e) => setCatIcon(e.target.value)}>
-                      {ICON_OPTIONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
-                    </select>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Icono</label>
+                    <div className="relative">
+                      <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 appearance-none focus:border-fly-yellow transition-colors text-sm font-mono" value={catIcon} onChange={(e) => setCatIcon(e.target.value)}>
+                        {ICON_OPTIONS.map(ic => <option key={ic} value={ic} className="bg-zinc-900">{ic}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
                   <div className="f-group flex-1">
-                    <label>Zona</label>
-                    <select className="w-full" value={catZone} onChange={(e) => setCatZone(e.target.value)}>
-                      {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
-                    </select>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Zona</label>
+                    <div className="relative">
+                      <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 appearance-none focus:border-fly-yellow transition-colors text-sm font-mono" value={catZone} onChange={(e) => setCatZone(e.target.value)}>
+                        {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value} className="bg-zinc-900">{z.label}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
                 
-                <div className="fdm-cols-editor mt-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <label>Columnas</label>
-                    <button className="fdm-btn-icon" onClick={addColumn}><Plus size={16} /></button>
+                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mt-2">
+                  <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+                    <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2"><Columns3 size={14} className="text-fly-yellow" /> Columnas</label>
+                    <button className="bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-lg transition-colors" onClick={addColumn}><Plus size={16} /></button>
                   </div>
-                  {columns.map((col, i) => (
-                    <div key={i} className="fdm-col-edit-row flex items-center gap-2 mb-2">
-                      <input type="text" className="flex-1" style={{ minWidth: 0, padding: '8px' }} value={col.name} onChange={(e) => updateColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
-                      <select style={{ width: '80px', padding: '8px' }} value={col.type} onChange={(e) => updateColumn(i, 'type', e.target.value)}>
-                        {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.value}</option>)}
-                      </select>
-                      <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={col.required} onChange={(e) => updateColumn(i, 'required', e.target.checked)} />Req</label>
-                      <button className="text-fly-magenta" onClick={() => removeColumn(i)}><Trash2 size={16} /></button>
-                    </div>
-                  ))}
+                  
+                  <div className="flex flex-col gap-3">
+                    {columns.map((col, i) => (
+                      <div key={i} className="flex flex-col gap-2 bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-2">
+                          <input type="text" className="flex-1 bg-transparent border-b border-white/20 focus:border-fly-yellow px-1 py-1 text-sm font-mono outline-none transition-colors" placeholder="nombre_columna" value={col.name} onChange={(e) => updateColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
+                          <button className="text-gray-500 hover:text-fly-magenta transition-colors p-1" onClick={() => removeColumn(i)}><Trash2 size={16} /></button>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <select className="bg-white/10 border-none text-xs rounded px-2 py-1 outline-none text-gray-300 w-28" value={col.type} onChange={(e) => updateColumn(i, 'type', e.target.value)}>
+                            {COLUMN_TYPES.map(t => <option key={t.value} value={t.value} className="bg-zinc-900">{t.value}</option>)}
+                          </select>
+                          <label className="flex items-center gap-1.5 text-xs text-gray-400 font-bold tracking-wider cursor-pointer select-none">
+                            <input type="checkbox" className="w-3.5 h-3.5 accent-fly-yellow" checked={col.required} onChange={(e) => updateColumn(i, 'required', e.target.checked)} /> REQ
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-4 mt-4">
-                  <button className="btn-secondary flex-1" onClick={() => setShowCreateForm(false)}>Cancelar</button>
-                  <button className="btn-primary flex-1 flex justify-center items-center gap-2" onClick={createCategory} disabled={creating || !catTitle.trim()}>
-                    {creating ? <Loader2 size={18} className="animate-spin" /> : 'Crear'}
+                <div className="flex gap-3 mt-4 pt-4 border-t border-white/10 sticky bottom-0 bg-gradient-to-t from-[#09090b] to-transparent pb-2">
+                  <button className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors" onClick={() => setShowCreateForm(false)}>Cancelar</button>
+                  <button className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-fly-yellow text-black shadow-[0_0_15px_rgba(226,255,0,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-95 disabled:opacity-50" onClick={createCategory} disabled={creating || !catTitle.trim()}>
+                    {creating ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Crear</>}
                   </button>
                 </div>
               </div>
@@ -748,73 +774,109 @@ const DatabaseAdminView = () => {
         {/* EDIT MODAL */}
         {editingCatId && (() => {
           const cat = categories.find(c => c.id === editingCatId);
+          if (!cat) return null;
           return (
           <div className="modal-overlay">
-            <div className="modal-card p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Editar Categoría</h3>
-                <button onClick={cancelEditCategory} className="text-gray-400"><X size={24} /></button>
+            <div className="modal-card animate-scale-up" style={{ padding: '1.5rem', background: 'linear-gradient(145deg, #18181b, #09090b)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-black italic uppercase tracking-wider" style={{ background: 'linear-gradient(90deg, #00adef, #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  EDITAR CATEGORÍA
+                </h3>
+                <button onClick={cancelEditCategory} className="text-gray-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><X size={20} /></button>
               </div>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)', paddingRight: '4px' }}>
                 <div className="f-group">
-                  <label>Nombre</label>
-                  <input type="text" className="w-full" value={editCatTitle} onChange={(e) => setEditCatTitle(e.target.value)} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre</label>
+                  <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-[#00adef] transition-colors font-mono text-sm" value={editCatTitle} onChange={(e) => setEditCatTitle(e.target.value)} />
                 </div>
                 <div className="f-group">
-                  <label>Nombre corto</label>
-                  <input type="text" className="w-full" maxLength={14} value={editCatShortTitle} onChange={(e) => setEditCatShortTitle(e.target.value)} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre corto</label>
+                  <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-[#00adef] transition-colors font-mono text-sm" maxLength={14} value={editCatShortTitle} onChange={(e) => setEditCatShortTitle(e.target.value)} />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <div className="f-group flex-1">
-                    <label>Icono</label>
-                    <select className="w-full" value={editCatIcon} onChange={(e) => setEditCatIcon(e.target.value)}>
-                      {ICON_OPTIONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
-                    </select>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Icono</label>
+                    <div className="relative">
+                      <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 appearance-none focus:border-[#00adef] transition-colors text-sm font-mono" value={editCatIcon} onChange={(e) => setEditCatIcon(e.target.value)}>
+                        {ICON_OPTIONS.map(ic => <option key={ic} value={ic} className="bg-zinc-900">{ic}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
                   <div className="f-group flex-1">
-                    <label>Zona</label>
-                    <select className="w-full" value={editCatZone} onChange={(e) => setEditCatZone(e.target.value)}>
-                      {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
-                    </select>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Zona</label>
+                    <div className="relative">
+                      <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 appearance-none focus:border-[#00adef] transition-colors text-sm font-mono" value={editCatZone} onChange={(e) => setEditCatZone(e.target.value)}>
+                        {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value} className="bg-zinc-900">{z.label}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
                 
-                <div className="fdm-cols-editor mt-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <label>Columnas</label>
-                    <button className="fdm-btn-icon" onClick={addEditColumn}><Plus size={16} /></button>
+                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mt-2">
+                  <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+                    <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2"><Columns3 size={14} className="text-[#00adef]" /> Columnas</label>
+                    <button className="bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-lg transition-colors" onClick={addEditColumn}><Plus size={16} /></button>
                   </div>
-                  {editColumns.map((col, i) => {
-                    const isOriginal = !!col.originalName;
-                    return (
-                    <div key={i} className="fdm-col-edit-row flex flex-col gap-1 mb-3 pb-3 border-b border-gray-800">
-                      <div className="flex items-center gap-2">
-                        <input type="text" className="flex-1" style={{ minWidth: 0, padding: '8px' }} value={col.name} onChange={(e) => updateEditColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
-                        <select style={{ width: '80px', padding: '8px' }} value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)}>
-                          {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.value}</option>)}
-                        </select>
-                        <button className="text-fly-magenta" onClick={() => removeEditColumn(i)}><Trash2 size={16} /></button>
+                  <div className="flex flex-col gap-3">
+                    {editColumns.map((col, i) => {
+                      const isOriginal = !!col.originalName;
+                      return (
+                      <div key={i} className="flex flex-col gap-2 bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-2">
+                          <input type="text" className="flex-1 bg-transparent border-b border-white/20 focus:border-[#00adef] px-1 py-1 text-sm font-mono outline-none transition-colors" value={col.name} onChange={(e) => updateEditColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
+                          <button className="text-gray-500 hover:text-fly-magenta transition-colors p-1" onClick={() => removeEditColumn(i)}><Trash2 size={16} /></button>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <select className="bg-white/10 border-none text-xs rounded px-2 py-1 outline-none text-gray-300 w-28" value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)}>
+                            {COLUMN_TYPES.map(t => <option key={t.value} value={t.value} className="bg-zinc-900">{t.value}</option>)}
+                          </select>
+                          {!isOriginal && (
+                            <label className="flex items-center gap-1.5 text-xs text-gray-400 font-bold tracking-wider cursor-pointer select-none">
+                              <input type="checkbox" className="w-3.5 h-3.5 accent-[#00adef]" checked={col.required} onChange={(e) => updateEditColumn(i, 'required', e.target.checked)} /> REQ
+                            </label>
+                          )}
+                          {isOriginal && <span className="text-[10px] uppercase font-bold text-fly-blue tracking-wider">Existente</span>}
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center mt-1">
-                        {!isOriginal && (
-                          <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={col.required} onChange={(e) => updateEditColumn(i, 'required', e.target.checked)} />Req</label>
-                        )}
-                        {isOriginal && <span className="text-xs text-gray-500">Columna Existente</span>}
-                      </div>
-                    </div>
-                  )})}
+                    )})}
+                  </div>
                 </div>
 
-                <div className="flex gap-4 mt-2">
-                  <button className="btn-secondary flex-1" onClick={cancelEditCategory}>Cancelar</button>
-                  <button className="btn-primary flex-1 flex justify-center items-center gap-2" onClick={() => updateCategory(cat)} disabled={updating}>
-                    {updating ? <Loader2 size={18} className="animate-spin" /> : 'Guardar'}
+                <div className="flex gap-3 mt-4 pt-4 border-t border-white/10 sticky bottom-0 bg-gradient-to-t from-[#09090b] to-transparent pb-2">
+                  <button className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition-colors" onClick={cancelEditCategory}>Cancelar</button>
+                  <button className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-fly-blue text-white shadow-[0_0_15px_rgba(0,173,239,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-95 disabled:opacity-50" onClick={() => updateCategory(cat)} disabled={updating}>
+                    {updating ? <Loader2 size={18} className="animate-spin" /> : <><Save size={16} /> Guardar</>}
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        )})}
+          );
+        })()}
+
+        {/* DELETE CONFIRMATION MODAL MOBILE */}
+        {categoryToDelete && (
+          <div className="modal-overlay">
+            <div className="modal-card animate-scale-up" style={{ padding: '2rem', background: '#18181b', border: '1px solid rgba(218,0,163,0.3)', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 40px rgba(218,0,163,0.1)' }}>
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-fly-magenta/20 flex items-center justify-center text-fly-magenta mb-2">
+                  <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-black uppercase text-white">¿Eliminar Categoría?</h3>
+                <p className="text-sm text-gray-400">Estás a punto de eliminar <strong>"{categoryToDelete.title}"</strong> y toda su tabla de base de datos asociada. <br/><br/><span className="text-fly-magenta font-bold">Esta acción no se puede deshacer.</span></p>
+                
+                <div className="flex gap-3 w-full mt-6">
+                  <button className="flex-1 py-3 rounded-xl font-bold text-sm bg-white/5 text-white hover:bg-white/10" onClick={() => setCategoryToDelete(null)}>Cancelar</button>
+                  <button className="flex-1 py-3 rounded-xl font-bold text-sm bg-fly-magenta text-white shadow-[0_0_15px_rgba(218,0,163,0.4)]" onClick={executeDeleteCategory}>
+                    Sí, eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1173,6 +1235,27 @@ const DatabaseAdminView = () => {
             </div>
           )}
         </div>
+        {/* DELETE CONFIRMATION MODAL DESKTOP */}
+        {categoryToDelete && (
+          <div className="modal-overlay">
+            <div className="modal-card animate-scale-up" style={{ padding: '2rem', background: '#18181b', border: '1px solid rgba(218,0,163,0.3)', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 40px rgba(218,0,163,0.1)' }}>
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-fly-magenta/20 flex items-center justify-center text-fly-magenta mb-2">
+                  <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-black uppercase text-white">¿Eliminar Categoría?</h3>
+                <p className="text-sm text-gray-400">Estás a punto de eliminar <strong>"{categoryToDelete.title}"</strong> y toda su tabla de base de datos asociada. <br/><br/><span className="text-fly-magenta font-bold">Esta acción no se puede deshacer.</span></p>
+                
+                <div className="flex gap-3 w-full mt-6">
+                  <button className="flex-1 py-3 rounded-xl font-bold text-sm bg-white/5 text-white hover:bg-white/10" onClick={() => setCategoryToDelete(null)}>Cancelar</button>
+                  <button className="flex-1 py-3 rounded-xl font-bold text-sm bg-fly-magenta text-white shadow-[0_0_15px_rgba(218,0,163,0.4)]" onClick={executeDeleteCategory}>
+                    Sí, eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
