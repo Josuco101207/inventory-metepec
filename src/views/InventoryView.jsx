@@ -204,11 +204,140 @@ const InventoryView = ({ categoryTitle }) => {
   const categoryConfig = getCategoryByTitle(categoryTitle) || {};
   const zoneColor = categoryConfig?.zone || 'arcade';
 
+  const renderFacturaModal = () => {
+    if (!facturaModalItem) return null;
+    const activeInvoice = facturaModalItem.invoices?.[activeInvoiceIndex] || { url: facturaModalItem.factura_url, label: 'Factura' };
+    const isPdf = activeInvoice.url?.toLowerCase().split('?')[0].endsWith('.pdf') || activeInvoice.url?.includes('application/pdf');
+
+    return (
+      <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
+         <div className="modal-card animate-scale-up glass-modal-override" onClick={e => e.stopPropagation()}>
+           <header className="glass-modal-header">
+              <div className="glass-modal-title">
+                <FileImage size={24} className="gm-icon" />
+                <div>
+                  <h3>Visor de Documentos</h3>
+                  <p>{facturaModalItem.name}</p>
+                </div>
+              </div>
+              <div className="glass-modal-actions">
+                 <button className="gm-close" onClick={() => setFacturaModalItem(null)}><X size={20}/></button>
+              </div>
+           </header>
+           <div className="glass-modal-body">
+              {isPdf ? (
+                <iframe src={activeInvoice.url} title="Factura" className="gm-iframe" />
+              ) : (
+                <img src={activeInvoice.url} alt="Factura" className="gm-img" />
+              )}
+           </div>
+         </div>
+      </div>
+    );
+  };
+
+  if (isMobile) {
+    return (
+      <div className={`fly-inventory-mobile theme-${zoneColor}`}>
+        {/* HEADER FLOTANTE ULTRA PREMIUM */}
+        <div className="fm-sticky-header">
+          <div className="fm-header-top">
+            <h1 className="fm-title">{categoryTitle}</h1>
+            <span className="fm-total-badge">{stats.total} Activos</span>
+          </div>
+          
+          <div className="fm-search-wrap">
+            <Search size={18} className="fm-search-icon" />
+            <input 
+              type="text" 
+              placeholder="Buscar activo..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="fm-metrics-scroll">
+            <div className="fm-metric-pill">
+              <Filter size={14}/> {stats.filtered} Filtrados
+            </div>
+            <div className={`fm-metric-pill ${stats.critical > 0 ? 'critical' : ''}`}>
+              <AlertTriangle size={14}/> {stats.critical} Críticos
+            </div>
+          </div>
+        </div>
+
+        {/* LISTA DE ITEMS */}
+        <div className="fm-list-container">
+          {subcategories.length > 1 && (
+            <div className="fm-subcat-scroll">
+              {subcategories.map(sub => (
+                <button key={sub} onClick={() => setActiveSubcategory(sub)} className={`fm-subcat-pill ${activeSubcategory === sub ? 'active' : ''}`}>
+                  {sub === 'TODAS' ? 'Todos' : sub}
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {filteredItems.length > 0 ? (
+            <div className="fm-cards">
+              {filteredItems.slice(0, visibleCount).map((item) => (
+                <MobileInventoryCard
+                  key={item.id}
+                  item={item}
+                  categoryTitle={categoryTitle}
+                  isAdmin={isAdmin}
+                  isStaff={isStaff}
+                  canEditIn={canEditIn}
+                  handlers={handlers}
+                  zoneColor={zoneColor}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="fm-empty">
+              <Package size={48} className="fm-empty-icon"/>
+              <p>No se encontraron activos</p>
+            </div>
+          )}
+          
+          {visibleCount < filteredItems.length && (
+            <div ref={observerTarget} className="fm-loadmore">
+              <Loader2 className="animate-spin" size={24} />
+            </div>
+          )}
+        </div>
+
+        {/* FLOATING ACTION BAR (FAB) */}
+        <div className="fm-fab-container">
+          <button className="fm-fab fm-fab-export" onClick={() => exportToExcel(filteredItems, `inv_${categoryTitle}`, categoryTitle)}>
+            <Download size={20} />
+          </button>
+          {canAddTo(categoryTitle) && (
+            <>
+              <button className="fm-fab fm-fab-add" onClick={() => navigate('/manual-entry')}>
+                <Plus size={24} />
+              </button>
+              <button className="fm-fab fm-fab-main" onClick={() => navigate('/invoice-ai')}>
+                <Sparkles size={24} />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* MODALES */}
+        <ActionModal isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem} onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Operador', details); setIsStockModalOpen(false); }} />
+        <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem} onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Operador'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Operador'); setIsAddModalOpen(false); }} />
+        <ItemDetailModal isOpen={!!detailModalItem} onClose={() => setDetailModalItem(null)} item={detailModalItem} categoryTitle={categoryTitle} />
+        {renderFacturaModal()}
+      </div>
+    );
+  }
+
+  // DESKTOP VIEW
   return (
     <div className={`fly-inventory-view theme-${zoneColor}`}>
-      {!isMobile && <Header />}
+      <Header />
 
-      {/* ── 1. CABECERA FLUIDA (HERO) ── */}
       <section className="neon-hero">
         <div className="fluid-bg-container">
           <div className="fluid-orb orb-1" />
@@ -225,7 +354,6 @@ const InventoryView = ({ categoryTitle }) => {
         </div>
       </section>
 
-      {/* ── 2. MÉTRICAS GLASSMORPHISM ── */}
       <section className="neon-metrics-row">
         <div className="glass-metric">
           <div className="glass-icon-wrap"><Package size={24} /></div>
@@ -250,7 +378,6 @@ const InventoryView = ({ categoryTitle }) => {
         </div>
       </section>
 
-      {/* ── 3. CONTROLES Y BÚSQUEDA NEÓN ── */}
       <section className="neon-controls">
         <div className="neon-search-box">
           <Search size={18} className="ns-icon" />
@@ -278,7 +405,6 @@ const InventoryView = ({ categoryTitle }) => {
         </div>
       </section>
 
-      {/* Píldoras Subcategorías */}
       {subcategories.length > 1 && (
         <section className="neon-subcat-row">
           {subcategories.map(sub => (
@@ -293,7 +419,6 @@ const InventoryView = ({ categoryTitle }) => {
         </section>
       )}
 
-      {/* ── 4. LISTA DE TARJETAS NEÓN (STACK) ── */}
       <section className="neon-inventory-list">
         {filteredItems.length > 0 ? (
           <div className="neon-cards-container">
@@ -325,58 +450,10 @@ const InventoryView = ({ categoryTitle }) => {
         )}
       </section>
 
-      {/* ── MODALES ── */}
-      <ActionModal
-        isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem}
-        onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Operador', details); setIsStockModalOpen(false); }}
-      />
-
-      <AddItemModal 
-        isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem}
-        onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Operador'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Operador'); setIsAddModalOpen(false); }}
-      />
-
-      <ItemDetailModal
-        isOpen={!!detailModalItem}
-        onClose={() => setDetailModalItem(null)}
-        item={detailModalItem}
-        categoryTitle={categoryTitle}
-      />
-
-      {/* VISOR DE FACTURAS (Mantenido sin cambios estructurales) */}
-      {facturaModalItem && (() => {
-        const activeInvoice = facturaModalItem.invoices?.[activeInvoiceIndex] || { url: facturaModalItem.factura_url, label: 'Factura' };
-        const isPdf = activeInvoice.url?.toLowerCase().split('?')[0].endsWith('.pdf') || activeInvoice.url?.includes('application/pdf');
-
-        return (
-          <div className="modal-overlay" onClick={() => setFacturaModalItem(null)}>
-             <div className="modal-card animate-scale-up glass-modal-override" onClick={e => e.stopPropagation()}>
-               {/* Modal Header */}
-               <header className="glass-modal-header">
-                  <div className="glass-modal-title">
-                    <FileImage size={24} className="gm-icon" />
-                    <div>
-                      <h3>Visor de Documentos</h3>
-                      <p>{facturaModalItem.name}</p>
-                    </div>
-                  </div>
-                  <div className="glass-modal-actions">
-                     <button className="gm-close" onClick={() => setFacturaModalItem(null)}><X size={20}/></button>
-                  </div>
-               </header>
-               {/* Modal Body */}
-               <div className="glass-modal-body">
-                  {isPdf ? (
-                    <iframe src={activeInvoice.url} title="Factura" className="gm-iframe" />
-                  ) : (
-                    <img src={activeInvoice.url} alt="Factura" className="gm-img" />
-                  )}
-               </div>
-             </div>
-          </div>
-        );
-      })()}
-
+      <ActionModal isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem} onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Operador', details); setIsStockModalOpen(false); }} />
+      <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem} onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Operador'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Operador'); setIsAddModalOpen(false); }} />
+      <ItemDetailModal isOpen={!!detailModalItem} onClose={() => setDetailModalItem(null)} item={detailModalItem} categoryTitle={categoryTitle} />
+      {renderFacturaModal()}
     </div>
   );
 };
