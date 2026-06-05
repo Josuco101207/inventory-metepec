@@ -79,6 +79,7 @@ const DatabaseAdminView = () => {
   });
   const [expandedTable, setExpandedTable] = useState(null);
   const [tableColumns, setTableColumns] = useState({});
+  const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [updating, setUpdating] = useState(false);
