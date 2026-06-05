@@ -63,10 +63,11 @@ export default async function handler(req, res) {
 
     if (adminsError) throw adminsError;
 
-    const adminEmails = admins.filter(a => a.email).map(a => a.email);
+    let adminEmails = admins ? admins.filter(a => a.email).map(a => a.email) : [];
     
     if (adminEmails.length === 0) {
-      return res.status(200).json({ message: 'No admins found to send email to.' });
+      console.log('No admins found via DB query (likely RLS). Falling back to default admin email.');
+      adminEmails = ['josuco.mst@gmail.com'];
     }
 
     // 7. Construir el reporte en HTML
