@@ -21,14 +21,13 @@ export default async function handler(req, res) {
     // 3. Inicializar Supabase y Resend
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-    const resendApiKey = process.env.VITE_RESEND_API_KEY;
-    const emailFrom = process.env.VITE_EMAIL_FROM;
+    const resendApiKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+    const emailFrom = process.env.VITE_EMAIL_FROM || 'onboarding@resend.dev';
 
     const missing = [];
     if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
     if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
     if (!resendApiKey) missing.push('VITE_RESEND_API_KEY');
-    if (!emailFrom) missing.push('VITE_EMAIL_FROM');
 
     if (missing.length > 0) {
       throw new Error(`Missing environment variables: ${missing.join(', ')}`);
