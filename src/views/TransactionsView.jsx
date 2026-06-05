@@ -87,9 +87,144 @@ const TransactionsView = () => {
   const entries = filteredMovements.filter(m => m.action === 'Entrada' || m.action === 'Alta').length;
   const exits = filteredMovements.filter(m => m.action === 'Salida' || m.action === 'Eliminación').length;
 
+  if (isMobile) {
+    return (
+      <div className="fly-transactions-mobile">
+        {/* HEADER FLOTANTE ULTRA PREMIUM */}
+        <div className="ftm-sticky-header">
+          <div className="ftm-header-top">
+            <h1 className="ftm-title">Historial</h1>
+            <span className="ftm-total-badge">{totalToday} Registros</span>
+          </div>
+          
+          {/* CONTROL DE FECHA */}
+          <div className="ftm-date-controls">
+            <div className="ftm-date-picker">
+              <Calendar size={18} className="ftm-icon-dim" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={e => setSelectedDate(e.target.value)}
+                max={todayStr}
+              />
+              <span className="ftm-date-label">{isToday ? 'HOY' : selectedDate}</span>
+            </div>
+            {!isToday && (
+              <button className="ftm-btn-icon" onClick={() => setSelectedDate(todayStr)}>
+                <RefreshCw size={18} />
+              </button>
+            )}
+            <button className="ftm-btn-icon ftm-btn-export" onClick={() => exportToExcel(filteredMovements, `transacciones_${selectedDate}`, 'Transacciones')}>
+              <Download size={18} />
+            </button>
+          </div>
+          
+          {/* MÉTRICAS COMPACTAS */}
+          <div className="ftm-metrics-row">
+            <div className="ftm-metric">
+              <span className="ftm-metric-val txt-green">{entries}</span>
+              <span className="ftm-metric-lbl">Entradas</span>
+            </div>
+            <div className="ftm-metric">
+              <span className="ftm-metric-val txt-orange">{exits}</span>
+              <span className="ftm-metric-lbl">Salidas</span>
+            </div>
+            <div className="ftm-metric">
+              <span className="ftm-metric-val">{totalToday}</span>
+              <span className="ftm-metric-lbl">Total</span>
+            </div>
+          </div>
+        </div>
+
+        {/* LISTA DE TRANSACCIONES */}
+        <div className="ftm-list-container">
+          {loadingDay ? (
+            <div className="ftm-empty">
+              <Loader2 className="animate-spin" size={32} />
+              <p>Sincronizando...</p>
+            </div>
+          ) : filteredMovements.length > 0 ? (
+            <div className="ftm-cards">
+              {filteredMovements.map((mov, index) => {
+                const cfg = getActionConfig(mov.action);
+                const Icon = cfg.icon;
+                const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
+                const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
+
+                return (
+                  <div key={mov.id || index} className={`ftm-card ${mov.annulled ? 'ftm-annulled' : ''}`}>
+                    <div className="ftm-card-top">
+                      <div className="ftm-avatar" style={{ color: cfg.color, background: cfg.bg }}>
+                        <Icon size={20} />
+                      </div>
+                      <div className="ftm-card-info">
+                        <span className="ftm-action-name" style={{ color: cfg.color }}>{cfg.label}</span>
+                        <h3 className="ftm-item-name" onClick={() => handleArticleClick(mov)}>{mov.item}</h3>
+                        <span className="ftm-item-cat">{mov.category || 'General'}</span>
+                      </div>
+                      <div className="ftm-card-time">
+                        <span className="ftm-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                        {mov.qty > 0 && <span className="ftm-qty-badge">{mov.qty} uds</span>}
+                      </div>
+                    </div>
+                    
+                    <div className="ftm-card-details">
+                       <p className="ftm-detail-text">{text || 'Sin detalles adicionales'}</p>
+                       <div className="ftm-tags">
+                         <span className="ftm-tag user-tag"><Users size={10} /> {mov.user || 'Admin'}</span>
+                         {supervisorName && <span className="ftm-tag sup-tag">👤 {supervisorName}</span>}
+                         {isApproval && <span className="ftm-tag app-tag">✓ Aprobado</span>}
+                       </div>
+                    </div>
+
+                    {(facturaUrl || (isAdmin && !mov.annulled && mov.action !== 'Anulación') || mov.annulled) && (
+                      <div className="ftm-card-actions">
+                        {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-link">
+                            <img src={facturaUrl} alt="factura" onError={e => { e.target.style.display = 'none'; }} />
+                          </a>
+                        )}
+                        {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-pdf">
+                            📄 PDF
+                          </a>
+                        )}
+                        
+                        <div style={{ flex: 1 }}></div> {/* Spacer */}
+
+                        {isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
+                          <button
+                            className="ftm-btn-annul"
+                            onClick={() => {
+                              if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
+                                annulMovement(mov.id, userData?.name || 'Admin');
+                              }
+                            }}
+                          >
+                            <X size={14} /> Anular
+                          </button>
+                        )}
+                        {mov.annulled && <span className="ftm-badge-annulled">ANULADO</span>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="ftm-empty">
+              <Activity size={48} className="ftm-empty-icon"/>
+              <p>No hay registros para esta fecha</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fly-inventory-view">
-      {!isMobile && <Header />}
+      <Header />
       <FlyPattern fixed opacity={0.04} />
 
       {/* ═══ HERO SECTION ═══ */}
