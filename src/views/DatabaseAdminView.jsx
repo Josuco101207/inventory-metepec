@@ -1067,7 +1067,7 @@ const DatabaseAdminView = () => {
                   <button
                     className="db-btn-icon db-btn-danger"
                     style={{ marginLeft: '0.25rem' }}
-                    onClick={(e) => { e.stopPropagation(); deleteCategory(cat); }}
+                    onClick={(e) => { e.stopPropagation(); promptDeleteCategory(cat); }}
                     disabled={deleting === cat.id}
                   >
                     {deleting === cat.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}

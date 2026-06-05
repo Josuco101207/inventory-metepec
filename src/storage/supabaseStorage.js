@@ -13,6 +13,7 @@ export const fetchItems = async (tableName) => {
     const { data, error } = await supabase
       .from(tableName)
       .select('*')
+      .limit(10000)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
@@ -74,7 +75,7 @@ export const deleteItem = async (tableName, itemId) => {
 
 // ─── MOVEMENTS ───
 
-export const fetchMovements = async (page = 1, pageSize = 100) => {
+export const fetchMovements = async (page = 1, pageSize = 2000) => {
   try {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;

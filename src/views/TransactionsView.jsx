@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoriesContext';
@@ -48,6 +48,9 @@ const TransactionsView = () => {
   const [dayMovements, setDayMovements] = useState([]);
   const [loadingDay, setLoadingDay] = useState(false);
 
+  const isTodayStr = selectedDate === todayStr;
+  const movementLengthDependency = isTodayStr ? movements.length : null;
+
   useEffect(() => {
     let ignore = false;
     const loadDayMovements = async () => {
@@ -71,7 +74,7 @@ const TransactionsView = () => {
     
     loadDayMovements();
     return () => { ignore = true; };
-  }, [selectedDate, selectedDate === todayStr ? movements.length : null]);
+  }, [selectedDate, movementLengthDependency]);
 
   const filteredMovements = dayMovements;
 

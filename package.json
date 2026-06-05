@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
     "@emailjs/browser": "^4.4.1",
     "@supabase/supabase-js": "^2.105.4",
     "@yudiel/react-qr-scanner": "^2.5.1",
@@ -28,6 +30,7 @@
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.0",
     "@eslint/js": "^9.39.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

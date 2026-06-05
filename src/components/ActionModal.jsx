@@ -249,12 +249,10 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const [currentRequest, setCurrentRequest] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (currentRequestId && requests?.length > 0) {
       const updatedReq = requests.find(req => req.id === currentRequestId);
       if (updatedReq) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentRequest(updatedReq);
       }
     }

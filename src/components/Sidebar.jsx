@@ -19,17 +19,16 @@ const Sidebar = ({ isOpen: externalOpen, onClose: externalClose }) => {
 
   // Support both internal toggle (hamburger) and external control (MobileTabBar "More")
   const isOpen = externalOpen || internalOpen;
-  const closeSidebar = () => {
+  const closeSidebar = React.useCallback(() => {
     setInternalOpen(false);
     if (externalClose) externalClose();
-  };
+  }, [externalClose]);
 
   // Close sidebar on route change (mobile)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     closeSidebar();
-  }, [location.pathname]);
+  }, [location.pathname, closeSidebar]);
 
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {

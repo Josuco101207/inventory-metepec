@@ -127,42 +127,50 @@ export const InventoryProvider = ({ children }) => {
       await Promise.all(categories.map(async (cat) => {
         if (!cat.tableName) return;
         const rows = await sbFetchItems(cat.tableName);
-        rows.forEach(row => {
-          const normalizedRow = { ...row };
-          const keys = Object.keys(row).map(k => k.toLowerCase());
-          const actualKeysMap = {};
-          Object.keys(row).forEach(k => { actualKeysMap[k.toLowerCase()] = k; });
+        if (rows.length === 0) return;
 
-          const smartFindColumn = (goodWords, badWords = []) => {
-            let bestMatch = null;
-            let maxScore = 0;
+        // Perform smart column mapping ONCE per table
+        const firstRow = rows[0];
+        const keys = Object.keys(firstRow).map(k => k.toLowerCase());
+        const actualKeysMap = {};
+        Object.keys(firstRow).forEach(k => { actualKeysMap[k.toLowerCase()] = k; });
 
-            for (const col of keys) {
-              if (col === 'id' || col === 'created_at' || col === 'updated_at') continue;
-              let score = 0;
+        const smartFindColumn = (goodWords, badWords = []) => {
+          let bestMatch = null;
+          let maxScore = 0;
 
-              if (goodWords.includes(col)) {
-                score += 100; // Exact match huge bonus
-              } else {
-                for (const w of goodWords) {
-                  if (col.includes(w)) score += 30; // Partial match points
-                }
-              }
+          for (const col of keys) {
+            if (col === 'id' || col === 'created_at' || col === 'updated_at') continue;
+            let score = 0;
 
-              for (const w of badWords) {
-                if (col.includes(w)) score -= 100; // Heavy penalty
-              }
-
-              if (score > maxScore) {
-                maxScore = score;
-                bestMatch = col;
+            if (goodWords.includes(col)) {
+              score += 100;
+            } else {
+              for (const w of goodWords) {
+                if (col.includes(w)) score += 30;
               }
             }
-            return bestMatch ? actualKeysMap[bestMatch] : null;
-          };
 
-          // Prioritize actual field_mappings if valid
-          const map = cat.fieldMappings || {};
+            for (const w of badWords) {
+              if (col.includes(w)) score -= 100;
+            }
+
+            if (score > maxScore) {
+              maxScore = score;
+              bestMatch = col;
+            }
+          }
+          return bestMatch ? actualKeysMap[bestMatch] : null;
+        };
+
+        const map = cat.fieldMappings || {};
+        const nameKey = smartFindColumn(['nombre', 'titulo', 'title', 'producto', 'articulo', 'name', 'nom'], ['desc', 'obs', 'detal']);
+        const threshKey = smartFindColumn(['stock_min', 'minimo', 'min', 'threshold', 'limite', 'alerta', 'bajo'], ['nom', 'name']);
+        const obsKey = smartFindColumn(['detalles', 'notas', 'descripcion', 'observaciones', 'obs', 'coment'], ['nom', 'name', 'tit']);
+        const qtyKey = smartFindColumn(['cantidad', 'canticad', 'stock', 'existencias', 'piezas', 'qty', 'cant', 'can', 'unidades', 'uds', 'pz', 'num', 'total'], ['min', 'limit', 'alert', 'thresh', 'bajo', 'max']);
+
+        rows.forEach(row => {
+          const normalizedRow = { ...row };
           
           if (map.name && row[map.name] !== undefined && normalizedRow.name === undefined) {
              normalizedRow.name = row[map.name];
@@ -177,12 +185,6 @@ export const InventoryProvider = ({ children }) => {
              normalizedRow.threshold = row[map.threshold];
           }
 
-          // Dynamic fallback mapping based on real columns using heuristic scoring
-          const nameKey = smartFindColumn(['nombre', 'titulo', 'title', 'producto', 'articulo', 'name', 'nom'], ['desc', 'obs', 'detal']);
-          const threshKey = smartFindColumn(['stock_min', 'minimo', 'min', 'threshold', 'limite', 'alerta', 'bajo'], ['nom', 'name']);
-          const obsKey = smartFindColumn(['detalles', 'notas', 'descripcion', 'observaciones', 'obs', 'coment'], ['nom', 'name', 'tit']);
-          const qtyKey = smartFindColumn(['cantidad', 'canticad', 'stock', 'existencias', 'piezas', 'qty', 'cant', 'can', 'unidades', 'uds', 'pz', 'num', 'total'], ['min', 'limit', 'alert', 'thresh', 'bajo', 'max']);
-
           if (nameKey && normalizedRow.name === undefined) normalizedRow.name = row[nameKey];
           if (qtyKey && normalizedRow.qty === undefined) normalizedRow.qty = row[qtyKey];
           if (obsKey && normalizedRow.observaciones === undefined) normalizedRow.observaciones = row[obsKey];
@@ -192,7 +194,7 @@ export const InventoryProvider = ({ children }) => {
         });
       }));
 
-      const movementsToUse = cachedMovements ?? (await sbFetchMovements(1, 500)).data;
+      const movementsToUse = cachedMovements ?? (await sbFetchMovements(1, 2000)).data;
       enrichItemsWithFacturaUrl(allItems, movementsToUse);
 
       setItemsState(allItems);
@@ -223,7 +225,7 @@ export const InventoryProvider = ({ children }) => {
       setLoadError(null);
       try {
         const [sbMovements, sbPersonnel, sbBrands, sbLocations, sbSubcategories] = await Promise.all([
-          sbFetchMovements(1, 500).then(res => res.data),
+          sbFetchMovements(1, 2000).then(res => res.data),
           sbFetchPersonnel(),
           sbFetchBrands(),
           sbFetchLocations(),
@@ -382,20 +384,30 @@ export const InventoryProvider = ({ children }) => {
   }, []);
 
   const addWorker = useCallback(async (workerData) => {
-    const created = await sbInsertPersonnel({
-      ...workerData,
-      created_at: new Date().toISOString()
-    });
-    if (created) {
-      setPersonnelState(prev => [...prev, created]);
-      toast.success(`Trabajador añadido: ${workerData.name}`);
+    try {
+      const created = await sbInsertPersonnel({
+        ...workerData,
+        created_at: new Date().toISOString()
+      });
+      if (created) {
+        setPersonnelState(prev => [...prev, created]);
+        toast.success(`Trabajador añadido: ${workerData.name}`);
+      }
+    } catch (err) {
+      console.error('Error adding worker:', err);
+      toast.error('Error al añadir trabajador');
     }
   }, []);
 
   const deleteWorker = useCallback(async (workerId) => {
-    await sbDeletePersonnel(workerId);
-    setPersonnelState(prev => prev.filter(p => p.id !== workerId));
-    toast.info("Trabajador eliminado de la lista");
+    try {
+      await sbDeletePersonnel(workerId);
+      setPersonnelState(prev => prev.filter(p => p.id !== workerId));
+      toast.info("Trabajador eliminado de la lista");
+    } catch (err) {
+      console.error('Error deleting worker:', err);
+      toast.error('Error al eliminar trabajador');
+    }
   }, []);
 
   const addBrand = useCallback(async (name) => {
@@ -531,7 +543,6 @@ export const InventoryProvider = ({ children }) => {
     fetchMoreItems: () => {},
     hasMore: false,
   }), [
-    categories,
     items,
     movements,
     personnel,
