@@ -191,10 +191,10 @@ export const ApprovalProvider = ({ children }) => {
         throw new Error('Supervisor no encontrado');
       }
 
-      // Generar un UUID válido si movementId no es válido
+      // Usar null temporalmente si es un ID temporal, para evitar error de Llave Foránea
       const validMovementId = movementId?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) 
         ? movementId 
-        : crypto.randomUUID();
+        : null;
 
       // Crear la solicitud en approval_requests
       const { data: request, error: requestError } = await supabase
