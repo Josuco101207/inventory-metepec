@@ -12,6 +12,12 @@
   margin-top: -2rem; /* Sube la vista para que quede 100% pegada arriba (compensa el padding: 2rem de .main-content) */
 }
 
+@media (min-width: 1600px) {
+  .fly-inventory-view {
+    margin-top: -3rem; /* Compensa el padding: 3rem en monitores grandes */
+  }
+}
+
 @media (max-width: 1024px) {
   .fly-inventory-view {
     margin-top: -1.5rem; /* Compensa el padding: 1.5rem en tablets */
