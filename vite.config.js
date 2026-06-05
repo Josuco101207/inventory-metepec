@@ -10,11 +10,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'fonts/*.woff2'],
       manifest: {
-        name: 'Inventor Manager Pro',
-        short_name: 'InventorPro',
-        description: 'Gestión de Inventario y Herramientas Profesional',
-        theme_color: '#0071e3',
-        background_color: '#f5f5f7',
+        name: 'Zone Arcade Inventory',
+        short_name: 'ZoneArcade',
+        description: 'Gestión de Inventario Premium',
+        theme_color: '#09090b',
+        background_color: '#09090b',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
