@@ -89,7 +89,9 @@ const UserManagementView = () => {
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
-  const [changingPasswordUser, setChangingPasswordUser] = useState(null);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [roleChangeUser, setRoleChangeUser] = useState(null);
+  const [newRole, setNewRole] = useState('user');
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
@@ -200,29 +202,42 @@ const UserManagementView = () => {
     }
   };
 
-  const toggleRole = async (u) => {
-    const cycle = { admin: 'almacenista', almacenista: 'supervisor', supervisor: 'user', user: 'admin' };
-    const next = cycle[u.role] ?? 'user';
-    if (window.confirm(`¿Cambiar rol de ${u.email} a ${next.toUpperCase()}?`)) {
-      setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: next } : user));
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ role: next })
-        .eq('id', u.id)
-        .select('id, role');
-      if (error) {
-        setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
-        toast.error(`Error al cambiar rol: ${error.message}`);
-        return;
-      }
-      if (!data || data.length === 0) {
-        setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
-        toast.error('Sin permiso para cambiar roles. Verifica las políticas RLS de la tabla profiles en Supabase.');
-        return;
-      }
-      updateUser(u.id, { role: next });
-      toast.success(`Rol de ${u.email} cambiado a ${next.toUpperCase()}`);
+  const handleOpenRoleModal = (u) => {
+    setRoleChangeUser(u);
+    setNewRole(u.role || 'user');
+    setIsRoleModalOpen(true);
+  };
+
+  const handleUpdateRole = async (e) => {
+    e.preventDefault();
+    if (!roleChangeUser) return;
+    const u = roleChangeUser;
+    const next = newRole;
+
+    if (u.role === next) {
+      setIsRoleModalOpen(false);
+      return;
     }
+
+    setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: next } : user));
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ role: next })
+      .eq('id', u.id)
+      .select('id, role');
+    if (error) {
+      setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
+      toast.error(`Error al cambiar rol: ${error.message}`);
+      return;
+    }
+    if (!data || data.length === 0) {
+      setUsers(prev => prev.map(user => user.id === u.id ? { ...user, role: u.role } : user));
+      toast.error('Sin permiso para cambiar roles. Verifica las políticas RLS de la tabla profiles en Supabase.');
+      return;
+    }
+    updateUser(u.id, { role: next });
+    toast.success(`Rol de ${u.email} cambiado a ${next.toUpperCase()}`);
+    setIsRoleModalOpen(false);
   };
 
   const handleDelete = async (u) => {
@@ -372,7 +387,7 @@ const UserManagementView = () => {
                     </div>
 
                     <div className="ftm-card-actions">
-                      <button onClick={() => toggleRole(u)} className="ftm-action-btn">
+                      <button onClick={() => handleOpenRoleModal(u)} className="ftm-action-btn">
                         <Shield size={14} /> Rol
                       </button>
                       <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} className="ftm-action-btn">
@@ -444,6 +459,34 @@ const UserManagementView = () => {
                   <button type="button" className="btn-secondary flex-1" onClick={() => { setIsChangeModalOpen(false); setNewPassword(''); }}>Cancelar</button>
                   <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2" disabled={isUpdatingPassword}>
                     {isUpdatingPassword ? <Loader2 className="animate-spin" size={18} /> : 'Actualizar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isRoleModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-card p-8">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 className="text-xl font-bold">Cambiar Rol</h3>
+                <button onClick={() => setIsRoleModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleUpdateRole} className="flex flex-col gap-4">
+                <div className="f-group">
+                  <label>Selecciona el nuevo rol para {roleChangeUser?.name || roleChangeUser?.email}</label>
+                  <select className="w-full" value={newRole} onChange={e => setNewRole(e.target.value)}>
+                    <option value="user">Usuario</option>
+                    <option value="almacenista">Almacenista</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <button type="button" className="btn-secondary flex-1" onClick={() => setIsRoleModalOpen(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2">
+                    Actualizar
                   </button>
                 </div>
               </form>
@@ -546,7 +589,7 @@ const UserManagementView = () => {
                           <Lock size={14} /> Permisos
                         </button>
                       )}
-                      <button onClick={() => toggleRole(u)} title="Cambiar rol" className="fly-action-btn fly-action-icon">
+                      <button onClick={() => handleOpenRoleModal(u)} title="Cambiar rol" className="fly-action-btn fly-action-icon">
                         <Shield size={14} />
                       </button>
                       <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} title="Cambiar contraseña" className="fly-action-btn fly-action-icon">
