@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 import { sendCriticalStockAlert } from '../utils/emailService';
 import { addToQueue } from '../services/offlineSyncQueue';
 import {
@@ -85,7 +86,7 @@ export const useInventoryItems = ({
       if (finalDetails && !finalDetails.includes('item_id:') && itemId) {
         finalDetails = `${finalDetails} | item_id:${itemId}`;
       }
-      await addMovement(
+      const newMovement = await addMovement(
         change > 0 ? 'Entrada' : 'Salida', 
         item.name, 
         Math.abs(change), 
@@ -93,6 +94,19 @@ export const useInventoryItems = ({
         finalDetails,
         item.category
       );
+
+      // Si existe un approval_id en los detalles, enlazamos el movimiento con la solicitud de aprobación
+      const approvalMatch = finalDetails?.match(/approval_id:([0-9a-fA-F-]+)/);
+      if (approvalMatch && newMovement?.id) {
+        const approvalId = approvalMatch[1];
+        try {
+          await supabase.from('approval_requests')
+            .update({ movement_id: newMovement.id })
+            .eq('id', approvalId);
+        } catch (err) {
+          console.error('[updateStock] Error linking approval to movement:', err);
+        }
+      }
 
       const threshold = item.threshold || 0;
       if (newQty <= threshold && (item.qty || 0) > threshold) {

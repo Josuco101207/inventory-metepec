@@ -34,6 +34,21 @@ export const removeFromQueue = (id) => {
   setOfflineQueue(queue.filter(m => m.id !== id));
 };
 
+export const getFailedQueue = () => {
+  try {
+    const data = localStorage.getItem('failed_mutations_queue');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const addToFailedQueue = (mutation, errorMsg) => {
+  const queue = getFailedQueue();
+  queue.push({ ...mutation, error: errorMsg, failedAt: new Date().toISOString() });
+  localStorage.setItem('failed_mutations_queue', JSON.stringify(queue));
+};
+
 export const flushQueue = async () => {
   const queue = getOfflineQueue();
   if (queue.length === 0) return;
@@ -65,12 +80,11 @@ export const flushQueue = async () => {
     } catch (err) {
       console.error(`[OfflineQueue] Error sincronizando operación ${mutation.id}:`, err);
       failCount++;
-      // Si falla por validación de DB (ej. Constraint negativo), podríamos querer removerlo
-      // o notificar al usuario. Por ahora, lo mantenemos en la cola si es un error de red, 
-      // pero si es un 400/500 por regla de negocio, deberíamos descartarlo.
+      // Si el error no es de red, guardamos la operación fallida para que no se pierda silenciosamente
       if (err.code && err.code !== 'TypeError') {
          removeFromQueue(mutation.id);
-         toast.error(`La operación offline de ${mutation.payload.itemId || 'registro'} falló en el servidor: ${err.message}`);
+         addToFailedQueue(mutation, err.message);
+         toast.error(`Operación offline rechazada por el servidor: ${err.message}. Guardada en registro local de errores.`, { duration: 10000 });
       }
     }
   }

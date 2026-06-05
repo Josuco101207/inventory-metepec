@@ -38,8 +38,10 @@ export const useInventoryMovements = ({ itemsRef, setItemsState, sbUpdateItem, g
 
       addLocalStorageMovement(movementData);
       setMovementsState(prev => [finalMovement, ...prev]);
+      return finalMovement;
     } catch (e) {
       console.error("Error adding movement:", e);
+      return null;
     }
   }, [itemsRef]);
 
