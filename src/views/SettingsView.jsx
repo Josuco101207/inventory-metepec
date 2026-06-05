@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { MapPin, Trash2, Plus, Tag, X, Wrench } from 'lucide-react';
+import { MapPin, Trash2, Plus, Tag, X, Wrench, Clock, Save } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 
 import './SettingsView.css';
 
@@ -8,6 +10,8 @@ const SettingsView = () => {
   const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
   
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  const [reportTime, setReportTime] = useState('23:00');
+  const [savingReport, setSavingReport] = useState(false);
   
   // Location Builder State
   const [locType1, setLocType1] = useState('Estante');
@@ -31,6 +35,42 @@ const SettingsView = () => {
     setShowSubLevel(false);
   };
 
+  const handleSaveSchedule = async () => {
+    if (!reportTime) {
+      toast.error('Por favor selecciona una hora válida');
+      return;
+    }
+
+    setSavingReport(true);
+    try {
+      const [hoursStr, minutesStr] = reportTime.split(':');
+      let hours = parseInt(hoursStr, 10);
+      const minutes = parseInt(minutesStr, 10);
+
+      // Convert CST (UTC-6) to UTC
+      let utcHours = (hours + 6) % 24;
+
+      const cronExpression = `${minutes} ${utcHours} * * *`;
+      const webhookUrl = `${window.location.origin}/api/daily-report`;
+      const cronSecret = import.meta.env.VITE_CRON_SECRET || 'secret-token-123';
+
+      const { error } = await supabase.rpc('update_report_schedule', {
+        cron_expression: cronExpression,
+        webhook_url: webhookUrl,
+        cron_secret: cronSecret
+      });
+
+      if (error) throw error;
+
+      toast.success(`Reporte programado para las ${reportTime} hrs exitosamente.`);
+    } catch (err) {
+      console.error('Error scheduling report:', err);
+      toast.error(`Error al programar: ${err.message}`);
+    } finally {
+      setSavingReport(false);
+    }
+  };
+
   return (
     <div className="fly-settings-view">
       
@@ -49,6 +89,34 @@ const SettingsView = () => {
 
         <div className="fly-settings-grid">
           
+          {/* TARJETA REPORTE DIARIO */}
+          <div className="fly-glass-card" style={{ gridColumn: '1 / -1' }}>
+            <div className="fly-gc-header">
+              <Clock size={24} className="fly-gc-icon" style={{ color: '#3b82f6' }} />
+              <div>
+                <h2>Reporte Diario Automático</h2>
+                <p className="fly-gc-desc">Define a qué hora se enviará el resumen de movimientos a los administradores.</p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <input 
+                type="time" 
+                className="fly-premium-input"
+                style={{ maxWidth: '150px' }}
+                value={reportTime} 
+                onChange={e => setReportTime(e.target.value)}
+              />
+              <button 
+                className="fly-btn-neon" 
+                onClick={handleSaveSchedule}
+                disabled={savingReport}
+              >
+                {savingReport ? 'Guardando...' : <><Save size={18} /> Programar</>}
+              </button>
+            </div>
+          </div>
+
           {/* TARJETA LOCALIZACIONES */}
           <div className="fly-glass-card">
             <div className="fly-gc-header">
