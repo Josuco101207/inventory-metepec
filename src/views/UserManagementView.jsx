@@ -89,6 +89,7 @@ const UserManagementView = () => {
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
+  const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [roleChangeUser, setRoleChangeUser] = useState(null);
   const [newRole, setNewRole] = useState('user');
