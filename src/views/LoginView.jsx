@@ -54,6 +54,15 @@ const LoginView = () => {
       <div className="fly-login-shape fly-login-shape-2" />
       <div className="fly-login-shape fly-login-shape-3" />
 
+      {/* Mobile-only atmospheric particles */}
+      <div className="fly-m-particles" aria-hidden="true">
+        <div className="fly-m-particle fly-m-particle--1" />
+        <div className="fly-m-particle fly-m-particle--2" />
+        <div className="fly-m-particle fly-m-particle--3" />
+        <div className="fly-m-particle fly-m-particle--4" />
+        <div className="fly-m-particle fly-m-particle--5" />
+      </div>
+
       <div className="fly-login-container">
         {/* ═══ LADO IZQUIERDO: BRANDING (DESKTOP) ═══ */}
         <aside className="fly-login-brand">
@@ -94,22 +103,29 @@ const LoginView = () => {
          <div className="fly-login-card-body">
           
           <header className="fly-login-card-header">
-            {/* MOBILE ONLY LOGO */}
+            {/* MOBILE ONLY LOGO with glow ring */}
             <div className="fly-mobile-logo-wrap">
-              <FlyLogo size={160} glow circular />
+              <div className="fly-m-logo-ring" aria-hidden="true" />
+              <div className="fly-m-logo-ring fly-m-logo-ring--2" aria-hidden="true" />
+              <FlyLogo size={130} glow circular />
             </div>
+
+            {/* Mobile-only tagline */}
+            <p className="fly-m-tagline">SISTEMA DE INVENTARIO</p>
 
             <h2 className="fly-login-card-title">IDENTIFICACIÓN</h2>
           </header>
 
           <form onSubmit={handleSubmit} className="fly-login-form">
             <div className="fly-field">
-              <label htmlFor="email">Correo Electronico</label>
+              <label htmlFor="email">Correo Electrónico</label>
               <div className="fly-field-wrap">
+                <Mail size={16} className="fly-field-icon" />
                 <input
                   id="email"
                   type="email"
                   required
+                  placeholder="tu@correo.com"
                   value={email}
                   onChange={handleInputChange(setEmail)}
                   autoComplete="email"
@@ -120,11 +136,13 @@ const LoginView = () => {
             <div className={`fly-field ${errorMsg ? 'fly-field-shake' : ''}`}>
               <label htmlFor="password">Contraseña</label>
               <div className="fly-field-wrap">
+                <Lock size={16} className="fly-field-icon" />
                 <input
                   id="password"
                   ref={(el) => { if (errorMsg && el) el.focus(); }}
                   type={showPassword ? 'text' : 'password'}
                   required
+                  placeholder="••••••••"
                   value={password}
                   onChange={handleInputChange(setPassword)}
                   autoComplete="current-password"
@@ -156,13 +174,29 @@ const LoginView = () => {
               {isAuthLoading ? (
                 <Loader2 className="fly-spin" size={18} />
               ) : (
-                <>Iniciar Sesion</>
+                <>
+                  Iniciar Sesión
+                  <ArrowRight size={18} className="fly-m-submit-arrow" />
+                </>
               )}
             </button>
           </form>
+
+          {/* Mobile-only security badge */}
+          <div className="fly-m-trust-badge">
+            <Lock size={12} />
+            <span>Conexión cifrada · Fly Extreme Sports Park</span>
+          </div>
          </div>
         </main>
       </div>
+
+      {/* Mobile-only footer */}
+      <footer className="fly-m-footer">
+        <div className="fly-m-footer-line" />
+        <span>FLY EXTREME SPORTS PARK</span>
+        <span className="fly-m-footer-ver">INVENTARIO v3.0</span>
+      </footer>
     </div>
   );
 };

@@ -620,136 +620,392 @@
   }
 }
 
-/* MOBILE — Exact Mockup Replication */
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE-ONLY ELEMENTS — Hidden on desktop by default
+   ═══════════════════════════════════════════════════════════════ */
+.fly-m-particles,
+.fly-m-tagline,
+.fly-m-logo-ring,
+.fly-m-trust-badge,
+.fly-m-footer,
+.fly-m-submit-arrow {
+  display: none;
+}
+
+/* MOBILE — Premium Immersive Login Experience */
 @media (max-width: 768px) {
+
+  /* ── SCREEN ── */
   .fly-login-screen {
     padding: 0;
     align-items: stretch;
     min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--fly-dark);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
+  /* ── ATMOSPHERIC SHAPES ── */
+  .fly-login-shape-1 {
+    width: 320px; height: 320px;
+    top: -15%; left: -20%;
+    background: radial-gradient(circle, rgba(218, 0, 163, 0.35) 0%, transparent 70%);
+    filter: blur(80px);
+  }
+  .fly-login-shape-2 {
+    width: 300px; height: 300px;
+    bottom: -10%; right: -15%;
+    background: radial-gradient(circle, rgba(224, 218, 60, 0.3) 0%, transparent 70%);
+    filter: blur(80px);
+  }
+  .fly-login-shape-3 {
+    display: block;
+    width: 200px; height: 200px;
+    top: 45%; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(0, 173, 239, 0.12) 0%, transparent 70%);
+    filter: blur(70px);
+  }
+
+  /* ── FLOATING PARTICLES ── */
+  .fly-m-particles {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .fly-m-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--fly-yellow);
+    opacity: 0;
+    animation: flyMParticle 8s ease-in-out infinite;
+  }
+
+  .fly-m-particle--1 { width: 3px; height: 3px; top: 18%; left: 12%; animation-delay: 0s; }
+  .fly-m-particle--2 { width: 2px; height: 2px; top: 35%; right: 18%; animation-delay: 1.5s; background: var(--fly-magenta); }
+  .fly-m-particle--3 { width: 4px; height: 4px; top: 60%; left: 8%; animation-delay: 3s; }
+  .fly-m-particle--4 { width: 2px; height: 2px; top: 75%; right: 10%; animation-delay: 4.5s; background: var(--zone-boliche); }
+  .fly-m-particle--5 { width: 3px; height: 3px; top: 50%; left: 85%; animation-delay: 6s; background: var(--fly-magenta); }
+
+  @keyframes flyMParticle {
+    0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+    30% { opacity: 0.8; transform: translateY(-20px) scale(1); }
+    70% { opacity: 0.4; transform: translateY(-40px) scale(0.8); }
+  }
+
+  /* ── CONTAINER ── */
   .fly-login-container {
     border-radius: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     max-width: 100%;
     border: none;
     box-shadow: none;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: transparent; /* Keep the app's dark background */
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
-  /* Hide the desktop branding completely */
-  .fly-login-brand {
-    display: none;
-  }
+  /* ── HIDE DESKTOP BRAND ── */
+  .fly-login-brand { display: none; }
 
-  /* Main Form Card */
+  /* ── FORM CARD ── */
   .fly-login-card {
-    padding: 2rem;
+    padding: 2.5rem 1.75rem 1rem;
     background: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    animation: flyMCardAppear 800ms var(--ease-fly) backwards;
+  }
+
+  @keyframes flyMCardAppear {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .fly-login-card-body {
     width: 100%;
-    max-width: 320px; /* Match the narrow look of the mockup */
+    max-width: 340px;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  /* Mobile Logo */
+  /* ── MOBILE LOGO WITH GLOW RINGS ── */
   .fly-mobile-logo-wrap {
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+    width: 160px;
+    height: 160px;
+    animation: flyMLogoFloat 5s ease-in-out infinite;
   }
 
+  @keyframes flyMLogoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .fly-m-logo-ring {
+    display: block;
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(224, 218, 60, 0.25);
+    animation: flyMRingPulse 3s ease-in-out infinite;
+  }
+
+  .fly-m-logo-ring--2 {
+    inset: -18px;
+    border-color: rgba(218, 0, 163, 0.15);
+    animation-delay: 1.5s;
+    animation-duration: 4s;
+  }
+
+  @keyframes flyMRingPulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.06); opacity: 0.8; }
+  }
+
+  /* ── TAGLINE ── */
+  .fly-m-tagline {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    color: var(--fly-magenta);
+    text-align: center;
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    animation: flyMTagFade 1s 600ms var(--ease-fly) backwards;
+  }
+
+  @keyframes flyMTagFade {
+    from { opacity: 0; transform: translateY(8px); letter-spacing: 0.6em; }
+    to { opacity: 1; transform: translateY(0); letter-spacing: 0.35em; }
+  }
+
+  /* ── HEADER ── */
   .fly-login-card-header {
     margin-bottom: 2rem;
     text-align: center;
-  }
-
-  /* Yellow Title */
-  .fly-login-card-title {
-    font-family: var(--font-heading);
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--fly-yellow);
-    text-transform: none;
-    letter-spacing: 0;
-    margin: 0;
-    text-align: center;
-  }
-
-  .fly-login-form {
-    width: 100%;
-    gap: 1.5rem;
     display: flex;
     flex-direction: column;
+    align-items: center;
   }
 
-  .fly-field {
-    gap: 0.25rem;
+  .fly-login-card-title {
+    font-family: var(--font-hero);
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--fly-yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 0 30px rgba(224, 218, 60, 0.2);
+    animation: flyMTitleAppear 800ms 300ms var(--ease-fly) backwards;
   }
+
+  @keyframes flyMTitleAppear {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── FORM ── */
+  .fly-login-form {
+    width: 100%;
+    gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    animation: flyMFormSlide 600ms 500ms var(--ease-fly) backwards;
+  }
+
+  @keyframes flyMFormSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fly-field { gap: 0.4rem; }
 
   /* Labels */
   .fly-field label {
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.7); /* Light gray */
-    letter-spacing: 0;
-    text-transform: none;
-    margin-left: 1rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-left: 1.2rem;
   }
 
-  /* Dark Pill Inputs */
+  /* Glassmorphism Pill Inputs */
+  .fly-field-wrap {
+    position: relative;
+  }
+
+  .fly-field-icon {
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    z-index: 2;
+    transition: color 300ms ease;
+  }
+
+  .fly-field-wrap:focus-within .fly-field-icon {
+    color: var(--fly-yellow);
+  }
+
   .fly-field-wrap input {
-    background: #333333 !important; /* Dark gray */
-    border: none !important;
-    border-radius: 999px !important; /* Perfect Pill */
-    padding: 1rem 1.5rem !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 1rem 1.25rem 1rem 2.8rem !important;
     font-size: 0.95rem;
     color: #fff !important;
     text-align: left;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 300ms ease !important;
+  }
+
+  .fly-field-wrap input::placeholder {
+    color: rgba(255, 255, 255, 0.2) !important;
   }
 
   .fly-field-wrap input:focus {
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 2px var(--fly-yellow) !important;
+    background: rgba(224, 218, 60, 0.04) !important;
+    border-color: rgba(224, 218, 60, 0.4) !important;
+    box-shadow: 0 0 0 3px rgba(224, 218, 60, 0.1), 0 8px 24px rgba(0, 0, 0, 0.2) !important;
   }
 
-  /* Yellow Submit Pill */
+  /* Eye toggle */
+  .fly-field-action {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* ── SUBMIT BUTTON ── */
   .fly-login-submit {
-    margin-top: 1rem;
-    background: var(--fly-yellow);
-    color: #000;
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding: 1.2rem;
-    border-radius: 999px;
-    letter-spacing: 0;
-    text-transform: none;
+    margin-top: 0.75rem;
+    background: linear-gradient(135deg, var(--fly-yellow), #d4ce2e);
+    color: var(--fly-dark);
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 0.95rem;
+    padding: 1.1rem;
+    border-radius: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     width: 100%;
-    box-shadow: 0 4px 15px rgba(224, 218, 60, 0.3);
+    box-shadow: 0 8px 28px rgba(224, 218, 60, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 300ms ease;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* Reducir blobs decorativos en móvil para performance */
-  .fly-login-shape-1,
-  .fly-login-shape-2 {
-    width: 280px;
-    height: 280px;
+  .fly-login-submit:active:not(:disabled) {
+    transform: scale(0.97);
+    box-shadow: 0 4px 16px rgba(224, 218, 60, 0.25);
   }
 
-  .fly-login-shape-3 {
-    display: none;
+  .fly-m-submit-arrow {
+    display: inline-block;
+    transition: transform 300ms ease;
+  }
+
+  .fly-login-submit:hover .fly-m-submit-arrow {
+    transform: translateX(3px);
+  }
+
+  /* ── TRUST BADGE ── */
+  .fly-m-trust-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 2rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.04em;
+    animation: flyMFade 800ms 900ms var(--ease-fly) backwards;
+  }
+
+  .fly-m-trust-badge svg {
+    color: rgba(141, 198, 63, 0.5);
+  }
+
+  @keyframes flyMFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ── FOOTER ── */
+  .fly-m-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1.5rem 0 2.5rem;
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    animation: flyMFade 800ms 1100ms var(--ease-fly) backwards;
+  }
+
+  .fly-m-footer-line {
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--fly-magenta), var(--fly-yellow));
+    border-radius: 2px;
+    margin-bottom: 0.4rem;
+  }
+
+  .fly-m-footer > span:first-of-type {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+  }
+
+  .fly-m-footer-ver {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ── ERROR MESSAGE (Mobile polish) ── */
+  .fly-login-error {
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    background: rgba(218, 0, 163, 0.12);
+    border: 1.5px solid rgba(218, 0, 163, 0.4);
   }
 }
 
@@ -768,5 +1024,21 @@
   .fly-login-brand-top img {
     transform: scale(0.85);
     transform-origin: left center;
+  }
+}
+
+/* Small phones — tighter spacing */
+@media (max-width: 380px) {
+  .fly-login-card {
+    padding: 2rem 1.25rem 1rem !important;
+  }
+
+  .fly-login-card-title {
+    font-size: 1.3rem !important;
+  }
+
+  .fly-mobile-logo-wrap {
+    width: 130px !important;
+    height: 130px !important;
   }
 }
