@@ -623,37 +623,46 @@
 /* ═══════════════════════════════════════════════════════════════
    MOBILE-ONLY ELEMENTS — Hidden on desktop by default
    ═══════════════════════════════════════════════════════════════ */
-.fly-m-subtitle {
+.fly-m-brand-tag,
+.fly-m-divider {
   display: none;
 }
 
-/* MOBILE — Clean Dark Login */
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — Fly Extreme Neon Login
+   ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── SCREEN ── */
+  /* ── SCREEN: dark canvas ── */
   .fly-login-screen {
     padding: 0;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
     min-height: 100vh;
     min-height: 100dvh;
-    background: var(--fly-dark);
+    background: #1a1816;
   }
 
-  /* ── SHAPES: subtle ambient glow ── */
+  /* ── BACKGROUND GLOWS: brand atmosphere ── */
   .fly-login-shape-1 {
-    width: 260px; height: 260px;
-    top: -8%; left: -15%;
-    background: radial-gradient(circle, rgba(218, 0, 163, 0.2) 0%, transparent 70%);
-    filter: blur(80px);
+    width: 380px; height: 380px;
+    top: -5%; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(218, 0, 163, 0.3) 0%, rgba(218, 0, 163, 0.08) 40%, transparent 70%);
+    filter: blur(60px);
   }
   .fly-login-shape-2 {
-    width: 260px; height: 260px;
-    bottom: -5%; right: -10%;
-    background: radial-gradient(circle, rgba(224, 218, 60, 0.15) 0%, transparent 70%);
+    width: 300px; height: 300px;
+    bottom: 0; right: -10%;
+    background: radial-gradient(circle, rgba(224, 218, 60, 0.12) 0%, transparent 70%);
     filter: blur(80px);
   }
-  .fly-login-shape-3 { display: none; }
+  .fly-login-shape-3 {
+    display: block;
+    width: 200px; height: 200px;
+    bottom: 15%; left: -10%;
+    background: radial-gradient(circle, rgba(0, 173, 239, 0.08) 0%, transparent 70%);
+    filter: blur(60px);
+  }
 
   /* ── CONTAINER ── */
   .fly-login-container {
@@ -670,120 +679,140 @@
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    padding: 2rem 0;
+    padding: 3rem 1.5rem;
+    padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px));
   }
 
   /* ── HIDE DESKTOP BRAND ── */
   .fly-login-brand { display: none; }
 
-  /* ── FORM CARD: glass panel ── */
+  /* ── FORM CARD ── */
   .fly-login-card {
-    padding: 0 1.75rem;
+    padding: 0;
     background: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     width: 100%;
-    animation: flyMAppear 600ms var(--ease-fly) backwards;
+    max-width: 360px;
+    animation: flyMSlideUp 700ms var(--ease-fly) backwards;
   }
 
-  @keyframes flyMAppear {
-    from { opacity: 0; transform: translateY(16px); }
+  @keyframes flyMSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   .fly-login-card-body {
     width: 100%;
-    max-width: 340px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 28px;
-    padding: 2.5rem 1.75rem 2rem;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
   }
 
-  /* ── LOGO ── */
+  /* ── LOGO: big and proud ── */
   .fly-mobile-logo-wrap {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 40px rgba(218, 0, 163, 0.3)) drop-shadow(0 0 80px rgba(218, 0, 163, 0.15));
+  }
+
+  /* ── BRAND TAG ── */
+  .fly-m-brand-tag {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--fly-magenta);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 0.5rem;
   }
 
   /* ── HEADER ── */
   .fly-login-card-header {
-    margin-bottom: 1.75rem;
+    margin-bottom: 0;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
 
   .fly-login-card-title {
     font-family: var(--font-hero);
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 900;
     color: var(--fly-yellow);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 0.4rem;
+    letter-spacing: 0.04em;
+    margin: 0 0 1.25rem;
     text-align: center;
+    text-shadow: 0 0 40px rgba(224, 218, 60, 0.15);
   }
 
-  .fly-m-subtitle {
+  /* ── DIVIDER: gradient accent line ── */
+  .fly-m-divider {
     display: block;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.35);
-    margin: 0;
-    text-align: center;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(218, 0, 163, 0.5), rgba(224, 218, 60, 0.5), transparent);
+    margin-bottom: 1.75rem;
   }
 
   /* ── FORM ── */
   .fly-login-form {
     width: 100%;
-    gap: 1.1rem;
+    gap: 1.15rem;
     display: flex;
     flex-direction: column;
   }
 
-  .fly-field { gap: 0.35rem; }
+  .fly-field { gap: 0.4rem; }
 
-  /* Labels */
+  /* Labels — uppercase, branded */
   .fly-field label {
     font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 0.68rem;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 0.04em;
-    text-transform: none;
-    margin-left: 0.75rem;
+    font-weight: 900;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-left: 0.25rem;
   }
 
-  /* Pill Inputs */
+  /* Inputs — dark with magenta left accent */
   .fly-field-wrap input {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 14px !important;
-    padding: 0.95rem 1.25rem !important;
-    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-left: 3px solid var(--fly-magenta) !important;
+    border-radius: 12px !important;
+    padding: 1rem 1.15rem !important;
+    font-size: 0.92rem;
     color: #fff !important;
     transition: all 250ms ease !important;
   }
 
+  .fly-field:nth-child(2) .fly-field-wrap input {
+    border-left-color: var(--fly-yellow) !important;
+  }
+
   .fly-field-wrap input::placeholder {
-    color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.18) !important;
   }
 
   .fly-field-wrap input:focus {
-    background: rgba(224, 218, 60, 0.03) !important;
-    border-color: rgba(224, 218, 60, 0.5) !important;
-    box-shadow: 0 0 0 3px rgba(224, 218, 60, 0.08) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    border-left-color: var(--fly-magenta) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 0 0 transparent !important;
+  }
+
+  .fly-field:nth-child(2) .fly-field-wrap input:focus {
+    border-left-color: var(--fly-yellow) !important;
   }
 
   /* Eye toggle */
@@ -792,37 +821,53 @@
     right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
   }
 
-  /* ── SUBMIT BUTTON ── */
+  .fly-field-action:hover {
+    color: var(--fly-yellow);
+  }
+
+  /* ── SUBMIT BUTTON: bold yellow ── */
   .fly-login-submit {
-    margin-top: 0.5rem;
+    margin-top: 1rem;
     background: var(--fly-yellow);
     color: var(--fly-dark);
     font-family: var(--font-heading);
     font-weight: 900;
-    font-size: 0.95rem;
-    padding: 1rem;
-    border-radius: 14px;
-    letter-spacing: 0.04em;
+    font-size: 1rem;
+    padding: 1.1rem;
+    border-radius: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     width: 100%;
-    box-shadow: 0 6px 20px rgba(224, 218, 60, 0.25);
-    transition: all 250ms ease;
+    box-shadow: 0 6px 24px rgba(224, 218, 60, 0.3), 0 0 0 1px rgba(224, 218, 60, 0.1);
+    transition: all 200ms ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fly-login-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+    transform: translateX(-100%);
   }
 
   .fly-login-submit:active:not(:disabled) {
     transform: scale(0.97);
-    box-shadow: 0 3px 10px rgba(224, 218, 60, 0.2);
+    box-shadow: 0 3px 12px rgba(224, 218, 60, 0.25);
   }
 
   /* ── ERROR ── */
   .fly-login-error {
     border-radius: 12px;
     padding: 0.75rem 1rem;
-    font-size: 0.75rem;
-    background: rgba(218, 0, 163, 0.1);
-    border: 1px solid rgba(218, 0, 163, 0.3);
+    font-size: 0.72rem;
+    background: rgba(218, 0, 163, 0.08);
+    border: 1px solid rgba(218, 0, 163, 0.25);
+    border-left: 3px solid var(--fly-magenta);
   }
 }
 
@@ -846,8 +891,9 @@
 
 /* Small phones */
 @media (max-width: 380px) {
-  .fly-login-card-body {
-    padding: 2rem 1.25rem 1.5rem !important;
+  .fly-login-card-title {
+    font-size: 1.6rem !important;
   }
 }
+
 

@@ -96,11 +96,12 @@ const LoginView = () => {
           <header className="fly-login-card-header">
             {/* MOBILE ONLY LOGO */}
             <div className="fly-mobile-logo-wrap">
-              <FlyLogo size={110} glow circular />
+              <FlyLogo size={140} glow circular />
             </div>
 
+            <span className="fly-m-brand-tag">CONTROL DE INVENTARIO</span>
             <h2 className="fly-login-card-title">IDENTIFICACIÓN</h2>
-            <p className="fly-m-subtitle">Ingresa tus datos para continuar</p>
+            <div className="fly-m-divider" />
           </header>
 
           <form onSubmit={handleSubmit} className="fly-login-form">
