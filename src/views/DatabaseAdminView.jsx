@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import FlyPattern from '../components/FlyPattern';
 import Header from '../components/Header';
 import './DatabaseAdminView.css';
+import useIsMobile from '../hooks/useIsMobile';
 
 const COLUMN_TYPES = [
   { value: 'text', label: 'Texto', icon: Type, color: '#34c759' },
@@ -65,6 +66,7 @@ const rpcCall = async (fnName, params = {}) => {
 const DatabaseAdminView = () => {
   const { isAdmin, userData, loading: authLoading } = useAuth();
   const { categories, reload: reloadCategories } = useCategories();
+  const { isMobile } = useIsMobile();
   const [tables, setTables] = useState([]);
   const [loadingTables, setLoadingTables] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(() => {
@@ -565,6 +567,254 @@ const DatabaseAdminView = () => {
         <AlertTriangle size={48} />
         <h2>Acceso Restringido</h2>
         <p>Solo administradores pueden acceder a esta sección.</p>
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div className="fly-db-mobile">
+        <div className="fdm-sticky-header">
+          <div className="fdm-header-top">
+            <h1 className="fdm-title">Categorías</h1>
+            <button className="fdm-btn-add" onClick={() => setShowCreateForm(true)}>
+              <Plus size={16} /> NUEVA
+            </button>
+          </div>
+          <div className="fdm-header-stats">
+            <div className="fdm-stat">
+              <span className="fdm-stat-val">{categories.length}</span>
+              <span className="fdm-stat-lbl">Activas</span>
+            </div>
+            <button className="fdm-btn-action" onClick={handleBackup} disabled={backingUp}>
+              {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Backup
+            </button>
+            <button className="fdm-btn-action" onClick={() => { fetchTables(); reloadCategories(); }}>
+              <RefreshCw size={16} /> Sync
+            </button>
+          </div>
+        </div>
+
+        <div className="fdm-content">
+          {categories.map(cat => (
+            <div key={cat.id} className="fdm-cat-card">
+              <div className="fdm-cat-header" onClick={() => handleToggleTable(cat.tableName)}>
+                <div className="fdm-cat-icon-wrap" style={{ background: ZONE_OPTIONS.find(z => z.value === cat.zone)?.color || '#ccc' }}>
+                  <Package size={20} color="#000" />
+                </div>
+                <div className="fdm-cat-info">
+                  <span className="fdm-cat-title">{cat.title}</span>
+                  <span className="fdm-cat-table">{cat.tableName}</span>
+                </div>
+                <div className="fdm-cat-actions">
+                  <button className="fdm-btn-icon text-fly-blue" onClick={(e) => { e.stopPropagation(); startEditCategory(cat); }}>
+                    <Edit2 size={18} />
+                  </button>
+                  <button className="fdm-btn-icon text-fly-magenta" onClick={(e) => { e.stopPropagation(); deleteCategory(cat); }} disabled={deleting === cat.id}>
+                    {deleting === cat.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                  </button>
+                  <div className="fdm-chevron">
+                    {expandedTable === cat.tableName ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                  </div>
+                </div>
+              </div>
+
+              {expandedTable === cat.tableName && (
+                <div className="fdm-cat-cols">
+                  {tableColumns[cat.tableName] ? (
+                    tableColumns[cat.tableName].map((col, i) => {
+                      const typeInfo = getTypeInfo(col.data_type);
+                      return (
+                        <div key={i} className="fdm-col-row">
+                          <div className="fdm-col-left">
+                            <span className="fdm-col-dot" style={{ background: typeInfo.color }}></span>
+                            <span className="fdm-col-name">{col.column_name}</span>
+                          </div>
+                          <div className="fdm-col-right">
+                            <span className="fdm-col-type">{col.data_type}</span>
+                            {col.is_nullable === 'NO' && <span className="fdm-col-req">Req</span>}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="fdm-loading"><Loader2 size={16} className="animate-spin" /></div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          <h2 className="fdm-section-title">Tablas Raw ({tables.length})</h2>
+          <div className="fdm-raw-tables">
+            {loadingTables ? (
+              <div className="fdm-loading"><Loader2 size={24} className="animate-spin" /></div>
+            ) : (
+              tables.map(t => (
+                <div key={t.table_name} className="fdm-raw-card" onClick={() => handleToggleTable(t.table_name)}>
+                  <div className="fdm-raw-header">
+                    <Table2 size={16} className="fdm-raw-icon" />
+                    <span className="fdm-raw-name">{t.table_name}</span>
+                    {expandedTable === t.table_name ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                  </div>
+                  {expandedTable === t.table_name && (
+                    <div className="fdm-cat-cols">
+                      {tableColumns[t.table_name] ? (
+                        tableColumns[t.table_name].map((col, i) => {
+                          const typeInfo = getTypeInfo(col.data_type);
+                          return (
+                            <div key={i} className="fdm-col-row">
+                              <div className="fdm-col-left">
+                                <span className="fdm-col-dot" style={{ background: typeInfo.color }}></span>
+                                <span className="fdm-col-name">{col.column_name}</span>
+                              </div>
+                              <div className="fdm-col-right">
+                                <span className="fdm-col-type">{col.data_type}</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="fdm-loading"><Loader2 size={16} className="animate-spin" /></div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* CREATE MODAL */}
+        {showCreateForm && (
+          <div className="modal-overlay">
+            <div className="modal-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Nueva Categoría</h3>
+                <button onClick={() => setShowCreateForm(false)} className="text-gray-400"><X size={24} /></button>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="f-group">
+                  <label>Nombre</label>
+                  <input type="text" className="w-full" value={catTitle} onChange={(e) => setCatTitle(e.target.value)} />
+                </div>
+                <div className="f-group">
+                  <label>Nombre corto</label>
+                  <input type="text" className="w-full" maxLength={14} value={catShortTitle} onChange={(e) => setCatShortTitle(e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                  <div className="f-group flex-1">
+                    <label>Icono</label>
+                    <select className="w-full" value={catIcon} onChange={(e) => setCatIcon(e.target.value)}>
+                      {ICON_OPTIONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
+                    </select>
+                  </div>
+                  <div className="f-group flex-1">
+                    <label>Zona</label>
+                    <select className="w-full" value={catZone} onChange={(e) => setCatZone(e.target.value)}>
+                      {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="fdm-cols-editor mt-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <label>Columnas</label>
+                    <button className="fdm-btn-icon" onClick={addColumn}><Plus size={16} /></button>
+                  </div>
+                  {columns.map((col, i) => (
+                    <div key={i} className="fdm-col-edit-row flex items-center gap-2 mb-2">
+                      <input type="text" className="flex-1" style={{ minWidth: 0, padding: '8px' }} value={col.name} onChange={(e) => updateColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
+                      <select style={{ width: '80px', padding: '8px' }} value={col.type} onChange={(e) => updateColumn(i, 'type', e.target.value)}>
+                        {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.value}</option>)}
+                      </select>
+                      <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={col.required} onChange={(e) => updateColumn(i, 'required', e.target.checked)} />Req</label>
+                      <button className="text-fly-magenta" onClick={() => removeColumn(i)}><Trash2 size={16} /></button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-4 mt-4">
+                  <button className="btn-secondary flex-1" onClick={() => setShowCreateForm(false)}>Cancelar</button>
+                  <button className="btn-primary flex-1 flex justify-center items-center gap-2" onClick={createCategory} disabled={creating || !catTitle.trim()}>
+                    {creating ? <Loader2 size={18} className="animate-spin" /> : 'Crear'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT MODAL */}
+        {editingCatId && (() => {
+          const cat = categories.find(c => c.id === editingCatId);
+          return (
+          <div className="modal-overlay">
+            <div className="modal-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Editar Categoría</h3>
+                <button onClick={cancelEditCategory} className="text-gray-400"><X size={24} /></button>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="f-group">
+                  <label>Nombre</label>
+                  <input type="text" className="w-full" value={editCatTitle} onChange={(e) => setEditCatTitle(e.target.value)} />
+                </div>
+                <div className="f-group">
+                  <label>Nombre corto</label>
+                  <input type="text" className="w-full" maxLength={14} value={editCatShortTitle} onChange={(e) => setEditCatShortTitle(e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                  <div className="f-group flex-1">
+                    <label>Icono</label>
+                    <select className="w-full" value={editCatIcon} onChange={(e) => setEditCatIcon(e.target.value)}>
+                      {ICON_OPTIONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
+                    </select>
+                  </div>
+                  <div className="f-group flex-1">
+                    <label>Zona</label>
+                    <select className="w-full" value={editCatZone} onChange={(e) => setEditCatZone(e.target.value)}>
+                      {ZONE_OPTIONS.map(z => <option key={z.value} value={z.value}>{z.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="fdm-cols-editor mt-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <label>Columnas</label>
+                    <button className="fdm-btn-icon" onClick={addEditColumn}><Plus size={16} /></button>
+                  </div>
+                  {editColumns.map((col, i) => {
+                    const isOriginal = !!col.originalName;
+                    return (
+                    <div key={i} className="fdm-col-edit-row flex flex-col gap-1 mb-3 pb-3 border-b border-gray-800">
+                      <div className="flex items-center gap-2">
+                        <input type="text" className="flex-1" style={{ minWidth: 0, padding: '8px' }} value={col.name} onChange={(e) => updateEditColumn(i, 'name', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} />
+                        <select style={{ width: '80px', padding: '8px' }} value={col.type} onChange={(e) => updateEditColumn(i, 'type', e.target.value)}>
+                          {COLUMN_TYPES.map(t => <option key={t.value} value={t.value}>{t.value}</option>)}
+                        </select>
+                        <button className="text-fly-magenta" onClick={() => removeEditColumn(i)}><Trash2 size={16} /></button>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        {!isOriginal && (
+                          <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={col.required} onChange={(e) => updateEditColumn(i, 'required', e.target.checked)} />Req</label>
+                        )}
+                        {isOriginal && <span className="text-xs text-gray-500">Columna Existente</span>}
+                      </div>
+                    </div>
+                  )})}
+                </div>
+
+                <div className="flex gap-4 mt-2">
+                  <button className="btn-secondary flex-1" onClick={cancelEditCategory}>Cancelar</button>
+                  <button className="btn-primary flex-1 flex justify-center items-center gap-2" onClick={() => updateCategory(cat)} disabled={updating}>
+                    {updating ? <Loader2 size={18} className="animate-spin" /> : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )})}
       </div>
     );
   }
