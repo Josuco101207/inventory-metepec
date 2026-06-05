@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { CATEGORY_ICONS } from '../config/categories';
 import { useCategories } from '../context/CategoriesContext';
 import FlyPattern from '../components/FlyPattern';
+import useIsMobile from '../hooks/useIsMobile';
 import './UserManagementView.css';
 
 const USERS_KEY = 'dicrejart_users';
@@ -68,6 +69,7 @@ const PermToggle = ({ active, onClick, color, disabled }) => {
 const UserManagementView = () => {
   const { user: currentUser } = useAuth();
   const { categories, categoryToViewId } = useCategories();
+  const { isMobile } = useIsMobile();
   const ALL_CATEGORIES = categories.map(cat => cat.title);
   const ALL_VIEWS = [
     { id: 'dashboard', label: 'Dashboard (Inicio)', icon: <LayoutDashboard size={14} /> },
@@ -326,6 +328,131 @@ const UserManagementView = () => {
     if (a === 0 && e === 0) return { text: 'Sin permisos', color: '#dc2626', bg: '#fff1f1', border: '#fecaca' };
     return { text: `${a} agregar · ${e} editar`, color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
   };
+
+  if (isMobile) {
+    return (
+      <div className="fly-team-mobile">
+        <div className="ftm-sticky-header">
+          <div className="ftm-header-top">
+            <h1 className="ftm-title">Equipo</h1>
+            <button className="ftm-btn-add" onClick={() => setIsAddModalOpen(true)}>
+              <UserPlus size={16} /> Nuevo
+            </button>
+          </div>
+        </div>
+
+        <div className="ftm-content">
+          {loading ? (
+            <div className="ftm-loading">
+              <Loader2 className="animate-spin" size={32} />
+            </div>
+          ) : (
+            <div className="ftm-user-list">
+              {users.map(u => {
+                const isAdminUser = u.role === 'admin';
+                const ss = summaryText(u);
+                const initials = (u.displayName || u.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+                return (
+                  <div key={u.id} className="ftm-user-card">
+                    <div className="ftm-card-header">
+                      <div className={`ftm-avatar ${isAdminUser ? 'admin' : ''}`}>{initials}</div>
+                      <div className="ftm-user-info">
+                        <div className="ftm-name-row">
+                          <span className="ftm-name">{u.displayName || u.name}</span>
+                          {isAdminUser && <Shield size={12} className="ftm-icon-admin" />}
+                        </div>
+                        <span className="ftm-email">{u.email}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="ftm-role-row">
+                      <span className={`ftm-role-badge role-${u.role}`}>{u.role}</span>
+                      <span className="ftm-summary-badge">{ss.text}</span>
+                    </div>
+
+                    <div className="ftm-card-actions">
+                      <button onClick={() => toggleRole(u)} className="ftm-action-btn">
+                        <Shield size={14} /> Rol
+                      </button>
+                      <button onClick={() => { setChangingPasswordUser(u); setIsChangeModalOpen(true); }} className="ftm-action-btn">
+                        <Lock size={14} /> Pass
+                      </button>
+                      <button onClick={() => handleDelete(u)} className="ftm-action-btn danger">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* MODALS RE-USED FOR MOBILE INLINE TO AVOID BREAKING DESKTOP */}
+        {isAddModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-card p-8">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 className="text-xl font-bold">Nuevo Miembro</h3>
+                <button onClick={() => setIsAddModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
+                <div className="f-group">
+                  <label>Nombre</label>
+                  <input type="text" required className="w-full" value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} />
+                </div>
+                <div className="f-group">
+                  <label>Correo</label>
+                  <input type="email" required className="w-full" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} />
+                </div>
+                <div className="f-group">
+                  <label>Contraseña</label>
+                  <input type="password" required className="w-full" minLength={6} value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} />
+                </div>
+                <div className="f-group">
+                  <label>Rol</label>
+                  <select className="w-full" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
+                    <option value="user">Usuario</option>
+                    <option value="almacenista">Almacenista</option>
+                  </select>
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <button type="button" className="btn-secondary flex-1" onClick={() => setIsAddModalOpen(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2" disabled={isCreating}>
+                    {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Crear'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isChangeModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-card p-8">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 className="text-xl font-bold">Cambiar Contraseña</h3>
+                <button onClick={() => setIsChangeModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+                <div className="f-group relative">
+                  <label>Nueva Contraseña</label>
+                  <input type="password" required minLength={6} className="w-full" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <button type="button" className="btn-secondary flex-1" onClick={() => { setIsChangeModalOpen(false); setNewPassword(''); }}>Cancelar</button>
+                  <button type="submit" className="btn-primary flex-1 flex justify-center items-center gap-2" disabled={isUpdatingPassword}>
+                    {isUpdatingPassword ? <Loader2 className="animate-spin" size={18} /> : 'Actualizar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="fly-team-view">
