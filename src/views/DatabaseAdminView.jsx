@@ -703,7 +703,7 @@ const DatabaseAdminView = () => {
                 <button onClick={() => setShowCreateForm(false)} className="fdm-icon-btn-small" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%', padding: '0.5rem' }}><X size={20} /></button>
               </div>
               
-              <div className="flex flex-col gap-5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)', paddingRight: '4px' }}>
+              <div className="flex flex-col gap-5">
                 <div className="f-group">
                   <label className="fdm-modal-label">Nombre</label>
                   <input type="text" className="fdm-modal-input" placeholder="Ej. Inventario Fábrica" value={catTitle} onChange={(e) => setCatTitle(e.target.value)} />
@@ -785,7 +785,7 @@ const DatabaseAdminView = () => {
                 </h3>
                 <button onClick={cancelEditCategory} className="fdm-icon-btn-small" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%', padding: '0.5rem' }}><X size={20} /></button>
               </div>
-              <div className="flex flex-col gap-5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)', paddingRight: '4px' }}>
+              <div className="flex flex-col gap-5">
                 <div className="f-group">
                   <label className="fdm-modal-label">Nombre</label>
                   <input type="text" className="fdm-modal-input" value={editCatTitle} onChange={(e) => setEditCatTitle(e.target.value)} />
