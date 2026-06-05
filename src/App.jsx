@@ -147,8 +147,6 @@ const RootApp = () => {
       <Router>
         <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', background: '#1a1a2e' }}><Loader2 className="animate-spin text-white" size={40} /></div>}>
           <Routes>
-            <Route path="/approve/:id" element={<ApprovalActionView action="approve" />} />
-            <Route path="/reject/:id" element={<ApprovalActionView action="reject" />} />
             <Route path="*" element={<LoginView />} />
           </Routes>
         </Suspense>

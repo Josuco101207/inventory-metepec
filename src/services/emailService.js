@@ -205,7 +205,8 @@ const EMAIL_TEMPLATES = {
 // ─── FUNCIÓN PARA GENERAR URLs DE APROBACIÓN ───
 
 const generateApprovalUrls = (requestId, token) => {
-  const baseUrl = window.location.origin;
+  // En móvil (Capacitor), window.location.origin es http://localhost, así que debemos usar la variable de entorno
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
   const tokenParam = token ? `?token=${token}` : '';
   return {
     approveUrl: `${baseUrl}/approve/${requestId}${tokenParam}`,
