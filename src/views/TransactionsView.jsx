@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useCategories } from '../context/CategoriesContext';
@@ -47,6 +47,7 @@ const TransactionsView = () => {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [dayMovements, setDayMovements] = useState([]);
   const [loadingDay, setLoadingDay] = useState(false);
+  const mobileDatePickerRef = useRef(null);
 
   const isTodayStr = selectedDate === todayStr;
   const movementLengthDependency = isTodayStr ? movements.length : null;
@@ -102,9 +103,21 @@ const TransactionsView = () => {
           
           {/* CONTROL DE FECHA */}
           <div className="ftm-date-controls">
-            <div className="ftm-date-picker">
+            <div 
+              className="ftm-date-picker" 
+              onClick={() => {
+                if (mobileDatePickerRef.current) {
+                  try {
+                    mobileDatePickerRef.current.showPicker();
+                  } catch (e) {
+                    mobileDatePickerRef.current.focus();
+                  }
+                }
+              }}
+            >
               <Calendar size={18} className="ftm-icon-dim" />
               <input
+                ref={mobileDatePickerRef}
                 type="date"
                 value={selectedDate}
                 onChange={e => setSelectedDate(e.target.value)}
