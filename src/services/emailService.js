@@ -225,16 +225,26 @@ export const sendEmail = async (to, template, data) => {
 
     const htmlContent = templateFn.html(data);
     
-    // Llamar a Edge Function para enviar email
-    const { data: response, error } = await supabase.functions.invoke('send-email', {
-      body: {
+    // Llamar a Vercel API endpoint para enviar email
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const res = await fetch(`${appUrl}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         to,
         subject: templateFn.subject,
         html: htmlContent
-      }
+      })
     });
 
-    if (error) throw error;
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error ${res.status}`);
+    }
+
+    const response = await res.json();
     
     return { success: true, data: response };
   } catch (error) {

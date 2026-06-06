@@ -99,9 +99,9 @@ const sendApprovalEmail = async (supervisorEmail, supervisorName, requester, req
   try {
     // Llamar a Edge Function de Supabase con reintentos
     const { data: { session } } = await supabase.auth.getSession();
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
 
-    const response = await sendWithRetry(`${supabaseUrl}/functions/v1/send-email`, {
+    const response = await sendWithRetry(`${appUrl}/api/send-email`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
