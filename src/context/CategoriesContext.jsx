@@ -163,9 +163,9 @@ export const CategoriesProvider = ({ children }) => {
     }, 8000);
 
     try {
-      console.log('[Categories] Fetching categories...');
+      // console.log('[Categories] Fetching categories...');
       const data = await fetchCategoriesFromSupabase();
-      console.log('[Categories] Fetched:', data ? data.length : 'null');
+      // console.log('[Categories] Fetched:', data ? data.length : 'null');
       
       if (data && Array.isArray(data)) {
         const baseCats = data.map(transformCategory);

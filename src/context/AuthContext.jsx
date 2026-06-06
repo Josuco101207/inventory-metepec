@@ -101,10 +101,8 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth state changes (includes INITIAL_SESSION on mount)
     try {
-      const { data } = supabase.auth.onAuthStateChange(
+      const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('[Auth] onAuthStateChange:', event, session ? 'has session' : 'no session');
-
           if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
             setUser(session.user);
             await loadProfile(session.user);

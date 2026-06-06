@@ -152,11 +152,9 @@ export const ApprovalProvider = ({ children }) => {
       }
       
       const supervisors = profiles || [];
-      console.log('[Approval] Supervisores cargados:', supervisors.length, supervisors);
       setSupervisors(supervisors);
       return supervisors;
     } catch (err) {
-      console.error('[Approval] Error fetching supervisors:', err);
       setError(err.message);
       toast.error('Error al cargar supervisores', {
         description: err.message
