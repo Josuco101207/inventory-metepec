@@ -20,13 +20,14 @@ export default async function handler(req, res) {
   try {
     // 3. Inicializar Supabase y Nodemailer
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+    // IMPORTANTE: Usamos SERVICE_ROLE_KEY para saltar las reglas de seguridad (RLS) y poder leer la tabla perfiles
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; 
     const gmailEmail = process.env.GMAIL_EMAIL;
     const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
     const missing = [];
     if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
-    if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+    if (!supabaseServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
     if (!gmailEmail) missing.push('GMAIL_EMAIL');
     if (!gmailPassword) missing.push('GMAIL_APP_PASSWORD');
 
@@ -35,7 +36,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: `Missing environment variables: ${missing.join(', ')}` });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Usamos el Service Key, esto nos da acceso total de administrador a la base de datos
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Configurar el transporte SMTP de Gmail
     const transporter = nodemailer.createTransport({
@@ -76,8 +78,8 @@ export default async function handler(req, res) {
     let adminEmails = admins ? admins.filter(a => a.email).map(a => a.email) : [];
     
     if (adminEmails.length === 0) {
-      console.log('No admins found via DB query (likely RLS). Falling back to default admin email.');
-      adminEmails = ['josuco.mst@gmail.com'];
+      console.log('No admins found even with service key.');
+      return res.status(200).json({ message: 'No admin emails found in database.' });
     }
 
     // 7. Construir el reporte en HTML
