@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Plus, Tag, X, Wrench, Clock, Save } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { supabase } from '../lib/supabase';
@@ -14,6 +14,26 @@ const SettingsView = () => {
     return localStorage.getItem('dicrejart_report_time') || '23:00';
   });
   const [savingReport, setSavingReport] = useState(false);
+
+  useEffect(() => {
+    const fetchGlobalTime = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'daily_report_time')
+          .maybeSingle();
+        
+        if (data && data.value) {
+          setReportTime(data.value);
+          localStorage.setItem('dicrejart_report_time', data.value);
+        }
+      } catch (err) {
+        // Ignoramos el error si la tabla aún no existe
+      }
+    };
+    fetchGlobalTime();
+  }, []);
   
   // Location Builder State
   const [locType1, setLocType1] = useState('Estante');
@@ -63,6 +83,15 @@ const SettingsView = () => {
       });
 
       if (error) throw error;
+
+      // Guardar globalmente en Supabase si la tabla existe
+      try {
+        await supabase
+          .from('app_settings')
+          .upsert({ key: 'daily_report_time', value: reportTime });
+      } catch (e) {
+        // Fallback ignorado
+      }
 
       localStorage.setItem('dicrejart_report_time', reportTime);
       toast.success(`Reporte programado para las ${reportTime} hrs exitosamente.`);
