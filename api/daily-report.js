@@ -76,9 +76,9 @@ export default async function handler(req, res) {
               ID: item.id,
               Categoría: cat.title,
               Nombre: item.nombre || item.name || item.titulo || item.producto || item.articulo || 'Sin Nombre',
-              Cantidad: item.cantidad ?? item.qty ?? item.stock ?? item.piezas ?? item.unidades ?? 0,
+              Cantidad: item.cantidad ?? item.canticad ?? item.qty ?? item.stock ?? item.existencias ?? item.piezas ?? item.unidades ?? 0,
               Mínimo: item.stock_min ?? item.minimo ?? item.threshold ?? 0,
-              Ubicación: item.location ?? item.ubicacion ?? '-',
+              Ubicación: item.location ?? item.ubicacion ?? item.localizacion ?? '-',
               Marca: item.marca ?? item.brand ?? '-',
             });
           });
