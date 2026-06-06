@@ -10,7 +10,9 @@ const SettingsView = () => {
   const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
   
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
-  const [reportTime, setReportTime] = useState('23:00');
+  const [reportTime, setReportTime] = useState(() => {
+    return localStorage.getItem('dicrejart_report_time') || '23:00';
+  });
   const [savingReport, setSavingReport] = useState(false);
   
   // Location Builder State
@@ -62,6 +64,7 @@ const SettingsView = () => {
 
       if (error) throw error;
 
+      localStorage.setItem('dicrejart_report_time', reportTime);
       toast.success(`Reporte programado para las ${reportTime} hrs exitosamente.`);
     } catch (err) {
       console.error('Error scheduling report:', err);
