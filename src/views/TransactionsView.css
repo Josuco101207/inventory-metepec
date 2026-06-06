@@ -323,6 +323,7 @@
     opacity: 0;
     width: 100%;
     cursor: pointer;
+    z-index: 10;
   }
 
   .ftm-btn-icon {
