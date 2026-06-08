@@ -13,8 +13,7 @@ export const fetchItems = async (tableName) => {
     const { data, error } = await supabase
       .from(tableName)
       .select('*')
-      .limit(10000)
-      .order('created_at', { ascending: false });
+      .limit(10000); // Se quitó el order('created_at') por si la tabla no tiene esa columna
     if (error) throw error;
     return data || [];
   } catch (err) {
