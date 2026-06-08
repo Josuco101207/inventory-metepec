@@ -9,17 +9,15 @@ import { supabase } from '../lib/supabase';
 
 export const fetchItems = async (tableName) => {
   if (!tableName) return [];
-  try {
-    const { data, error } = await supabase
-      .from(tableName)
-      .select('*')
-      .limit(10000); // Se quitó el order('created_at') por si la tabla no tiene esa columna
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error(`[SupabaseStorage] fetchItems(${tableName}):`, err.message);
-    return [];
+  const { data, error } = await supabase
+    .from(tableName)
+    .select('*')
+    .limit(10000); // Se quitó el order('created_at') por si la tabla no tiene esa columna
+  if (error) {
+    console.error(`[SupabaseStorage] fetchItems(${tableName}):`, error.message);
+    throw error;
   }
+  return data || [];
 };
 
 export const insertItem = async (tableName, item) => {
