@@ -1,9 +1,10 @@
-import ExcelJS from 'exceljs';
+// import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export const exportToExcel = async (data, filename, category = "General") => {
   if (!data || data.length === 0) return;
 
+  const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Reporte');
 
@@ -160,6 +161,7 @@ export const exportToExcel = async (data, filename, category = "General") => {
 };
 
 export const exportFullDatabase = async (items) => {
+  const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
   const categories = [...new Set(items.map(i => i.category))];
 

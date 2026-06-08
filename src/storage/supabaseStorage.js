@@ -94,6 +94,65 @@ export const fetchMovements = async (page = 1, pageSize = 2000) => {
   }
 };
 
+export const fetchGlobalStats = async (categoryTables) => {
+  try {
+    let totalItems = 0;
+    let criticalItems = [];
+
+    // Fetch only essential columns from all tables to minimize bandwidth
+    await Promise.all(categoryTables.map(async (table) => {
+      if (!table.tableName) return;
+      const { data, error } = await supabase
+        .from(table.tableName)
+        .select('id, name, qty, threshold'); // Add more if 'unit' is available in the table natively
+      
+      if (!error && data) {
+        totalItems += data.length;
+        const criticals = data.filter(i => (i.qty || 0) <= (i.threshold || 0) && (i.threshold || 0) > 0);
+        criticalItems.push(...criticals.map(c => ({
+           ...c,
+           category: table.title,
+           unit: c.unit || 'pz' // Default unit if not explicitly in table
+        })));
+      }
+    }));
+
+    // Fetch movements count
+    const { count: movementsCount } = await supabase
+      .from('movements')
+      .select('*', { count: 'exact', head: true });
+
+    return {
+      items: totalItems,
+      critical: criticalItems.length,
+      criticalItems: criticalItems,
+      movements: movementsCount || 0
+    };
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchGlobalStats:', err.message);
+    return null;
+  }
+};
+
+export const fetchActivityForDays = async (days) => {
+  try {
+    const startDate = new Date();
+    startDate.setHours(0,0,0,0);
+    startDate.setDate(startDate.getDate() - (days - 1));
+
+    const { data, error } = await supabase
+      .from('movements')
+      .select('timestamp')
+      .gte('timestamp', startDate.toISOString());
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('[SupabaseStorage] fetchActivityForDays:', err.message);
+    return [];
+  }
+};
+
 export const fetchMovementsByDate = async (dateStr) => {
   try {
     // Use local midnight offsets to cover full local day regardless of UTC offset

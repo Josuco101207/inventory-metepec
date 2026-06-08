@@ -47,11 +47,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          supabase: ['@supabase/supabase-js'],
-          ui: ['lucide-react', 'recharts', 'sonner', 'react-window'],
-          utils: ['exceljs', 'qrcode.react']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('lucide-react')) return 'ui-icons';
+            if (id.includes('recharts')) return 'ui-charts';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor';
+            // Any other node_modules will fall into smaller auto-generated chunks
+          }
         }
       }
     }

@@ -24,6 +24,7 @@ import {
   insertSubcategory as sbInsertSubcategory,
   deleteSubcategory as sbDeleteSubcategory,
   updateItem as sbUpdateItem,
+  fetchGlobalStats
 } from '../storage/supabaseStorage';
 import { enrichItemsWithFacturaUrl, mapToDbFields } from '../utils/itemParser';
 import { useInventoryMovements } from '../hooks/useInventoryMovements';
@@ -48,8 +49,12 @@ export const InventoryProvider = ({ children }) => {
     items: 0, 
     movements: 0, 
     critical: 0,
+    criticalItems: [],
     activity: [] 
   });
+  
+  // Ref para llevar control de las categorías ya cargadas
+  const loadedCategoriesRef = useRef(new Set());
   
   const itemsRef = useRef(items);
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -109,12 +114,13 @@ export const InventoryProvider = ({ children }) => {
   useEffect(() => {
     if (!user) {
       setItemsState([]);
+      loadedCategoriesRef.current.clear();
       setMovementsState([]);
       setPersonnelState([]);
       setBrandsState([]);
       setLocationsState([]);
       setSubcategoriesState([]);
-      setGlobalStats({ items: 0, movements: 0, critical: 0, activity: [] });
+      setGlobalStats({ items: 0, movements: 0, critical: 0, criticalItems: [], activity: [] });
       setLoading(true);
     }
   }, [user, setMovementsState]);
@@ -198,10 +204,76 @@ export const InventoryProvider = ({ children }) => {
       enrichItemsWithFacturaUrl(allItems, movementsToUse);
 
       setItemsState(allItems);
+      categories.forEach(c => loadedCategoriesRef.current.add(c.title));
     } catch (err) {
       console.error('[Inventory] Load items error:', err);
     }
   }, [categories]);
+
+  // Cargar artículos de una categoría específica (bajo demanda)
+  const loadCategoryItems = useCallback(async (categoryTitle) => {
+    if (loadedCategoriesRef.current.has(categoryTitle)) return; // ya cargada
+    const cat = categories.find(c => c.title === categoryTitle);
+    if (!cat || !cat.tableName) return;
+    
+    try {
+      const rows = await sbFetchItems(cat.tableName);
+      if (rows.length === 0) {
+        loadedCategoriesRef.current.add(categoryTitle);
+        return;
+      }
+      
+      const firstRow = rows[0];
+      const keys = Object.keys(firstRow).map(k => k.toLowerCase());
+      const actualKeysMap = {};
+      Object.keys(firstRow).forEach(k => { actualKeysMap[k.toLowerCase()] = k; });
+
+      const smartFindColumn = (goodWords, badWords = []) => {
+        let bestMatch = null;
+        let maxScore = 0;
+        for (const col of keys) {
+          if (col === 'id' || col === 'created_at' || col === 'updated_at') continue;
+          let score = 0;
+          if (goodWords.includes(col)) score += 100;
+          else {
+            for (const w of goodWords) if (col.includes(w)) score += 30;
+          }
+          for (const w of badWords) if (col.includes(w)) score -= 100;
+          if (score > maxScore) { maxScore = score; bestMatch = col; }
+        }
+        return bestMatch ? actualKeysMap[bestMatch] : null;
+      };
+
+      const map = cat.fieldMappings || {};
+      const nameKey = smartFindColumn(['nombre', 'titulo', 'title', 'producto', 'articulo', 'name', 'nom'], ['desc', 'obs', 'detal']);
+      const threshKey = smartFindColumn(['stock_min', 'minimo', 'min', 'threshold', 'limite', 'alerta', 'bajo'], ['nom', 'name']);
+      const obsKey = smartFindColumn(['detalles', 'notas', 'descripcion', 'observaciones', 'obs', 'coment'], ['nom', 'name', 'tit']);
+      const qtyKey = smartFindColumn(['cantidad', 'canticad', 'stock', 'existencias', 'piezas', 'qty', 'cant', 'can', 'unidades', 'uds', 'pz', 'num', 'total'], ['min', 'limit', 'alert', 'thresh', 'bajo', 'max']);
+
+      const newItems = rows.map(row => {
+        const normalizedRow = { ...row };
+        if (map.name && row[map.name] !== undefined && normalizedRow.name === undefined) normalizedRow.name = row[map.name];
+        if (map.qty && row[map.qty] !== undefined && normalizedRow.qty === undefined) normalizedRow.qty = row[map.qty];
+        if (map.observaciones && row[map.observaciones] !== undefined && normalizedRow.observaciones === undefined) normalizedRow.observaciones = row[map.observaciones];
+        if (map.threshold && row[map.threshold] !== undefined && normalizedRow.threshold === undefined) normalizedRow.threshold = row[map.threshold];
+
+        if (nameKey && normalizedRow.name === undefined) normalizedRow.name = row[nameKey];
+        if (qtyKey && normalizedRow.qty === undefined) normalizedRow.qty = row[qtyKey];
+        if (obsKey && normalizedRow.observaciones === undefined) normalizedRow.observaciones = row[obsKey];
+        if (threshKey && normalizedRow.threshold === undefined) normalizedRow.threshold = row[threshKey];
+        
+        return { ...normalizedRow, category: cat.title, _tableName: cat.tableName };
+      });
+
+      // Se usa la función auxiliar existente
+      enrichItemsWithFacturaUrl(newItems, movements);
+
+      setItemsState(prev => [...prev, ...newItems]);
+      loadedCategoriesRef.current.add(categoryTitle);
+    } catch (err) {
+      console.error(`[Inventory] Error loading category ${categoryTitle}:`, err);
+    }
+  }, [categories, movements, setItemsState]);
 
   // ─── Cargar datos ───
   useEffect(() => {
@@ -224,15 +296,22 @@ export const InventoryProvider = ({ children }) => {
     const init = async () => {
       setLoadError(null);
       try {
-        const [sbMovements, sbPersonnel, sbBrands, sbLocations, sbSubcategories] = await Promise.all([
+        const [sbMovements, sbPersonnel, sbBrands, sbLocations, sbSubcategories, stats] = await Promise.all([
           sbFetchMovements(1, 2000).then(res => res.data),
           sbFetchPersonnel(),
           sbFetchBrands(),
           sbFetchLocations(),
           sbFetchSubcategories(),
+          fetchGlobalStats(categories)
         ]);
 
-        await loadAllItems(sbMovements);
+        if (stats) {
+           setGlobalStats(prev => ({ ...prev, ...stats }));
+        }
+
+        // Ya NO cargamos todos los ítems por defecto para no bloquear.
+        // Se cargarán bajo demanda con loadCategoryItems().
+        // loadAllItems() queda disponible para herramientas de exportación masiva.
 
         if (!initialDone) {
           setMovementsState(sbMovements.length > 0 ? sbMovements : getMovements());
@@ -269,7 +348,7 @@ export const InventoryProvider = ({ children }) => {
     };
   }, [user, catsLoading, loadAllItems, setMovementsState]);
 
-  // ─── Actualizar estadísticas desde state (no localStorage) ───
+  // ─── Actualizar estadísticas dinámicamente desde state combinado con globalStats ───
   useEffect(() => {
     if (!user) return;
     const last7Days = [6,5,4,3,2,1,0].map(i => {
@@ -279,13 +358,14 @@ export const InventoryProvider = ({ children }) => {
       name: day.toLocaleDateString('es-ES', { weekday: 'short' }),
       movimientos: movements.filter(m => new Date(m.timestamp).toDateString() === day.toDateString()).length
     }));
-    setGlobalStats({
-      items: items.length,
-      movements: movements.length,
-      critical: items.filter(i => (i.qty || 0) <= (i.threshold || 0) && (i.threshold || 0) > 0).length,
-      activity,
-    });
-  }, [user, items, movements]);
+    
+    // Solo actualizamos "activity" basado en "movements" local, los totales 
+    // vienen de globalStats (consultado al servidor).
+    setGlobalStats(prev => ({
+      ...prev,
+      activity
+    }));
+  }, [user, movements]);
 
   // ─── Supabase Realtime subscriptions ───
   useEffect(() => {
@@ -573,15 +653,14 @@ export const InventoryProvider = ({ children }) => {
     addSubcategory,
     deleteSubcategory,
     wipeAllData,
-    deleteItemsByCategory,
-    clearDatabaseCategories,
-    setMovementsState,
     deleteItemsWithInvalidCategories,
     isAutoWiping,
     lastSync,
     connectionStatus,
     annulMovement,
     syncInventory,
+    loadCategoryItems,
+    loadAllItems,
   ]);
 
   return (

@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+// import ExcelJS from 'exceljs';
 
 /**
  * Mapeo de encabezados de Excel a campos de la base de datos Firestore.
@@ -141,6 +141,7 @@ export const processInventoryExcel = (file, currentCategory) => {
 
     reader.onload = async (e) => {
       try {
+        const ExcelJS = (await import('exceljs')).default;
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(e.target.result);
         const worksheet = workbook.worksheets[0];
@@ -209,6 +210,7 @@ export const processPersonnelExcel = (file) => {
 
     reader.onload = async (e) => {
       try {
+        const ExcelJS = (await import('exceljs')).default;
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(e.target.result);
         const worksheet = workbook.worksheets[0];
@@ -280,6 +282,7 @@ export const processParquesExcel = (file) => {
 
     reader.onload = async (e) => {
       try {
+        const ExcelJS = (await import('exceljs')).default;
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(e.target.result);
 

@@ -108,7 +108,7 @@ const NeonItemCard = React.memo(({ item, categoryTitle, isAdmin, isStaff, canEdi
 
 /* ── VISTA PRINCIPAL ── */
 const InventoryView = ({ categoryTitle }) => {
-  const { items, updateStock, addItem, deleteItem, editItem, auditStock, loading } = useInventory();
+  const { items, updateStock, addItem, deleteItem, editItem, auditStock, loading, loadCategoryItems } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
   const { isMobile } = useIsMobile();
@@ -132,6 +132,13 @@ const InventoryView = ({ categoryTitle }) => {
   
   const [filteredItems, setFilteredItems] = useState([]);
   const workerRef = useRef(null);
+
+  // Trigger lazy load
+  useEffect(() => {
+    if (categoryTitle && loadCategoryItems) {
+      loadCategoryItems(categoryTitle);
+    }
+  }, [categoryTitle, loadCategoryItems]);
 
   // Observer
   useEffect(() => {

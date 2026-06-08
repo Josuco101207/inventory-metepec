@@ -21,7 +21,7 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', '
 
 const ManualEntryView = () => {
   const { userData, isAdmin: isSystemAdmin, loading: authLoading } = useAuth();
-  const { addItem, updateStock, items, locations, subcategories } = useInventory();
+  const { addItem, updateStock, items, locations, subcategories, loadCategoryItems } = useInventory();
   const { categories, getCategoryByTitle } = useCategories();
   
   const isAdmin = isSystemAdmin || userData?.role === 'admin';
@@ -93,6 +93,13 @@ const ManualEntryView = () => {
       return copy;
     });
   }, []);
+
+  const handleCategoryChange = useCallback((idx, val) => {
+    updateLine(idx, 'category', val);
+    if (val && loadCategoryItems) {
+      loadCategoryItems(val);
+    }
+  }, [updateLine, loadCategoryItems]);
 
   const addLine = useCallback(() => setLines(prev => [...prev, emptyLine()]), []);
   const removeLine = useCallback((idx) => setLines(prev => prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)), []);
@@ -353,7 +360,7 @@ const ManualEntryView = () => {
                       <select
                         className={`me-table-input ${errors[`${idx}-category`] ? 'me-cell-error' : ''}`}
                         value={line.category}
-                        onChange={e => updateLine(idx, 'category', e.target.value)}>
+                        onChange={e => handleCategoryChange(idx, e.target.value)}>
                         <option value="">Seleccionar...</option>
                         {categoryTitles.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
@@ -427,6 +434,11 @@ const ManualEntryView = () => {
                           ) : (
                             <input
                               type={inputType}
+                              list={
+                                inputType === 'text' && fieldName !== 'observaciones' && fieldName !== 'descripcion'
+                                  ? `dl-${line.category}-${fieldName}` 
+                                  : undefined
+                              }
                               className={`me-table-input ${hasError ? 'me-cell-error' : ''}`}
                               placeholder={field.label || fieldName}
                               value={fieldValue}
@@ -461,6 +473,25 @@ const ManualEntryView = () => {
           </table>
         </div>
         <button className="me-add-row" onClick={addLine}><Plus size={18} /> Agregar línea</button>
+
+        {/* Datalists for autocompletion */}
+        {Array.from(new Set(lines.map(l => l.category).filter(Boolean))).map(cat => {
+          const catConfig = getCategoryByTitle(cat);
+          if (!catConfig) return null;
+          const schema = getCategorySchema(cat);
+          const catItems = items.filter(i => i.category === cat);
+          
+          return schema.filter(f => dbTypeToInput(f.type) === 'text' && f.name !== 'observaciones' && f.name !== 'descripcion').map(field => {
+            const uniqueValues = Array.from(new Set(catItems.map(i => i[field.name]).filter(Boolean)));
+            return (
+              <datalist id={`dl-${cat}-${field.name}`} key={`${cat}-${field.name}`}>
+                {uniqueValues.map(val => (
+                  <option key={val} value={val} />
+                ))}
+              </datalist>
+            );
+          });
+        })}
 
         {/* Validation feedback */}
         {Object.keys(errors).length > 0 && (

@@ -10,8 +10,9 @@ import { exportToExcel } from '../utils/exportUtils';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import { parseMovDetails } from '../utils/formatUtils';
 import useIsMobile from '../hooks/useIsMobile';
+import { List } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
 import './TransactionsView.css';
-
 const actionConfig = {
   Entrada:     { label: 'Entrada',    color: '#34c759', bg: 'rgba(52,199,89,0.12)', icon: ArrowUpCircle },
   Salida:      { label: 'Salida',     color: '#ff3b30', bg: 'rgba(255,59,48,0.12)', icon: ArrowDownCircle },
@@ -317,90 +318,104 @@ const TransactionsView = () => {
           <div className="invt-cell-act">ACCIONES</div>
         </div>
 
-        <div className="invt-body scrollbar-hide">
+        <div className="invt-body scrollbar-hide" style={{ flex: 1, minHeight: '500px' }}>
           {loadingDay ? (
             <div className="fly-empty-state">
               <Loader2 className="animate-spin" size={40} />
               <p>SINCRONIZANDO MOVIMIENTOS...</p>
             </div>
           ) : filteredMovements.length > 0 ? (
-            filteredMovements.map((mov, index) => {
-              const cfg = getActionConfig(mov.action);
-              const Icon = cfg.icon;
-              const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
+            <AutoSizer>
+              {({ height, width }) => (
+                <List
+                  height={height}
+                  itemCount={filteredMovements.length}
+                  itemSize={85}
+                  width={width}
+                  itemData={{ movements: filteredMovements, handleArticleClick, annulMovement, isAdmin, userData }}
+                >
+                  {({ index, style, data }) => {
+                    const mov = data.movements[index];
+                    const cfg = getActionConfig(mov.action);
+                    const Icon = cfg.icon;
+                    const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
+                    const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
 
-              return (
-                <div key={mov.id || index} className="invt-grid-row invt-data-row">
-                  <div className="invt-cell-art">
-                    <div className="invt-avatar" style={{ backgroundColor: cfg.bg, color: cfg.color }}>
-                      <Icon size={20} />
-                    </div>
-                    <div className="invt-item-info">
-                      <span className="invt-action-label" style={{ color: cfg.color }}>{cfg.label}</span>
-                      <span className="invt-item-name" onClick={() => handleArticleClick(mov)} style={{ cursor: 'pointer' }}>
-                        {mov.item}
-                      </span>
-                      <span className="invt-item-cat">{mov.category || 'General'}</span>
-                    </div>
-                  </div>
+                    return (
+                      <div style={style}>
+                        <div className="invt-grid-row invt-data-row" style={{ height: '100%', margin: 0 }}>
+                          <div className="invt-cell-art">
+                            <div className="invt-avatar" style={{ backgroundColor: cfg.bg, color: cfg.color }}>
+                              <Icon size={20} />
+                            </div>
+                            <div className="invt-item-info">
+                              <span className="invt-action-label" style={{ color: cfg.color }}>{cfg.label}</span>
+                              <span className="invt-item-name" onClick={() => data.handleArticleClick(mov)} style={{ cursor: 'pointer' }}>
+                                {mov.item}
+                              </span>
+                              <span className="invt-item-cat">{mov.category || 'General'}</span>
+                            </div>
+                          </div>
 
-                  <div className="invt-cell-details">
-                    {(() => { const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details); return (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
-                        <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
-                        {supervisorName && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.03em' }}>
-                            👤 {supervisorName}
-                          </span>
-                        )}
-                        {isApproval && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.6rem', fontWeight: 800, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                            ✓ Aprobado
-                          </span>
-                        )}
-                        {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
-                            <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
-                          </a>
-                        )}
-                        {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
-                        )}
+                          <div className="invt-cell-details">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
+                              <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
+                              {supervisorName && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.03em' }}>
+                                  👤 {supervisorName}
+                                </span>
+                              )}
+                              {isApproval && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.6rem', fontWeight: 800, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                  ✓ Aprobado
+                                </span>
+                              )}
+                              {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                                <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
+                                  <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
+                                </a>
+                              )}
+                              {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                                <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
+                              )}
+                            </div>
+                            <div className="invt-detail-meta">
+                              <div className="invt-user-tag">
+                                <Users size={12} />
+                                <span>{mov.user || 'Admin'}</span>
+                              </div>
+                              {mov.qty > 0 && <span className="invt-qty-badge">{mov.qty} uds</span>}
+                            </div>
+                          </div>
+
+                          <div className="invt-cell-time">
+                            <span className="invt-time-date">{movDate?.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            <span className="invt-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                          </div>
+
+                          <div className="invt-cell-act">
+                            {data.isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
+                              <button
+                                className="invt-btn-annul"
+                                title="Anular Movimiento"
+                                onClick={() => {
+                                  if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
+                                    data.annulMovement(mov.id, data.userData?.name || 'Admin');
+                                  }
+                                }}
+                              >
+                                <X size={18} />
+                              </button>
+                            )}
+                            {mov.annulled && <span className="invt-badge-annulled">ANULADO</span>}
+                          </div>
+                        </div>
                       </div>
-                    ); })()}
-                    <div className="invt-detail-meta">
-                      <div className="invt-user-tag">
-                        <Users size={12} />
-                        <span>{mov.user || 'Admin'}</span>
-                      </div>
-                      {mov.qty > 0 && <span className="invt-qty-badge">{mov.qty} uds</span>}
-                    </div>
-                  </div>
-
-                  <div className="invt-cell-time">
-                    <span className="invt-time-date">{movDate?.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    <span className="invt-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                  </div>
-
-                  <div className="invt-cell-act">
-                    {isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
-                      <button
-                        className="invt-btn-annul"
-                        title="Anular Movimiento"
-                        onClick={() => {
-                          if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
-                            annulMovement(mov.id, userData?.name || 'Admin');
-                          }
-                        }}
-                      >
-                        <X size={18} />
-                      </button>
-                    )}
-                    {mov.annulled && <span className="invt-badge-annulled">ANULADO</span>}
-                  </div>
-                </div>
-              );
-            })
+                    );
+                  }}
+                </List>
+              )}
+            </AutoSizer>
           ) : (
             <div className="fly-empty-state">
               <Activity size={56} strokeWidth={1.2} />

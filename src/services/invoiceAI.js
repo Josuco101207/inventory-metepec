@@ -7,7 +7,7 @@
  * 3. Mock data (fallback for testing)
  */
 
-import Tesseract from 'tesseract.js';
+// import Tesseract from 'tesseract.js';
 
 const AI_API_KEY = import.meta.env.VITE_AI_API_KEY || '';
 const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || 'ocr'; // 'openai' | 'gemini' | 'ocr' | 'mock'
@@ -253,6 +253,7 @@ function preprocessImage(file, mode = 'contrast') {
 }
 
 async function runOCR(imageUrl, progressStart, progressRange) {
+  const Tesseract = (await import('tesseract.js')).default;
   const result = await Tesseract.recognize(imageUrl, 'spa+eng', {
     logger: (m) => {
       if (m.status === 'recognizing text' && onProgressCallback) {

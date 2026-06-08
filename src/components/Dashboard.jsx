@@ -85,8 +85,8 @@ const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
   const { isMobile } = useIsMobile();
 
-  const cItems = useCounter(globalStats.items || items.length || 0);
-  const cMovs  = useCounter(globalStats.movements || movements.length || 0);
+  const cItems = useCounter(globalStats.items || 0);
+  const cMovs  = useCounter(globalStats.movements || 0);
   const cCrit  = useCounter(globalStats.critical || 0);
 
   useEffect(() => { setMounted(true); }, []);
@@ -123,7 +123,7 @@ const Dashboard = () => {
     });
   }, [dayMovsRemote, movements, movDate]);
 
-  const lowStock = useMemo(() => items.filter(i => (i.qty||0) <= (i.threshold||0)), [items]);
+  const lowStock = useMemo(() => globalStats.criticalItems || [], [globalStats.criticalItems]);
 
   const zones = CATEGORIES.map(cat => ({
     ...cat,
@@ -139,6 +139,7 @@ const Dashboard = () => {
 
   // Category distribution
   const catDistribution = useMemo(() => {
+    // If not all items are loaded, this might be partial. In the future this can be moved to globalStats
     const map = {};
     items.forEach(i => { map[i.category] = (map[i.category]||0) + 1; });
     return Object.entries(map)
