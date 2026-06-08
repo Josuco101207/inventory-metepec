@@ -102,18 +102,48 @@ export const fetchGlobalStats = async (categoryTables) => {
     // Fetch only essential columns from all tables to minimize bandwidth
     await Promise.all(categoryTables.map(async (table) => {
       if (!table.tableName) return;
+      
+      const validCols = new Set((table.schema || []).map(f => f.name?.toLowerCase()));
+      const colsToSelect = new Set();
+      
+      // Always select id if it exists
+      if (validCols.has('id')) colsToSelect.add('id');
+      
+      const map = table.fieldMappings || {};
+      const nameCol = map.name || 'name';
+      const qtyCol = map.qty || 'qty';
+      const threshCol = map.threshold || 'threshold';
+      
+      if (validCols.has(nameCol.toLowerCase())) colsToSelect.add(nameCol);
+      if (validCols.has(qtyCol.toLowerCase())) colsToSelect.add(qtyCol);
+      if (validCols.has(threshCol.toLowerCase())) colsToSelect.add(threshCol);
+      if (map.unit && validCols.has(map.unit.toLowerCase())) colsToSelect.add(map.unit);
+
+      // Si no tenemos validCols (schema vacío), fallamos seguro usando select(*)
+      // pero esto casi nunca pasa porque schema siempre viene de CategoriesContext
+      const selectStr = colsToSelect.size > 0 ? Array.from(colsToSelect).join(', ') : '*';
+
       const { data, error } = await supabase
         .from(table.tableName)
-        .select('id, name, qty, threshold'); // Add more if 'unit' is available in the table natively
+        .select(selectStr);
       
       if (!error && data) {
         totalItems += data.length;
-        const criticals = data.filter(i => (i.qty || 0) <= (i.threshold || 0) && (i.threshold || 0) > 0);
+        const criticals = data.filter(i => {
+           const q = i[qtyCol] || 0;
+           const t = i[threshCol] || 0;
+           return q <= t && t > 0;
+        });
         criticalItems.push(...criticals.map(c => ({
-           ...c,
+           id: c.id,
+           name: c[nameCol],
+           qty: c[qtyCol] || 0,
+           threshold: c[threshCol] || 0,
            category: table.title,
-           unit: c.unit || 'pz' // Default unit if not explicitly in table
+           unit: c[map.unit || 'unit'] || 'pz'
         })));
+      } else if (error) {
+         console.warn(`[SupabaseStorage] fetchGlobalStats error for ${table.tableName}:`, error.message);
       }
     }));
 
