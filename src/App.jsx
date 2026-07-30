@@ -13,19 +13,15 @@ class ErrorBoundary extends Component {
     this.state = { hasError: false, error: null };
   }
   static getDerivedStateFromError(error) {
-    // Ignore browser extension / cascade preview DOM manipulation errors
-    const msg = error?.message || '';
-    if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('appendChild')) {
-      return null; // Don't update state — let React retry
-    }
     return { hasError: true, error };
   }
   componentDidCatch(error) {
     const msg = error?.message || '';
     if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('appendChild')) {
-      return; // Silently ignore extension errors
+      console.warn('DOM manipulation error caught:', error);
+    } else {
+      console.error('App error:', error);
     }
-    console.error('App error:', error);
   }
   render() {
     if (this.state.hasError) {
