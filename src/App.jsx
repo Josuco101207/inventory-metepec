@@ -13,12 +13,17 @@ class ErrorBoundary extends Component {
     this.state = { hasError: false, error: null };
   }
   static getDerivedStateFromError(error) {
+    const msg = error?.message || '';
+    // Errores de DOM por extensiones del navegador: no mostrar pantalla de error
+    if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('appendChild')) {
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
   componentDidCatch(error) {
     const msg = error?.message || '';
     if (msg.includes('removeChild') || msg.includes('insertBefore') || msg.includes('appendChild')) {
-      console.warn('DOM manipulation error caught:', error);
+      console.warn('[ErrorBoundary] DOM manipulation error (browser extension/PWA cache) — ignorado.');
     } else {
       console.error('App error:', error);
     }
