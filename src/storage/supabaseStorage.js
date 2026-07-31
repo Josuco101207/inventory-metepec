@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 
 export const fetchItems = async (tableName) => {
   if (!tableName) return [];
+  console.log(`[SupabaseStorage] fetching items for table: ${tableName}`);
   const { data, error } = await supabase
     .from(tableName)
     .select('*')
@@ -17,6 +18,7 @@ export const fetchItems = async (tableName) => {
     console.error(`[SupabaseStorage] fetchItems(${tableName}):`, error.message);
     throw error;
   }
+  console.log(`[SupabaseStorage] fetchItems(${tableName}) success, returned ${data?.length || 0} rows:`, data);
   return data || [];
 };
 

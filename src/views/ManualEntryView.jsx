@@ -240,7 +240,12 @@ const ManualEntryView = () => {
       clearFactura();
       
       // Volver a inventario tras éxito
-      navigate('/inventory', { state: { category: preselectedCategory } });
+      const catObj = categories.find(c => c.title === preselectedCategory);
+      if (catObj && catObj.route) {
+        navigate(catObj.route);
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Error en ingreso manual:', err);
       toast.error('Error al procesar el ingreso manual: ' + err.message);
