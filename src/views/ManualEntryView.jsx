@@ -135,9 +135,7 @@ const ManualEntryView = () => {
   const validate = useCallback(() => {
     const e = {};
 
-    if (!facturaFile) {
-      e.factura = true;
-    }
+
     
     lines.forEach((line, idx) => {
       if (!line.category) {
@@ -259,7 +257,7 @@ const ManualEntryView = () => {
       <div className="me-header">
         <div className="me-header-left">
           <div className="me-header-icon"><Package size={26} /></div>
-          <h1>Ingreso Manual de Productos<span>Con evidencia de factura</span></h1>
+          <h1>Ingreso Manual de Productos<span>Con o sin evidencia de factura</span></h1>
         </div>
       </div>
 
@@ -268,7 +266,7 @@ const ManualEntryView = () => {
         <div className="me-factura-header">
           <FileImage size={18} />
           <span>Foto / Archivo de Factura</span>
-          <span className="me-badge-required">REQUERIDO</span>
+          <span className="me-badge-required" style={{ background: 'rgba(255,255,255,0.1)', color: '#aaa' }}>OPCIONAL</span>
           {facturaFile && <CheckCircle2 size={16} className="me-factura-check" />}
         </div>
 
@@ -317,11 +315,7 @@ const ManualEntryView = () => {
         <input ref={facturaCameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
           onChange={(e) => handleFacturaFile(e.target.files?.[0])} />
 
-        {errors.factura && (
-          <div className="me-validation-msg me-msg-error" style={{ marginTop: '0.5rem' }}>
-            <AlertCircle size={14} /> Debes adjuntar la foto o archivo de la factura para continuar.
-          </div>
-        )}
+
       </div>
 
       {/* Header Fields */}
