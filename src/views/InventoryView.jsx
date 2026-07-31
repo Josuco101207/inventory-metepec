@@ -229,17 +229,6 @@ const InventoryView = ({ categoryTitle }) => {
     );
   };
 
-  const [debugRawData, setDebugRawData] = useState('Fetching...');
-  useEffect(() => {
-    if (!categoryConfig.tableName) return;
-    supabase.from(categoryConfig.tableName).select('*').limit(10)
-      .then(({ data, error }) => {
-        if (error) setDebugRawData('Error: ' + error.message);
-        else setDebugRawData('Raw rows: ' + data.length + '\n' + JSON.stringify(data, null, 2));
-      })
-      .catch(err => setDebugRawData('Exception: ' + err.message));
-  }, [categoryConfig.tableName]);
-
   if (isMobile) {
     return (
       <div className={`fly-inventory-mobile theme-${zoneColor}`}>
@@ -248,10 +237,6 @@ const InventoryView = ({ categoryTitle }) => {
           <div className="fm-header-top">
             <h1 className="fm-title">{categoryTitle}</h1>
             <span className="fm-total-badge">{stats.total} Activos</span>
-          </div>
-          
-          <div style={{ padding: 10, background: '#333', color: '#0f0', fontSize: 10, overflow: 'auto', maxHeight: 150 }}>
-            {debugRawData}
           </div>
 
           <div className="fm-search-wrap">
@@ -353,16 +338,16 @@ const InventoryView = ({ categoryTitle }) => {
           <div className="fluid-overlay" />
         </div>
         <div className="neon-hero-content">
-          <div className="neon-hero-top">
-            <span className="n-badge zone-badge"><Hexagon size={14}/> {categoryTitle.toUpperCase()}</span>
-            <span className="n-badge stat-badge">{stats.total} ACTIVOS REGISTRADOS</span>
+          <div className="iv-header-zone">
+            <div className="iv-title-block">
+              <div className="iv-title-badge">
+                <Package size={14} className="iv-title-icon" />
+                <span>{categoryTitle}</span>
+              </div>
+              <h1 className="iv-main-title">{categoryTitle}</h1>
+              <p className="iv-subtitle">BASE DE DATOS OPERATIVA Y EN LÍNEA</p>
+            </div>
           </div>
-          <h1 className="neon-title">{categoryTitle}</h1>
-          <p className="neon-subtitle">BASE DE DATOS OPERATIVA Y EN LÍNEA</p>
-        </div>
-        
-        <div style={{ padding: 10, background: '#333', color: '#0f0', fontSize: 10, overflow: 'auto', maxHeight: 150, width: '90%', margin: '15px auto' }}>
-          {debugRawData}
         </div>
       </section>
 
