@@ -97,6 +97,7 @@ const SettingsView = () => {
       toast.error(`Error al programar: ${err.message}`);
     } finally {
       setSavingReport(false);
+    }
   };
 
   return (
