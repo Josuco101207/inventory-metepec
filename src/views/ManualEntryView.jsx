@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { uploadFactura } from '../services/uploadFactura';
 import { uploadProductPhoto } from '../services/uploadProductPhoto';
 import { Package, Plus, Trash2, Save, AlertCircle, Loader2, Upload, Camera, FileImage, X, CheckCircle2 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './ManualEntryView.css';
 
 
@@ -25,6 +25,7 @@ const ManualEntryView = () => {
   const { addItem, updateStock, items, locations, subcategories, loadCategoryItems } = useInventory();
   const { categories, getCategoryByTitle } = useCategories();
   const location = useLocation();
+  const navigate = useNavigate();
   const preselectedCategory = location.state?.category || '';
   
   const isAdmin = isSystemAdmin || userData?.role === 'admin';
@@ -237,13 +238,16 @@ const ManualEntryView = () => {
       setLines([emptyLine()]);
       setErrors({});
       clearFactura();
+      
+      // Volver a inventario tras éxito
+      navigate('/inventory', { state: { category: preselectedCategory } });
     } catch (err) {
       console.error('Error en ingreso manual:', err);
       toast.error('Error al procesar el ingreso manual: ' + err.message);
     } finally {
       setSaving(false);
     }
-  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName, clearFactura, facturaFile]);
+  }, [validate, lines, proveedor, observaciones, userData, canAdd, addItem, updateStock, getCategorySchema, findProductByName, clearFactura, facturaFile, navigate, preselectedCategory]);
 
   if (authLoading) {
     return (
