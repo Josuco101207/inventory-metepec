@@ -125,7 +125,7 @@ const transformCategory = (row) => {
     viewId: row.view_id,
     iconName: row.icon_name || 'Package',
     zone: row.zone || 'arcade',
-    tableName: row.table_name,
+    tableName: row.table_name || `cat_${(row.title || '').toLowerCase().trim().replace(/\s+/g, '_')}`,
     // schema will be overwritten by real columns after introspection
     schema: typeof row.schema === 'string' ? JSON.parse(row.schema) : (row.schema || []),
     fieldMappings: typeof row.field_mappings === 'string' ? JSON.parse(row.field_mappings) : (row.field_mappings || {
