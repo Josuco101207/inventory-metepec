@@ -361,10 +361,22 @@ export const useInventoryItems = ({
           });
         }
         
+        const normalized = { ...createdItem };
+        if (normalized.nombre !== undefined && normalized.name === undefined) normalized.name = normalized.nombre;
+        if (normalized.titulo !== undefined && normalized.name === undefined) normalized.name = normalized.titulo;
+        if (normalized.producto !== undefined && normalized.name === undefined) normalized.name = normalized.producto;
+        if (normalized.articulo !== undefined && normalized.name === undefined) normalized.name = normalized.articulo;
+        if (normalized.cantidad !== undefined && normalized.qty === undefined) normalized.qty = normalized.cantidad;
+        if (normalized.stock !== undefined && normalized.qty === undefined) normalized.qty = normalized.stock;
+        if (normalized.detalles !== undefined && normalized.observaciones === undefined) normalized.observaciones = normalized.detalles;
+        if (normalized.notas !== undefined && normalized.observaciones === undefined) normalized.observaciones = normalized.notas;
+        if (normalized.stock_min !== undefined && normalized.threshold === undefined) normalized.threshold = normalized.stock_min;
+        if (normalized.minimo !== undefined && normalized.threshold === undefined) normalized.threshold = normalized.minimo;
+
         setItemsMap(prev => ({
           ...prev,
           [createdItem.id]: {
-            ...createdItem, 
+            ...normalized, 
             category: newItem.category, 
             _tableName: tableName, 
             factura_url: facturaUrl || undefined,
