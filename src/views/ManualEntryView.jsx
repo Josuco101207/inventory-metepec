@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useCategories } from '../context/CategoriesContext';
@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { uploadFactura } from '../services/uploadFactura';
 import { uploadProductPhoto } from '../services/uploadProductPhoto';
 import { Package, Plus, Trash2, Save, AlertCircle, Loader2, Upload, Camera, FileImage, X, CheckCircle2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import './ManualEntryView.css';
 
 
@@ -23,13 +24,15 @@ const ManualEntryView = () => {
   const { userData, isAdmin: isSystemAdmin, loading: authLoading } = useAuth();
   const { addItem, updateStock, items, locations, subcategories, loadCategoryItems } = useInventory();
   const { categories, getCategoryByTitle } = useCategories();
+  const location = useLocation();
+  const preselectedCategory = location.state?.category || '';
   
   const isAdmin = isSystemAdmin || userData?.role === 'admin';
   const canAdd = isAdmin || (userData?.allowedCategories || []).includes('Ingreso Manual');
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [lines, setLines] = useState([emptyLine()]);
+  const [lines, setLines] = useState([emptyLine(preselectedCategory)]);
   const [proveedor, setProveedor] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [facturaFile, setFacturaFile] = useState(null);
@@ -37,6 +40,13 @@ const ManualEntryView = () => {
   const [facturaDragOver, setFacturaDragOver] = useState(false);
   const facturaFileRef = React.useRef(null);
   const facturaCameraRef = React.useRef(null);
+
+  // Auto-cargar items de la categoría pre-seleccionada
+  useEffect(() => {
+    if (preselectedCategory && loadCategoryItems) {
+      loadCategoryItems(preselectedCategory);
+    }
+  }, [preselectedCategory, loadCategoryItems]);
 
 
   const handleFacturaFile = useCallback((file) => {
@@ -101,7 +111,7 @@ const ManualEntryView = () => {
     }
   }, [updateLine, loadCategoryItems]);
 
-  const addLine = useCallback(() => setLines(prev => [...prev, emptyLine()]), []);
+  const addLine = useCallback(() => setLines(prev => [...prev, emptyLine(preselectedCategory)]), [preselectedCategory]);
   const removeLine = useCallback((idx) => setLines(prev => prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)), []);
 
   // Helper para buscar producto por nombre y categoría (definido antes de handleSave)

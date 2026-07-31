@@ -306,7 +306,7 @@ const InventoryView = ({ categoryTitle }) => {
           </button>
           {canAddTo(categoryTitle) && (
             <>
-              <button className="fm-fab fm-fab-add" onClick={() => navigate('/manual-entry')}>
+              <button className="fm-fab fm-fab-add" onClick={() => navigate('/manual-entry', { state: { category: categoryTitle } })}>
                 <Plus size={24} />
               </button>
               <button className="fm-fab fm-fab-main" onClick={() => navigate('/invoice-ai')}>
@@ -389,7 +389,7 @@ const InventoryView = ({ categoryTitle }) => {
               <button className="glass-btn primary-ai" onClick={() => navigate('/invoice-ai')}>
                 <Sparkles size={16} /> FACTURA IA
               </button>
-              <button className="glass-btn primary-manual" onClick={() => navigate('/manual-entry')}>
+              <button className="glass-btn primary-manual" onClick={() => navigate('/manual-entry', { state: { category: categoryTitle } })}>
                 <PlusCircle size={16} /> MANUAL
               </button>
             </>
