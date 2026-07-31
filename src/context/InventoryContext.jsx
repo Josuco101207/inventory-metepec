@@ -30,6 +30,29 @@ import { enrichItemsWithFacturaUrl, mapToDbFields } from '../utils/itemParser';
 import { useInventoryMovements } from '../hooks/useInventoryMovements';
 import { useInventoryItems } from '../hooks/useInventoryItems';
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const rpcCall = async (fnName, params = {}) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('No session');
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `RPC ${fnName} failed: ${res.status}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+};
+
 const InventoryContext = createContext();
 
 export const InventoryProvider = ({ children }) => {
@@ -554,23 +577,36 @@ export const InventoryProvider = ({ children }) => {
     }
   }, []);
 
-  const wipeAllData = useCallback(() => {
+  const wipeAllData = useCallback(async () => {
     if (isAutoWiping) return;
     try {
       setIsAutoWiping(true);
-      toast.loading("ELIMINANDO TODA LA BASE DE DATOS...", { id: 'wipe' });
+      toast.loading("ELIMINANDO INVENTARIO Y MOVIMIENTOS...", { id: 'wipe' });
       
-      clearAllData();
+      // 1. Generar SQL de limpieza
+      let sql = `TRUNCATE TABLE movements;\n`;
+      categories.forEach(cat => {
+         if (cat.tableName) {
+            sql += `TRUNCATE TABLE ${cat.tableName};\n`;
+         }
+      });
       
+      // 2. Eliminar personnel y profiles excepto el admin actual
+      if (user && user.email) {
+         sql += `DELETE FROM personnel WHERE email != '${user.email}';\n`;
+         sql += `DELETE FROM profiles WHERE email != '${user.email}';\n`;
+      }
+
+      // Ejecutar en Supabase
+      await rpcCall('exec_sql', { query: sql });
+      
+      // Limpiar estados locales
       setItemsState([]);
       setMovementsState([]);
-      setPersonnelState([]);
-      setBrandsState([]);
-      setLocationsState([]);
-      setSubcategoriesState([]);
-      setGlobalStats({ items: 0, movements: 0, critical: 0, activity: [] });
+      setPersonnelState(prev => prev.filter(p => p.email === user?.email));
+      setGlobalStats(prev => ({ ...prev, items: 0, movements: 0, critical: 0 }));
       
-      toast.success("BASE DE DATOS COMPLETAMENTE LIMPIA (0 REGISTROS)", { id: 'wipe' });
+      toast.success("BASE DE DATOS VACIADA (Se conservaron configuraciones)", { id: 'wipe' });
       return true;
     } catch (e) {
       console.error("Wipe error:", e);
@@ -579,7 +615,7 @@ export const InventoryProvider = ({ children }) => {
     } finally {
       setIsAutoWiping(false);
     }
-  }, [isAutoWiping, setMovementsState]);
+  }, [isAutoWiping, categories, user]);
 
   const contextValue = useMemo(() => ({
     items,
