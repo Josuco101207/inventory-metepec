@@ -346,7 +346,7 @@ export const InventoryProvider = ({ children }) => {
       initialDone = true;
       clearTimeout(timeoutId);
     };
-  }, [user, catsLoading, loadAllItems, setMovementsState]);
+  }, [user, catsLoading, loadAllItems, setMovementsState, categories]);
 
   // ─── Actualizar estadísticas dinámicamente desde state combinado con globalStats ───
   useEffect(() => {
@@ -661,6 +661,9 @@ export const InventoryProvider = ({ children }) => {
     syncInventory,
     loadCategoryItems,
     loadAllItems,
+    clearDatabaseCategories,
+    deleteItemsByCategory,
+    setMovementsState
   ]);
 
   return (

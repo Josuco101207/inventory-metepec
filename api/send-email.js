@@ -1,3 +1,4 @@
+/* global process */
 import nodemailer from 'nodemailer';
 
 // Vercel Serverless Function

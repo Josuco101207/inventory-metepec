@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -70,8 +70,9 @@ const UserManagementView = () => {
   const { user: currentUser } = useAuth();
   const { categories, categoryToViewId } = useCategories();
   const { isMobile } = useIsMobile();
-  const ALL_CATEGORIES = categories.map(cat => cat.title);
-  const ALL_VIEWS = [
+  const ALL_CATEGORIES = useMemo(() => categories.map(cat => cat.title), [categories]);
+  const ALL_CATEGORIES_SET = useMemo(() => new Set(ALL_CATEGORIES), [ALL_CATEGORIES]);
+  const ALL_VIEWS = useMemo(() => [
     { id: 'dashboard', label: 'Dashboard (Inicio)', icon: <LayoutDashboard size={14} /> },
     ...categories.map(cat => {
       const Icon = CATEGORY_ICONS[cat.iconName] || LayoutDashboard;
@@ -79,7 +80,7 @@ const UserManagementView = () => {
     }),
     { id: 'transactions', label: 'Transacciones (Historial)', icon: <History size={14} /> },
     { id: 'analytics', label: 'Analíticas (Gráficas)', icon: <Activity size={14} /> },
-  ];
+  ], [categories]);
   const [users, setUsers] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -339,8 +340,8 @@ const UserManagementView = () => {
   const summaryText = (u) => {
     if (u.role === 'admin') return { text: 'Acceso ilimitado', color: '#0071e3', bg: '#f0f7ff', border: '#bfdbfe' };
     if (u.role === 'supervisor') return { text: 'Supervisor de salidas', color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
-    const a = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c)).length;
-    const e = (u.editableCategories || []).filter(c => ALL_CATEGORIES.includes(c)).length;
+    const a = (u.allowedCategories || []).filter(c => ALL_CATEGORIES_SET.has(c)).length;
+    const e = (u.editableCategories || []).filter(c => ALL_CATEGORIES_SET.has(c)).length;
     if (a === 0 && e === 0) return { text: 'Sin permisos', color: '#dc2626', bg: '#fff1f1', border: '#fecaca' };
     return { text: `${a} agregar · ${e} editar`, color: '#16a34a', bg: '#f0fff4', border: '#bbf7d0' };
   };
@@ -524,8 +525,8 @@ const UserManagementView = () => {
             {users.map(u => {
               const isExpanded = expandedUserId === u.id;
               const isAdminUser = u.role === 'admin';
-              const allowedCats = (u.allowedCategories || []).filter(c => ALL_CATEGORIES.includes(c));
-              const editableCats = (u.editableCategories || []).filter(c => ALL_CATEGORIES.includes(c));
+              const allowedCats = (u.allowedCategories || []).filter(c => ALL_CATEGORIES_SET.has(c));
+              const editableCats = (u.editableCategories || []).filter(c => ALL_CATEGORIES_SET.has(c));
               const ss = summaryText(u);
 
               const permPct = ALL_CATEGORIES.length > 0

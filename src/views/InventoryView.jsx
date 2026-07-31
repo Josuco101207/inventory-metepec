@@ -114,9 +114,6 @@ const InventoryView = ({ categoryTitle }) => {
   const { isMobile } = useIsMobile();
   const navigate = useNavigate();
   
-  const [visibleCount, setVisibleCount] = useState(30);
-  const observerTarget = useRef(null);
-  
   // Modals & State
   const [selectedItem, setSelectedItem] = useState(null);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
@@ -140,23 +137,11 @@ const InventoryView = ({ categoryTitle }) => {
     }
   }, [categoryTitle, loadCategoryItems]);
 
-  // Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount(prev => Math.min(prev + 30, filteredItems.length));
-      }
-    }, { threshold: 0.1, rootMargin: '300px' });
-    if (observerTarget.current) observer.observe(observerTarget.current);
-    return () => observer.disconnect();
-  }, [filteredItems.length]);
-
   // Worker Initialization
   useEffect(() => {
     workerRef.current = new Worker(new URL('../workers/filterWorker.js', import.meta.url));
     workerRef.current.onmessage = (e) => {
       setFilteredItems(e.data);
-      setVisibleCount(30);
     };
     return () => workerRef.current.terminate();
   }, []);
@@ -286,19 +271,23 @@ const InventoryView = ({ categoryTitle }) => {
           )}
           
           {filteredItems.length > 0 ? (
-            <div className="fm-cards">
-              {filteredItems.slice(0, visibleCount).map((item) => (
-                <MobileInventoryCard
-                  key={item.id}
-                  item={item}
-                  categoryTitle={categoryTitle}
-                  isAdmin={isAdmin}
-                  isStaff={isStaff}
-                  canEditIn={canEditIn}
-                  handlers={handlers}
-                  zoneColor={zoneColor}
-                />
-              ))}
+            <div className="fm-cards" style={{ height: 'calc(100vh - 200px)' }}>
+              <Virtuoso
+                data={filteredItems}
+                itemContent={(index, item) => (
+                  <div style={{ paddingBottom: '0.75rem' }}>
+                    <MobileInventoryCard
+                      item={item}
+                      categoryTitle={categoryTitle}
+                      isAdmin={isAdmin}
+                      isStaff={isStaff}
+                      canEditIn={canEditIn}
+                      handlers={handlers}
+                      zoneColor={zoneColor}
+                    />
+                  </div>
+                )}
+              />
             </div>
           ) : (
             <div className="fm-empty">
@@ -307,11 +296,7 @@ const InventoryView = ({ categoryTitle }) => {
             </div>
           )}
           
-          {visibleCount < filteredItems.length && (
-            <div ref={observerTarget} className="fm-loadmore">
-              <Loader2 className="animate-spin" size={24} />
-            </div>
-          )}
+          {/* Paginación removida ya que Virtuoso maneja la virtualización dinámicamente sin necesidad de infinite scroll DOM */}
         </div>
 
         {/* FLOATING ACTION BAR (FAB) */}
@@ -429,18 +414,23 @@ const InventoryView = ({ categoryTitle }) => {
       <section className="neon-inventory-list">
         {filteredItems.length > 0 ? (
           <div className="neon-cards-container">
-            {filteredItems.slice(0, visibleCount).map((item) => (
-              <NeonItemCard
-                key={item.id}
-                item={item}
-                categoryTitle={categoryTitle}
-                isAdmin={isAdmin}
-                isStaff={isStaff}
-                canEditIn={canEditIn}
-                handlers={handlers}
-                zoneColor={zoneColor}
-              />
-            ))}
+            <Virtuoso
+              useWindowScroll
+              data={filteredItems}
+              itemContent={(index, item) => (
+                <div style={{ paddingBottom: '0.75rem' }}>
+                  <NeonItemCard
+                    item={item}
+                    categoryTitle={categoryTitle}
+                    isAdmin={isAdmin}
+                    isStaff={isStaff}
+                    canEditIn={canEditIn}
+                    handlers={handlers}
+                    zoneColor={zoneColor}
+                  />
+                </div>
+              )}
+            />
           </div>
         ) : (
           <div className="neon-empty-state">

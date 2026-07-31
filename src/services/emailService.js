@@ -3,7 +3,7 @@
  * Proporciona funciones para enviar emails relacionados con el sistema de aprobaciones
  */
 
-import { supabase } from '../lib/supabase';
+// (Supabase was imported here but unused)
 
 
 

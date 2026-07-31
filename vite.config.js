@@ -49,14 +49,17 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('exceljs')) return 'exceljs';
             if (id.includes('@supabase')) return 'supabase';
             if (id.includes('lucide-react')) return 'ui-icons';
             if (id.includes('recharts')) return 'ui-charts';
+            if (id.includes('react-virtuoso')) return 'ui-virtual';
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor';
             // Any other node_modules will fall into smaller auto-generated chunks
           }
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000 // Aumentamos el límite de advertencia a 1MB por exceljs
   }
 })

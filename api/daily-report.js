@@ -1,3 +1,4 @@
+/* global process, Buffer */
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import ExcelJS from 'exceljs';

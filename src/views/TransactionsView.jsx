@@ -110,7 +110,7 @@ const TransactionsView = () => {
                 if (mobileDatePickerRef.current) {
                   try {
                     mobileDatePickerRef.current.showPicker();
-                  } catch (e) {
+                  } catch {
                     mobileDatePickerRef.current.focus();
                   }
                 }

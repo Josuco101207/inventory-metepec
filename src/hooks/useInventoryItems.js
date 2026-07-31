@@ -195,9 +195,10 @@ export const useInventoryItems = ({
         throw new Error("No se pudo registrar ningún préstamo en la base de datos.");
       }
 
+      const updatesMap = new Map(successfulUpdates.map(u => [u.item.id, u.updates]));
       setItemsState(prev => prev.map(i => {
-        const found = successfulUpdates.find(u => u.item.id === i.id);
-        return found ? { ...i, ...found.updates } : i;
+        const updates = updatesMap.get(i.id);
+        return updates ? { ...i, ...updates } : i;
       }));
 
       for (const { item } of successfulUpdates) {
@@ -481,9 +482,8 @@ export const useInventoryItems = ({
       }));
 
       const successfulItems = categoryItems.filter((_, i) => results[i].status === 'fulfilled');
-      const successfulIds = successfulItems.map(i => i.id);
-
-      setItemsState(prev => prev.filter(i => !successfulIds.includes(i.id)));
+      const successfulIds = new Set(successfulItems.map(i => i.id));
+      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
       
       await addMovement(
         'Eliminación Masiva', `Todo ${category}`, successfulItems.length,
@@ -514,10 +514,11 @@ export const useInventoryItems = ({
       }));
 
       const successfulItems = itemsToDelete.filter((_, i) => results[i].status === 'fulfilled');
-      const successfulIds = successfulItems.map(i => i.id);
+      const successfulIds = new Set(successfulItems.map(i => i.id));
+      const categoriesToClearSet = new Set(categoriesToClear);
 
-      setItemsState(prev => prev.filter(i => !successfulIds.includes(i.id)));
-      setMovementsState(prev => prev.filter(m => !categoriesToClear.includes(m.category)));
+      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
+      setMovementsState(prev => prev.filter(m => !categoriesToClearSet.has(m.category)));
 
       toast.success(`Mantenimiento completado: ${successfulItems.length} eliminados.`, { id: 'clear-db' });
       return true;
@@ -530,7 +531,8 @@ export const useInventoryItems = ({
 
   const deleteItemsWithInvalidCategories = useCallback(async (validCategories, userName = 'Sistema') => {
     try {
-      const invalidItems = itemsRef.current.filter(i => !validCategories.includes(i.category));
+      const validCategoriesSet = new Set(validCategories);
+      const invalidItems = itemsRef.current.filter(i => !validCategoriesSet.has(i.category));
       if (invalidItems.length === 0) {
         toast.info("No hay artículos con categorías inválidas");
         return false;
@@ -548,9 +550,8 @@ export const useInventoryItems = ({
       }));
 
       const successfulItems = invalidItems.filter((_, i) => results[i].status === 'fulfilled');
-      const successfulIds = successfulItems.map(i => i.id);
-
-      setItemsState(prev => prev.filter(i => !successfulIds.includes(i.id)));
+      const successfulIds = new Set(successfulItems.map(i => i.id));
+      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
 
       await addMovement(
         'Eliminación Masiva', 'Categorías Inválidas', successfulItems.length,

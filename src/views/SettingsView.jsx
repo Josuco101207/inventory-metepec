@@ -18,7 +18,7 @@ const SettingsView = () => {
   useEffect(() => {
     const fetchGlobalTime = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('app_settings')
           .select('value')
           .eq('key', 'daily_report_time')
@@ -28,7 +28,7 @@ const SettingsView = () => {
           setReportTime(data.value);
           localStorage.setItem('dicrejart_report_time', data.value);
         }
-      } catch (err) {
+      } catch {
         // Ignoramos el error si la tabla aún no existe
       }
     };
@@ -89,7 +89,7 @@ const SettingsView = () => {
         await supabase
           .from('app_settings')
           .upsert({ key: 'daily_report_time', value: reportTime });
-      } catch (e) {
+      } catch {
         // Fallback ignorado
       }
 

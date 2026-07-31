@@ -7,22 +7,11 @@ const SupervisorSelector = ({ onSelect, selectedId, disabled = false }) => {
   const { supervisors, loading: loadingSupervisors, fetchSupervisors } = useApproval();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredSupervisors, setFilteredSupervisors] = useState([]);
-
+  const term = searchTerm.toLowerCase();
+  const filteredSupervisors = !searchTerm 
+    ? supervisors 
+    : supervisors.filter(s => s.name?.toLowerCase().includes(term) || s.email?.toLowerCase().includes(term));
   const selectedSupervisor = supervisors.find(s => s.id === selectedId);
-
-  // Filtrar supervisores basado en búsqueda
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredSupervisors(supervisors);
-    } else {
-      const term = searchTerm.toLowerCase();
-      setFilteredSupervisors(supervisors.filter(s => 
-        s.name?.toLowerCase().includes(term) || 
-        s.email?.toLowerCase().includes(term)
-      ));
-    }
-  }, [searchTerm, supervisors]);
 
   // Manejar selección
   const handleSelect = useCallback((supervisor) => {
