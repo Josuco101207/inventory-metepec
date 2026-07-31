@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Plus, Tag, X, Wrench, Clock, Save } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
-import { supabase } from '../lib/supabase';
-import { toast } from 'sonner';
-
-import { AlertTriangle } from 'lucide-react';
 import './SettingsView.css';
 
 const SettingsView = () => {
-  const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory, wipeAllData } = useInventory();
+  const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
   
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const [reportTime, setReportTime] = useState(() => {
@@ -101,20 +97,6 @@ const SettingsView = () => {
       toast.error(`Error al programar: ${err.message}`);
     } finally {
       setSavingReport(false);
-    }
-  };
-
-  const handleWipeDatabase = async () => {
-    const confirm1 = window.confirm("⚠️ ADVERTENCIA CRÍTICA ⚠️\n\nEstás a punto de borrar TODOS los artículos y movimientos del inventario de forma PERMANENTE.\n\n¿Estás completamente seguro de continuar?");
-    if (!confirm1) return;
-    
-    const confirm2 = window.prompt('Para confirmar la eliminación total, escribe la palabra: "BORRAR"');
-    if (confirm2 !== 'BORRAR') {
-      toast.info('Operación cancelada: palabra de seguridad incorrecta.');
-      return;
-    }
-    
-    await wipeAllData();
   };
 
   return (
@@ -325,35 +307,6 @@ const SettingsView = () => {
                   </div>
                 ))
               )}
-            </div>
-          </div>
-
-          {/* TARJETA DESTRUCCIÓN TOTAL */}
-          <div className="fly-glass-card" style={{ gridColumn: '1 / -1', border: '1px solid #ef4444', background: 'rgba(239, 68, 68, 0.05)' }}>
-            <div className="fly-gc-header">
-              <AlertTriangle size={24} className="fly-gc-icon" style={{ color: '#ef4444' }} />
-              <div>
-                <h2 style={{ color: '#ef4444' }}>Zona de Peligro</h2>
-                <p className="fly-gc-desc">Acciones destructivas irreversibles para el sistema.</p>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              <p style={{ color: '#f87171', fontSize: '0.9rem' }}>
-                Al presionar este botón, se eliminarán permanentemente todos los registros de inventario, historial de movimientos y cuentas de usuarios (excepto la tuya). 
-                Esta acción ejecutará una limpieza directamente en los servidores de Supabase y no se puede deshacer.
-              </p>
-              <button 
-                className="fly-btn-neon" 
-                style={{ 
-                  background: 'linear-gradient(45deg, #ef4444, #b91c1c)', 
-                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)',
-                  alignSelf: 'flex-start'
-                }}
-                onClick={handleWipeDatabase}
-              >
-                <AlertTriangle size={18} /> VACIAR BASE DE DATOS DESDE CERO
-              </button>
             </div>
           </div>
 
