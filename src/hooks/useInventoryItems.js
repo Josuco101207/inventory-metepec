@@ -19,11 +19,9 @@ export const useInventoryItems = ({
   mapToDbFields 
 }) => {
   const updateStock = useCallback(async (itemId, change, userName = 'Sistema', customDetails = '') => {
-    const currentItems = itemsRef.current;
-    const itemIndex = currentItems.findIndex(i => i.id === itemId);
-    if (itemIndex === -1) return;
-
-    const item = currentItems[itemIndex];
+    const currentItemsMap = itemsRef.current;
+    const item = currentItemsMap[itemId];
+    if (!item) return;
 
     if ((item.qty || 0) + change < 0) {
       toast.error("Error: Stock insuficiente", {
@@ -53,9 +51,8 @@ export const useInventoryItems = ({
       }
       const urlMatch = customDetails?.match(/(?:factura_url:|factura:\s*)(https?:\/\/\S+)/i);
       const facturaUrl = urlMatch ? urlMatch[1] : null;
-      setItemsState(prev => {
-        const updated = [...prev];
-        const currentItem = updated[itemIndex];
+      setItemsMap(prev => {
+        const currentItem = prev[itemId] || item;
         
         const newInvoices = currentItem.invoices ? [...currentItem.invoices] : [];
         if (facturaUrl && !newInvoices.some(inv => inv.url === facturaUrl)) {
@@ -72,13 +69,15 @@ export const useInventoryItems = ({
           });
         }
 
-        updated[itemIndex] = {
-          ...currentItem,
-          qty: newQty,
-          invoices: newInvoices,
-          ...(!currentItem.factura_url && facturaUrl ? { factura_url: facturaUrl } : {}),
+        return {
+          ...prev,
+          [itemId]: {
+            ...currentItem,
+            qty: newQty,
+            invoices: newInvoices,
+            ...(!currentItem.factura_url && facturaUrl ? { factura_url: facturaUrl } : {}),
+          }
         };
-        return updated;
       });
       
       const defaultDetails = `${change > 0 ? 'Reposición' : 'Gasto'} de material`;
@@ -118,10 +117,10 @@ export const useInventoryItems = ({
       console.error('[updateStock] ERROR:', err);
       toast.error(`Error: ${err.message}`, { duration: 6000 });
     }
-  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsMap]);
 
   const loanItem = useCallback(async (itemId, borrower, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     if (!item || (item.qty || 0) <= 0) {
       toast.error("No hay stock disponible para préstamo");
       return;
@@ -148,16 +147,19 @@ export const useInventoryItems = ({
 
     try {
       if (tableName) await sbUpdateItem(tableName, itemId, updates);
-      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
+      setItemsMap(prev => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] || item), ...updates }
+      }));
       await addMovement('Préstamo', item.name, 1, userName, borrower, item.category);
       toast.success(`Artículo prestado a ${borrower} (Disponibles: ${remainingQty})`);
     } catch (err) {
       toast.error(`Error al registrar préstamo: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const bulkLoanItems = useCallback(async (itemIds, borrower, userName = 'Sistema') => {
-    const availableItems = itemsRef.current.filter(i => itemIds.includes(i.id) && (i.qty || 0) > 0);
+    const availableItems = itemIds.map(id => itemsRef.current[id]).filter(i => i && (i.qty || 0) > 0);
     if (availableItems.length === 0) {
       toast.error("Ninguno de los artículos seleccionados tiene stock");
       return;
@@ -195,11 +197,13 @@ export const useInventoryItems = ({
         throw new Error("No se pudo registrar ningún préstamo en la base de datos.");
       }
 
-      const updatesMap = new Map(successfulUpdates.map(u => [u.item.id, u.updates]));
-      setItemsState(prev => prev.map(i => {
-        const updates = updatesMap.get(i.id);
-        return updates ? { ...i, ...updates } : i;
-      }));
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        successfulUpdates.forEach(({ item: uItem, updates: uUpdates }) => {
+          nextMap[uItem.id] = { ...(nextMap[uItem.id] || uItem), ...uUpdates };
+        });
+        return nextMap;
+      });
 
       for (const { item } of successfulUpdates) {
         await addMovement('Préstamo', item.name, 1, userName, borrower, item.category);
@@ -213,10 +217,10 @@ export const useInventoryItems = ({
     } catch (err) {
       toast.error(`Error en préstamo masivo: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const returnItem = useCallback(async (itemId, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     if (!item) return;
 
     const tableName = item._tableName || getTableName(item.category);
@@ -233,16 +237,19 @@ export const useInventoryItems = ({
 
     try {
       if (tableName) await sbUpdateItem(tableName, itemId, updates);
-      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
+      setItemsMap(prev => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] || item), ...updates }
+      }));
       await addMovement('Devolución', item.name, 1, userName, 'Devuelto a almacén', item.category);
       toast.success(`Herramienta devuelta (En almacén: ${newQty})`);
     } catch (err) {
       toast.error(`Error al registrar devolución: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const reportMaintenance = useCallback(async (itemId, reason, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     if (!item) return;
 
     const tableName = item._tableName || getTableName(item.category);
@@ -255,16 +262,19 @@ export const useInventoryItems = ({
 
     try {
       if (tableName) await sbUpdateItem(tableName, itemId, updates);
-      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
+      setItemsMap(prev => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] || item), ...updates }
+      }));
       await addMovement('Falla/Manto', item.name, 1, userName, reason, item.category);
       toast.warning(`Reporte registrado: 1x ${item.name} retirado por falla`);
     } catch (err) {
       toast.error(`Error al reportar falla: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const completeMaintenance = useCallback(async (itemId, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     if (!item) return;
 
     const tableName = item._tableName || getTableName(item.category);
@@ -277,16 +287,19 @@ export const useInventoryItems = ({
 
     try {
       if (tableName) await sbUpdateItem(tableName, itemId, updates);
-      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...updates } : i));
+      setItemsMap(prev => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] || item), ...updates }
+      }));
       await addMovement('Entrada', item.name, 1, userName, 'Reparado / Fin de mantenimiento', item.category);
       toast.success(`Herramienta reparada: ${item.name} vuelve a estar disponible`);
     } catch (err) {
       toast.error(`Error al completar mantenimiento: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const auditStock = useCallback(async (itemId, physicalQty, userName = 'Sistema', reason = '') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     if (!item) return;
 
     const tableName = item._tableName || getTableName(item.category);
@@ -299,7 +312,10 @@ export const useInventoryItems = ({
         const updates = mapToDbFields({ qty: physicalQty }, validColumns, fieldMappings);
         await sbUpdateItem(tableName, itemId, updates);
       }
-      setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, qty: physicalQty } : i));
+      setItemsMap(prev => ({
+        ...prev,
+        [itemId]: { ...(prev[itemId] || item), qty: physicalQty }
+      }));
       const finalReason = reason ? `Audit: ${reason} (Ajuste: ${diff > 0 ? '+' : ''}${diff})` : `Conteo físico: ${physicalQty} (Ajuste: ${diff > 0 ? '+' : ''}${diff})`;
       await addMovement('Auditoría', item.name, Math.abs(diff), userName, finalReason, item.category);
 
@@ -312,7 +328,7 @@ export const useInventoryItems = ({
     } catch (err) {
       toast.error(`Error en auditoría: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsMap]);
 
   const addItem = useCallback(async (newItem, userName = 'Sistema', facturaUrl = null) => {
     const tableName = getTableName(newItem.category);
@@ -345,13 +361,16 @@ export const useInventoryItems = ({
           });
         }
         
-        setItemsState(prev => [...prev, { 
-          ...createdItem, 
-          category: newItem.category, 
-          _tableName: tableName, 
-          factura_url: facturaUrl || undefined,
-          invoices: initialInvoices
-        }]);
+        setItemsMap(prev => ({
+          ...prev,
+          [createdItem.id]: {
+            ...createdItem, 
+            category: newItem.category, 
+            _tableName: tableName, 
+            factura_url: facturaUrl || undefined,
+            invoices: initialInvoices
+          }
+        }));
         await addMovement('Alta', newItem.name || 'Sin nombre', parseInt(newItem.qty) || 0, userName, details, newItem.category || 'General');
         toast.success(`Artículo creado: ${newItem.name || 'Sin nombre'}`);
       }
@@ -359,27 +378,31 @@ export const useInventoryItems = ({
       console.error('Add item error:', err);
       toast.error(`Error al crear: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsMap]);
 
   const deleteItem = useCallback(async (itemId, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     const tableName = item?._tableName || getTableName(item?.category);
 
     try {
       if (tableName) {
         await sbDeleteItem(tableName, itemId);
       }
-      setItemsState(prev => prev.filter(i => i.id !== itemId));
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        delete nextMap[itemId];
+        return nextMap;
+      });
       await addMovement('Eliminación', item?.name || 'Desconocido', 0, userName, 'Artículo eliminado del inventario', item?.category || 'General');
       toast.info(`Artículo eliminado: ${item?.name}`);
     } catch (err) {
       console.error('Delete item error:', err);
       toast.error(`Error al eliminar: ${err.message}`);
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const editItem = useCallback(async (itemId, updatedFields, userName = 'Sistema') => {
-    const item = itemsRef.current.find(i => i.id === itemId);
+    const item = itemsRef.current[itemId];
     const tableName = item?._tableName || getTableName(item?.category);
     const validColumns = getValidColumns(item?.category);
     const fieldMappings = getFieldMappings(item?.category);
@@ -407,7 +430,10 @@ export const useInventoryItems = ({
           if (normalized.stock_min !== undefined) normalized.threshold = normalized.stock_min;
           if (normalized.minimo !== undefined) normalized.threshold = normalized.minimo;
           
-          setItemsState(prev => prev.map(i => i.id === itemId ? { ...i, ...normalized } : i));
+          setItemsMap(prev => ({
+            ...prev,
+            [itemId]: { ...(prev[itemId] || item), ...normalized }
+          }));
         }
         
         const details = changes.length > 0 
@@ -421,7 +447,7 @@ export const useInventoryItems = ({
       console.error('Edit item error:', err);
       toast.error(`Error al editar: ${err.message}`);
     }
-  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsMap]);
 
   const bulkAddItems = useCallback(async (itemsArray) => {
     try {
@@ -453,7 +479,13 @@ export const useInventoryItems = ({
         .filter(r => r.status === 'fulfilled' && r.value)
         .map(r => r.value);
         
-      setItemsState(prev => [...prev, ...validItems]);
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        validItems.forEach(item => {
+          nextMap[item.id] = item;
+        });
+        return nextMap;
+      });
       
       if (validItems.length < itemsArray.length) {
         toast.warning(`Importación parcial: se añadieron ${validItems.length} de ${itemsArray.length} artículos.`, { id: 'bulk-add' });
@@ -464,11 +496,11 @@ export const useInventoryItems = ({
       console.error('bulkAddItems error:', err);
       toast.error(`Error en importación: ${err.message}`, { id: 'bulk-add' });
     }
-  }, [getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsState]);
+  }, [getTableName, getValidColumns, getFieldMappings, mapToDbFields, setItemsMap]);
 
   const deleteItemsByCategory = useCallback(async (category, userName = 'Sistema') => {
     try {
-      const categoryItems = itemsRef.current.filter(i => i.category === category);
+      const categoryItems = Object.values(itemsRef.current).filter(i => i.category === category);
       if (categoryItems.length === 0) {
         toast.info(`No hay artículos en la categoría: ${category}`);
         return;
@@ -483,7 +515,11 @@ export const useInventoryItems = ({
 
       const successfulItems = categoryItems.filter((_, i) => results[i].status === 'fulfilled');
       const successfulIds = new Set(successfulItems.map(i => i.id));
-      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        successfulIds.forEach(id => delete nextMap[id]);
+        return nextMap;
+      });
       
       await addMovement(
         'Eliminación Masiva', `Todo ${category}`, successfulItems.length,
@@ -501,13 +537,13 @@ export const useInventoryItems = ({
       toast.error(`Error al eliminar categoría: ${e.message}`, { id: 'category-delete' });
       return false;
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   const clearDatabaseCategories = useCallback(async (categoriesToClear, setMovementsState) => {
     try {
       toast.loading("LIMPIANDO ÁREAS SELECCIONADAS...", { id: 'clear-db' });
 
-      const itemsToDelete = itemsRef.current.filter(i => categoriesToClear.includes(i.category));
+      const itemsToDelete = Object.values(itemsRef.current).filter(i => categoriesToClear.includes(i.category));
       const results = await Promise.allSettled(itemsToDelete.map(item => {
         const tableName = item._tableName || getTableName(item.category);
         return tableName ? sbDeleteItem(tableName, item.id) : Promise.resolve();
@@ -517,7 +553,11 @@ export const useInventoryItems = ({
       const successfulIds = new Set(successfulItems.map(i => i.id));
       const categoriesToClearSet = new Set(categoriesToClear);
 
-      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        successfulIds.forEach(id => delete nextMap[id]);
+        return nextMap;
+      });
       setMovementsState(prev => prev.filter(m => !categoriesToClearSet.has(m.category)));
 
       toast.success(`Mantenimiento completado: ${successfulItems.length} eliminados.`, { id: 'clear-db' });
@@ -527,12 +567,12 @@ export const useInventoryItems = ({
       toast.error(`Error en mantenimiento: ${e.message}`, { id: 'clear-db' });
       return false;
     }
-  }, [getTableName, itemsRef, setItemsState]);
+  }, [getTableName, itemsRef, setItemsMap]);
 
   const deleteItemsWithInvalidCategories = useCallback(async (validCategories, userName = 'Sistema') => {
     try {
       const validCategoriesSet = new Set(validCategories);
-      const invalidItems = itemsRef.current.filter(i => !validCategoriesSet.has(i.category));
+      const invalidItems = Object.values(itemsRef.current).filter(i => !validCategoriesSet.has(i.category));
       if (invalidItems.length === 0) {
         toast.info("No hay artículos con categorías inválidas");
         return false;
@@ -551,7 +591,11 @@ export const useInventoryItems = ({
 
       const successfulItems = invalidItems.filter((_, i) => results[i].status === 'fulfilled');
       const successfulIds = new Set(successfulItems.map(i => i.id));
-      setItemsState(prev => prev.filter(i => !successfulIds.has(i.id)));
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        successfulIds.forEach(id => delete nextMap[id]);
+        return nextMap;
+      });
 
       await addMovement(
         'Eliminación Masiva', 'Categorías Inválidas', successfulItems.length,
@@ -565,7 +609,7 @@ export const useInventoryItems = ({
       toast.error(`Error al eliminar categorías inválidas: ${e.message}`, { id: 'invalid-delete' });
       return false;
     }
-  }, [addMovement, getTableName, itemsRef, setItemsState]);
+  }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
   return {
     updateStock,

@@ -6,12 +6,12 @@ import {
 } from '../storage/supabaseStorage';
 import { addMovement as addLocalStorageMovement, updateMovement as updateLocalStorageMovement } from '../storage/localStorage';
 
-export const useInventoryMovements = ({ itemsRef, setItemsState, sbUpdateItem, getTableName }) => {
+export const useInventoryMovements = ({ itemsRef, setItemsMap, sbUpdateItem, getTableName }) => {
   const [movements, setMovementsState] = useState([]);
 
   const addMovement = useCallback(async (action, itemName, qty, userName = 'Sistema', details = '', category = 'General', originalValues = null) => {
     try {
-      const relatedItem = itemsRef.current.find(i => i.name === itemName);
+      const relatedItem = Object.values(itemsRef.current).find(i => i.name === itemName);
       const subcategory = relatedItem?.subcategory || '';
 
       const movementData = {
@@ -50,7 +50,7 @@ export const useInventoryMovements = ({ itemsRef, setItemsState, sbUpdateItem, g
     if (!mov || mov.annulled) return;
 
     try {
-      const item = itemsRef.current.find(i => i.name === mov.item && i.category === mov.category);
+      const item = Object.values(itemsRef.current).find(i => i.name === mov.item && i.category === mov.category);
       
       if (item) {
         let qtyChange = 0;
@@ -94,7 +94,7 @@ export const useInventoryMovements = ({ itemsRef, setItemsState, sbUpdateItem, g
           if (tableName) {
             await sbUpdateItem(tableName, item.id, { qty: newQty, ...extraFields });
           }
-          setItemsState(prev => prev.map(i => i.id === item.id ? { ...i, qty: newQty, ...extraFields } : i));
+          setItemsMap(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || item), qty: newQty, ...extraFields } }));
         }
       }
 
@@ -115,7 +115,7 @@ export const useInventoryMovements = ({ itemsRef, setItemsState, sbUpdateItem, g
       console.error("Annul error:", e);
       toast.error("Error al anular movimiento");
     }
-  }, [itemsRef, movements, getTableName, setItemsState, sbUpdateItem, addMovement]);
+  }, [itemsRef, movements, getTableName, setItemsMap, sbUpdateItem, addMovement]);
 
   return { movements, setMovementsState, addMovement, annulMovement };
 };

@@ -58,7 +58,8 @@ const InventoryContext = createContext();
 export const InventoryProvider = ({ children }) => {
   const { user } = useAuth();
   const { categories, loading: catsLoading } = useCategories();
-  const [items, setItemsState] = useState([]);
+  const [itemsMap, setItemsMap] = useState({});
+  const items = useMemo(() => Object.values(itemsMap), [itemsMap]);
   const [personnel, setPersonnelState] = useState([]);
   const [brands, setBrandsState] = useState([]);
   const [locations, setLocationsState] = useState([]);
@@ -79,8 +80,8 @@ export const InventoryProvider = ({ children }) => {
   // Ref para llevar control de las categorías ya cargadas
   const loadedCategoriesRef = useRef(new Set());
   
-  const itemsRef = useRef(items);
-  useEffect(() => { itemsRef.current = items; }, [items]);
+  const itemsRef = useRef(itemsMap);
+  useEffect(() => { itemsRef.current = itemsMap; }, [itemsMap]);
 
   const categoriesRef = useRef(categories);
   useEffect(() => { categoriesRef.current = categories; }, [categories]);
@@ -103,7 +104,7 @@ export const InventoryProvider = ({ children }) => {
   // Use the new hooks
   const { movements, setMovementsState, addMovement, annulMovement } = useInventoryMovements({
     itemsRef,
-    setItemsState,
+    setItemsMap,
     getTableName,
     sbUpdateItem
   });
@@ -125,7 +126,7 @@ export const InventoryProvider = ({ children }) => {
     deleteItemsWithInvalidCategories
   } = useInventoryItems({
     itemsRef,
-    setItemsState,
+    setItemsMap,
     addMovement,
     getTableName,
     getValidColumns,
@@ -136,7 +137,7 @@ export const InventoryProvider = ({ children }) => {
   // ─── Limpieza al logout ───
   useEffect(() => {
     if (!user) {
-      setItemsState([]);
+      setItemsMap({});
       loadedCategoriesRef.current.clear();
       setMovementsState([]);
       setPersonnelState([]);
@@ -152,7 +153,7 @@ export const InventoryProvider = ({ children }) => {
   const loadAllItems = useCallback(async (cachedMovements = null) => {
     if (!categories.length) return;
     try {
-      const allItems = [];
+      const newItemsMap = {};
       await Promise.all(categories.map(async (cat) => {
         if (!cat.tableName) return;
         const rows = await sbFetchItems(cat.tableName);
@@ -219,14 +220,14 @@ export const InventoryProvider = ({ children }) => {
           if (obsKey && normalizedRow.observaciones === undefined) normalizedRow.observaciones = row[obsKey];
           if (threshKey && normalizedRow.threshold === undefined) normalizedRow.threshold = row[threshKey];
           
-          allItems.push({ ...normalizedRow, category: cat.title, _tableName: cat.tableName });
+          newItemsMap[normalizedRow.id] = { ...normalizedRow, category: cat.title, _tableName: cat.tableName };
         });
       }));
 
       const movementsToUse = cachedMovements ?? (await sbFetchMovements(1, 2000)).data;
-      enrichItemsWithFacturaUrl(allItems, movementsToUse);
+      enrichItemsWithFacturaUrl(Object.values(newItemsMap), movementsToUse);
 
-      setItemsState(allItems);
+      setItemsMap(newItemsMap);
       categories.forEach(c => loadedCategoriesRef.current.add(c.title));
     } catch (err) {
       console.error('[Inventory] Load items error:', err);
@@ -291,12 +292,18 @@ export const InventoryProvider = ({ children }) => {
       // Se usa la función auxiliar existente
       enrichItemsWithFacturaUrl(newItems, movements);
 
-      setItemsState(prev => [...prev, ...newItems]);
+      setItemsMap(prev => {
+        const nextMap = { ...prev };
+        newItems.forEach(item => {
+          nextMap[item.id] = item;
+        });
+        return nextMap;
+      });
       loadedCategoriesRef.current.add(categoryTitle);
     } catch (err) {
       console.error(`[Inventory] Error loading category ${categoryTitle}:`, err);
     }
-  }, [categories, movements, setItemsState]);
+  }, [categories, movements, setItemsMap]);
 
   // ─── Cargar datos ───
   useEffect(() => {
