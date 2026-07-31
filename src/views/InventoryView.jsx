@@ -229,6 +229,17 @@ const InventoryView = ({ categoryTitle }) => {
     );
   };
 
+  const [debugRawData, setDebugRawData] = useState('Fetching...');
+  useEffect(() => {
+    if (!categoryConfig.tableName) return;
+    supabase.from(categoryConfig.tableName).select('*').limit(10)
+      .then(({ data, error }) => {
+        if (error) setDebugRawData('Error: ' + error.message);
+        else setDebugRawData('Raw rows: ' + data.length + '\n' + JSON.stringify(data, null, 2));
+      })
+      .catch(err => setDebugRawData('Exception: ' + err.message));
+  }, [categoryConfig.tableName]);
+
   if (isMobile) {
     return (
       <div className={`fly-inventory-mobile theme-${zoneColor}`}>
@@ -239,6 +250,10 @@ const InventoryView = ({ categoryTitle }) => {
             <span className="fm-total-badge">{stats.total} Activos</span>
           </div>
           
+          <div style={{ padding: 10, background: '#333', color: '#0f0', fontSize: 10, overflow: 'auto', maxHeight: 150 }}>
+            {debugRawData}
+          </div>
+
           <div className="fm-search-wrap">
             <Search size={18} className="fm-search-icon" />
             <input 
@@ -344,6 +359,10 @@ const InventoryView = ({ categoryTitle }) => {
           </div>
           <h1 className="neon-title">{categoryTitle}</h1>
           <p className="neon-subtitle">BASE DE DATOS OPERATIVA Y EN LÍNEA</p>
+        </div>
+        
+        <div style={{ padding: 10, background: '#333', color: '#0f0', fontSize: 10, overflow: 'auto', maxHeight: 150, width: '90%', margin: '15px auto' }}>
+          {debugRawData}
         </div>
       </section>
 
