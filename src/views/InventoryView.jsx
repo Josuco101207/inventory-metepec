@@ -12,6 +12,7 @@ import {
   ClipboardCheck, Activity, Package, AlertTriangle, 
   Landmark, FileImage, X, AlertCircle, Sparkles, PlusCircle, Hexagon
 } from 'lucide-react';
+import { Virtuoso } from 'react-virtuoso';
 import { exportToExcel } from '../utils/exportUtils';
 import { useCategories } from '../context/CategoriesContext';
 import useIsMobile from '../hooks/useIsMobile';
