@@ -178,14 +178,16 @@ const ManualEntryView = () => {
     try {
       const userName = userData?.name || userData?.email || 'Sistema';
 
-      // Subir foto de factura a Supabase Storage (comprimida)
+      // Subir foto de factura a Supabase Storage (comprimida) solo si se adjuntó
       let facturaUrl = null;
-      try {
-        facturaUrl = await uploadFactura(facturaFile);
-      } catch (uploadErr) {
-        toast.error('No se pudo subir la foto de factura: ' + uploadErr.message);
-        setSaving(false);
-        return;
+      if (facturaFile) {
+        try {
+          facturaUrl = await uploadFactura(facturaFile);
+        } catch (uploadErr) {
+          toast.error('No se pudo subir la foto de factura: ' + uploadErr.message);
+          setSaving(false);
+          return;
+        }
       }
 
       for (const line of lines) {
