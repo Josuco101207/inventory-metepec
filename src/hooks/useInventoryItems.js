@@ -11,7 +11,7 @@ import {
 
 export const useInventoryItems = ({ 
   itemsRef, 
-  setItemsState, 
+  setItemsMap, 
   addMovement, 
   getTableName, 
   getValidColumns, 
