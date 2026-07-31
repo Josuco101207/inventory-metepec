@@ -584,7 +584,7 @@ export const InventoryProvider = ({ children }) => {
       toast.loading("ELIMINANDO INVENTARIO Y MOVIMIENTOS...", { id: 'wipe' });
       
       // 1. Generar SQL de limpieza
-      let sql = `TRUNCATE TABLE approval_requests;\nTRUNCATE TABLE movements;\n`;
+      let sql = `TRUNCATE TABLE audit_log;\nTRUNCATE TABLE approval_requests;\nTRUNCATE TABLE movements;\n`;
       categories.forEach(cat => {
          if (cat.tableName) {
             sql += `TRUNCATE TABLE ${cat.tableName};\n`;
