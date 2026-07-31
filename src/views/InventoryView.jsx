@@ -440,11 +440,7 @@ const InventoryView = ({ categoryTitle }) => {
           </div>
         )}
 
-        {visibleCount < filteredItems.length && (
-          <div ref={observerTarget} className="neon-loadmore">
-            <Loader2 className="animate-spin" size={32} />
-          </div>
-        )}
+
       </section>
 
       <ActionModal isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem} onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Operador', details); setIsStockModalOpen(false); }} />
