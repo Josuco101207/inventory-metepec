@@ -444,7 +444,7 @@ const DatabaseAdminView = () => {
 
       let sql = `CREATE TABLE IF NOT EXISTS public."${tableName}" (\n  ${colDefs.join(',\n  ')}\n);`;
       sql += `\nALTER TABLE public."${tableName}" ENABLE ROW LEVEL SECURITY;`;
-      sql += `\nCREATE POLICY "auth_select_${tableName}" ON public."${tableName}" FOR SELECT TO authenticated USING (true);`;
+      sql += `\nCREATE POLICY "auth_select_${tableName}" ON public."${tableName}" FOR SELECT USING (true);`;
       sql += `\nCREATE POLICY "auth_insert_${tableName}" ON public."${tableName}" FOR INSERT TO authenticated WITH CHECK (true);`;
       sql += `\nCREATE POLICY "auth_update_${tableName}" ON public."${tableName}" FOR UPDATE TO authenticated USING (true) WITH CHECK (true);`;
       sql += `\nCREATE POLICY "auth_delete_${tableName}" ON public."${tableName}" FOR DELETE TO authenticated USING (true);`;
