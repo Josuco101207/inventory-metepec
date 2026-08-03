@@ -125,6 +125,7 @@ const TransactionsView = () => {
                 value={selectedDate}
                 onChange={e => setSelectedDate(e.target.value)}
                 max={todayStr}
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
               />
               <span className="ftm-date-label">{isToday ? 'HOY' : selectedDate}</span>
             </div>
@@ -297,7 +298,10 @@ const TransactionsView = () => {
         <div 
           className="fly-btn fly-btn-secondary" 
           style={{ position: 'relative', overflow: 'hidden', flexShrink: 0, cursor: 'pointer' }}
-          onClick={(e) => { e.currentTarget.querySelector('input').showPicker && e.currentTarget.querySelector('input').showPicker() }}
+          onClick={(e) => {
+            const input = e.currentTarget.querySelector('input');
+            if (input && input.showPicker) input.showPicker();
+          }}
         >
           <Calendar size={15} />
           <span>{isToday ? 'Hoy' : selectedDate}</span>
@@ -306,8 +310,7 @@ const TransactionsView = () => {
             value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
             max={todayStr}
-            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-            onClick={(e) => e.stopPropagation()}
+            style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
           />
         </div>
         {!isToday && (
