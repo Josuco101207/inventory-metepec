@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 
 // ─── ITEMS ───
 
-export const fetchItems = async (tableName) => {
+export const fetchItems = async (tableName, retryCount = 0) => {
   if (!tableName) return [];
   console.log(`[SupabaseStorage] fetching items for table: ${tableName}`);
   const { data, error } = await supabase
@@ -16,6 +16,11 @@ export const fetchItems = async (tableName) => {
     .limit(10000); // Se quitó el order('created_at') por si la tabla no tiene esa columna
   if (error) {
     console.error(`[SupabaseStorage] fetchItems(${tableName}):`, error.message);
+    if (retryCount < 2) {
+       console.log(`[SupabaseStorage] Retrying fetchItems for ${tableName} in 1000ms...`);
+       await new Promise(r => setTimeout(r, 1000));
+       return fetchItems(tableName, retryCount + 1);
+    }
     throw error;
   }
   console.log(`[SupabaseStorage] fetchItems(${tableName}) success, returned ${data?.length || 0} rows:`, data);

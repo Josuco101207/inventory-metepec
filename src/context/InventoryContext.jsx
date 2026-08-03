@@ -154,7 +154,7 @@ export const InventoryProvider = ({ children }) => {
     if (!categories.length) return;
     try {
       const newItemsMap = {};
-      await Promise.all(categories.map(async (cat) => {
+      const results = await Promise.allSettled(categories.map(async (cat) => {
         if (!cat.tableName) return;
         const rows = await sbFetchItems(cat.tableName);
         if (rows.length === 0) return;
@@ -223,6 +223,15 @@ export const InventoryProvider = ({ children }) => {
           newItemsMap[normalizedRow.id] = { ...normalizedRow, category: cat.title, _tableName: cat.tableName };
         });
       }));
+
+      // Log errors if any category failed to load
+      results.forEach((res, i) => {
+        if (res.status === 'rejected') {
+           console.error(`[Inventory] Failed to load table ${categories[i].tableName}:`, res.reason);
+        } else if (res.status === 'fulfilled') {
+           loadedCategoriesRef.current.add(categories[i].title);
+        }
+      });
 
       const movementsToUse = cachedMovements ?? (await sbFetchMovements(1, 2000)).data;
       enrichItemsWithFacturaUrl(Object.values(newItemsMap), movementsToUse);
