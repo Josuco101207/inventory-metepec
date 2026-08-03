@@ -240,23 +240,12 @@ const AuthBadge = ({ authState, onClear, SALIDA_METHODS }) => (
 // ─── ActionModal principal ────────────────────────────────────────────────────
 const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const { isMobile } = useIsMobile();
-  const { authState, isAutorizado, autorizarConFactura, limpiarAuth, buildAuthDetails, SALIDA_METHODS } = useSalidaAuth();
-  const { currentRequestId, startPolling, stopPolling, requests } = useApproval();
+  const { limpiarAuth } = useSalidaAuth();
+  const { stopPolling } = useApproval();
 
   const [qty, setQty] = useState(1);
   const [motivo, setMotivo] = useState('');
-  const [authMethod, setAuthMethod] = useState('factura'); // 'factura' | 'approval'
-  const [currentRequest, setCurrentRequest] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (currentRequestId && requests?.length > 0) {
-      const updatedReq = requests.find(req => req.id === currentRequestId);
-      if (updatedReq) {
-        setCurrentRequest(updatedReq);
-      }
-    }
-  }, [requests, currentRequestId]);
 
   const parsedQty = parseInt(qty) || 0;
   const stockDisponible = item?.qty ?? 0;
@@ -265,38 +254,17 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
   const isValid =
     parsedQty > 0 &&
     parsedQty <= stockDisponible &&
-    motivo.trim().length > 0 &&
-    (authMethod === 'factura' ? (isAutorizado && authState.method === SALIDA_METHODS.FACTURA) : currentRequest?.status === APPROVAL_STATUS.APPROVED);
+    motivo.trim().length > 0;
 
-  const isFormLocked = currentRequest?.status === APPROVAL_STATUS.APPROVED || currentRequest?.status === APPROVAL_STATUS.PENDING;
+  const isFormLocked = false;
 
-  // Manejar creación de solicitud
-  const handleRequestCreated = useCallback((request) => {
-    setCurrentRequest(request);
-    startPolling(request.id);
-  }, [startPolling]);
+
 
   // Manejar confirmación de salida
   const handleConfirm = useCallback(async () => {
     if (!isValid || isSubmitting) return;
 
-    let authDetails;
-    
-    if (authMethod === 'factura') {
-      // Validación de seguridad en cliente: bloquear si no hay factura vinculada
-      if (authState.method !== SALIDA_METHODS.FACTURA) {
-        toast.error('Salida bloqueada: se requiere vincular una factura.');
-        return;
-      }
-      authDetails = buildAuthDetails(`Motivo: ${motivo.trim()}`);
-    } else {
-      // Nuevo flujo: usar aprobación
-      if (!currentRequest || currentRequest.status !== APPROVAL_STATUS.APPROVED) {
-        toast.error('Salida bloqueada: la solicitud debe estar aprobada.');
-        return;
-      }
-      authDetails = `Motivo: ${motivo.trim()} | approval_id:${currentRequest.id} | supervisor_id:${currentRequest.supervisor_id} | autorizado_por:${currentRequest.metadata?.supervisor_name || 'Supervisor'}`;
-    }
+    let authDetails = `Motivo: ${motivo.trim()}`;
 
     setIsSubmitting(true);
     try {
@@ -305,7 +273,6 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
       // Limpiar estado local
       setQty(1);
       setMotivo('');
-      setCurrentRequest(null);
       limpiarAuth();
       stopPolling();
       onClose();
@@ -315,13 +282,12 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isValid, isSubmitting, authMethod, authState, buildAuthDetails, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, currentRequest, stopPolling, SALIDA_METHODS]);
+  }, [isValid, isSubmitting, motivo, parsedQty, item, onConfirm, limpiarAuth, onClose, stopPolling]);
 
   // Manejar cierre
   const handleClose = useCallback(() => {
     setQty(1);
     setMotivo('');
-    setCurrentRequest(null);
     stopPolling();
     onClose();
   }, [onClose, stopPolling]);
@@ -382,58 +348,7 @@ const ActionModal = ({ isOpen, onClose, item, onConfirm }) => {
         )}
       </div>
 
-      {/* ── Sección de Autorización Obligatoria ── */}
-      <div className="am-auth-section">
-        <div className="am-auth-section-header">
-          <ShieldCheck size={15} />
-          <span>Vincular Documentación</span>
-          {(!isAutorizado && authMethod === 'factura') && <span className="am-auth-required-badge">REQUERIDA</span>}
-        </div>
 
-        {/* Selector de método de autorización */}
-        <div className="am-method-selector">
-          <button
-            className={`am-method-btn ${authMethod === 'factura' ? 'active' : ''}`}
-            onClick={() => !isFormLocked && setAuthMethod('factura')}
-            disabled={isFormLocked}
-          >
-            <FileText size={14} />
-            Vincular Factura
-          </button>
-          <button
-            className={`am-method-btn ${authMethod === 'approval' ? 'active' : ''}`}
-            onClick={() => !isFormLocked && setAuthMethod('approval')}
-            disabled={isFormLocked}
-          >
-            <Send size={14} />
-            Solicitar Aprobación
-          </button>
-        </div>
-
-        {/* Contenido según método seleccionado */}
-        {authMethod === 'factura' ? (
-          <>
-            {isAutorizado && authState.method === SALIDA_METHODS.FACTURA ? (
-              <AuthBadge authState={authState} onClear={limpiarAuth} SALIDA_METHODS={SALIDA_METHODS} />
-            ) : (
-              <FacturaUploadPanel 
-                onAuthorized={(facturaId, url) => {
-                  autorizarConFactura(facturaId, url);
-                  toast.success(`Factura vinculada: ${facturaId}`);
-                }}
-              />
-            )}
-          </>
-        ) : (
-          <SupervisorSelectionPanel 
-            onRequestCreated={handleRequestCreated}
-            currentRequest={currentRequest}
-            motivo={motivo}
-            item={item}
-            qty={parsedQty}
-          />
-        )}
-      </div>
 
       {/* Botones */}
       <div className="flex gap-4">
