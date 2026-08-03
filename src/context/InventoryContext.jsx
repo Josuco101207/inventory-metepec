@@ -253,8 +253,9 @@ export const InventoryProvider = ({ children }) => {
   }, [categories, addDebugError]);
 
   // Cargar artículos de una categoría específica (bajo demanda)
+  // Cargar artículos de una categoría específica (bajo demanda)
   const loadCategoryItems = useCallback(async (categoryTitle) => {
-    if (loadedCategoriesRef.current.has(categoryTitle)) return; // ya cargada
+    // EXTREMO: IGNORAR CACHE if (loadedCategoriesRef.current.has(categoryTitle)) return;
     const cat = categories.find(c => c.title === categoryTitle);
     if (!cat || !cat.tableName) return;
     
@@ -306,6 +307,9 @@ export const InventoryProvider = ({ children }) => {
         if (obsKey && normalizedRow.observaciones === undefined) normalizedRow.observaciones = row[obsKey];
         if (threshKey && normalizedRow.threshold === undefined) normalizedRow.threshold = row[threshKey];
         
+        // EXTREMO: Forzar nombre genérico si sigue sin tener nombre
+        if (!normalizedRow.name) normalizedRow.name = Object.values(row)[0] || 'Desconocido';
+
         return { ...normalizedRow, category: cat.title, _tableName: cat.tableName };
       });
 
