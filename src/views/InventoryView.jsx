@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -131,8 +131,9 @@ const InventoryView = ({ categoryTitle }) => {
   const [filteredItems, setFilteredItems] = useState([]);
   const workerRef = useRef(null);
 
-  // Trigger lazy load
+  // Disparar carga de datos de la categoría si no están cargados
   useEffect(() => {
+    toast(`InventoryView mounted/updated for: ${categoryTitle}`);
     if (categoryTitle && loadCategoryItems) {
       loadCategoryItems(categoryTitle);
     }
