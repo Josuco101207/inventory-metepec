@@ -10,7 +10,7 @@ import { exportToExcel } from '../utils/exportUtils';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import { parseMovDetails } from '../utils/formatUtils';
 import useIsMobile from '../hooks/useIsMobile';
-import { Virtuoso } from 'react-virtualized';
+import { Virtuoso } from 'react-virtuoso';
 import './TransactionsView.css';
 const actionConfig = {
   Entrada:     { label: 'Entrada',    color: '#34c759', bg: 'rgba(52,199,89,0.12)', icon: ArrowUpCircle },
