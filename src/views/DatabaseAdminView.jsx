@@ -356,53 +356,6 @@ const DatabaseAdminView = () => {
     }
   };
 
-  const [wiping, setWiping] = useState(false);
-
-  const handleWipeDatabase = async () => {
-    const confirmation = window.prompt(
-      '⚠️ PELIGRO EXTREMO ⚠️\n\nEstás a punto de ELIMINAR TODO EL INVENTARIO.\nEsto incluye todas las categorías, artículos y movimientos.\n\nEscribe "ELIMINAR TODO" en mayúsculas para continuar:'
-    );
-
-    if (confirmation !== 'ELIMINAR TODO') {
-      if (confirmation !== null) {
-        toast.error('Confirmación incorrecta. Operación cancelada.');
-      }
-      return;
-    }
-
-    setWiping(true);
-    const toastId = toast.loading('Limpiando base de datos...');
-
-    try {
-      // Build the SQL query to drop all category tables
-      let sqlQuery = '';
-      if (categories && categories.length > 0) {
-        sqlQuery += 'DO $$\nBEGIN\n';
-        categories.forEach(cat => {
-          sqlQuery += `  EXECUTE 'DROP TABLE IF EXISTS public."${cat.tableName}" CASCADE';\n`;
-        });
-        sqlQuery += 'END $$;\n';
-      }
-
-      // Add commands to truncate the core tables
-      sqlQuery += 'TRUNCATE TABLE public.categories RESTART IDENTITY CASCADE;\n';
-      sqlQuery += 'TRUNCATE TABLE public.movements RESTART IDENTITY CASCADE;\n';
-
-      // Execute everything atomically
-      await rpcCall('exec_sql', { query: sqlQuery });
-
-      toast.success('Base de datos restablecida de fábrica', { id: toastId });
-      
-      // Reload UI data
-      reloadCategories();
-      fetchTables();
-    } catch (err) {
-      console.error('Wipe error:', err);
-      toast.error(err.message || 'Error al limpiar la base de datos', { id: toastId });
-    } finally {
-      setWiping(false);
-    }
-  };
 
   const fetchTables = useCallback(async (options = { ignore: false }) => {
     setLoadingTables(true);
@@ -641,14 +594,11 @@ const DatabaseAdminView = () => {
               <span className="fdm-stat-val">{categories.length}</span>
               <span className="fdm-stat-lbl">Activas</span>
             </div>
-            <button className="fdm-btn-action" onClick={handleBackup} disabled={backingUp || wiping}>
+            <button className="fdm-btn-action" onClick={handleBackup} disabled={backingUp}>
               {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Backup
             </button>
-            <button className="fdm-btn-action" onClick={() => { fetchTables(); reloadCategories(); }} disabled={wiping}>
+            <button className="fdm-btn-action" onClick={() => { fetchTables(); reloadCategories(); }}>
               <RefreshCw size={16} /> Sync
-            </button>
-            <button className="fdm-btn-action" style={{ color: '#ff3b30', borderColor: 'rgba(255,59,48,0.2)', backgroundColor: 'rgba(255,59,48,0.05)' }} onClick={handleWipeDatabase} disabled={wiping}>
-              {wiping ? <Loader2 size={16} className="animate-spin" /> : <AlertTriangle size={16} />} Limpiar
             </button>
           </div>
         </div>
@@ -958,14 +908,11 @@ const DatabaseAdminView = () => {
             </div>
             
             <div className="db-admin-header-actions">
-              <button type="button" className="db-btn" onClick={handleBackup} disabled={backingUp || wiping}>
+              <button type="button" className="db-btn" onClick={handleBackup} disabled={backingUp}>
                 {backingUp ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} RESPALDO
               </button>
-              <button type="button" className="db-btn" onClick={() => { fetchTables(); reloadCategories(); }} disabled={wiping}>
+              <button type="button" className="db-btn" onClick={() => { fetchTables(); reloadCategories(); }}>
                 <RefreshCw size={16} /> ACTUALIZAR
-              </button>
-              <button type="button" className="db-btn" style={{ background: 'rgba(255,59,48,0.1)', color: '#ff3b30', borderColor: 'rgba(255,59,48,0.3)' }} onClick={handleWipeDatabase} disabled={wiping}>
-                {wiping ? <Loader2 size={16} className="animate-spin" /> : <AlertTriangle size={16} />} LIMPIEZA TOTAL
               </button>
               <button
                 type="button"
