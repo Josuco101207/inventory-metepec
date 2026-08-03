@@ -702,6 +702,8 @@ export const InventoryProvider = ({ children }) => {
     connectionStatus,
     annulMovement,
     syncInventory,
+    loadCategoryItems,
+    loadAllItems,
     fetchMoreItems: () => {},
     hasMore: false,
   }), [
