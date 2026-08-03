@@ -243,6 +243,7 @@ export const InventoryProvider = ({ children }) => {
     try {
       const rows = await sbFetchItems(cat.tableName);
       if (rows.length === 0) {
+        toast.error(`0 rows fetched from ${cat.tableName}`);
         loadedCategoriesRef.current.add(categoryTitle);
         return;
       }
