@@ -10,8 +10,7 @@ import { exportToExcel } from '../utils/exportUtils';
 import { fetchMovementsByDate } from '../storage/supabaseStorage';
 import { parseMovDetails } from '../utils/formatUtils';
 import useIsMobile from '../hooks/useIsMobile';
-import { List } from 'react-window';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { Virtuoso } from 'react-virtualized';
 import './TransactionsView.css';
 const actionConfig = {
   Entrada:     { label: 'Entrada',    color: '#34c759', bg: 'rgba(52,199,89,0.12)', icon: ArrowUpCircle },
@@ -106,13 +105,16 @@ const TransactionsView = () => {
           <div className="ftm-date-controls">
             <div 
               className="ftm-date-picker" 
-              onClick={() => {
+              onClick={(e) => {
                 if (mobileDatePickerRef.current) {
                   try {
                     mobileDatePickerRef.current.showPicker();
                   } catch {
                     mobileDatePickerRef.current.focus();
                   }
+                } else {
+                   const input = e.currentTarget.querySelector('input');
+                   if (input && input.showPicker) input.showPicker();
                 }
               }}
             >
@@ -161,73 +163,77 @@ const TransactionsView = () => {
               <p>Sincronizando...</p>
             </div>
           ) : filteredMovements.length > 0 ? (
-            <div className="ftm-cards">
-              {filteredMovements.map((mov, index) => {
+            <Virtuoso
+              useWindowScroll
+              data={filteredMovements}
+              itemContent={(index, mov) => {
                 const cfg = getActionConfig(mov.action);
                 const Icon = cfg.icon;
                 const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
                 const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
 
                 return (
-                  <div key={mov.id || index} className={`ftm-card ${mov.annulled ? 'ftm-annulled' : ''}`}>
-                    <div className="ftm-card-top">
-                      <div className="ftm-avatar" style={{ color: cfg.color, background: cfg.bg }}>
-                        <Icon size={20} />
+                  <div style={{ paddingBottom: '0.5rem' }}>
+                    <div className={`ftm-card ${mov.annulled ? 'ftm-annulled' : ''}`}>
+                      <div className="ftm-card-top">
+                        <div className="ftm-avatar" style={{ color: cfg.color, background: cfg.bg }}>
+                          <Icon size={20} />
+                        </div>
+                        <div className="ftm-card-info">
+                          <span className="ftm-action-name" style={{ color: cfg.color }}>{cfg.label}</span>
+                          <h3 className="ftm-item-name" onClick={() => handleArticleClick(mov)}>{mov.item}</h3>
+                          <span className="ftm-item-cat">{mov.category || 'General'}</span>
+                        </div>
+                        <div className="ftm-card-time">
+                          <span className="ftm-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                          {mov.qty > 0 && <span className="ftm-qty-badge">{mov.qty} uds</span>}
+                        </div>
                       </div>
-                      <div className="ftm-card-info">
-                        <span className="ftm-action-name" style={{ color: cfg.color }}>{cfg.label}</span>
-                        <h3 className="ftm-item-name" onClick={() => handleArticleClick(mov)}>{mov.item}</h3>
-                        <span className="ftm-item-cat">{mov.category || 'General'}</span>
+                      
+                      <div className="ftm-card-details">
+                         <p className="ftm-detail-text">{text || 'Sin detalles adicionales'}</p>
+                         <div className="ftm-tags">
+                           <span className="ftm-tag user-tag"><Users size={10} /> {mov.user || 'Admin'}</span>
+                           {supervisorName && <span className="ftm-tag sup-tag">👤 {supervisorName}</span>}
+                           {isApproval && <span className="ftm-tag app-tag">✓ Aprobado</span>}
+                         </div>
                       </div>
-                      <div className="ftm-card-time">
-                        <span className="ftm-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-                        {mov.qty > 0 && <span className="ftm-qty-badge">{mov.qty} uds</span>}
-                      </div>
-                    </div>
-                    
-                    <div className="ftm-card-details">
-                       <p className="ftm-detail-text">{text || 'Sin detalles adicionales'}</p>
-                       <div className="ftm-tags">
-                         <span className="ftm-tag user-tag"><Users size={10} /> {mov.user || 'Admin'}</span>
-                         {supervisorName && <span className="ftm-tag sup-tag">👤 {supervisorName}</span>}
-                         {isApproval && <span className="ftm-tag app-tag">✓ Aprobado</span>}
-                       </div>
-                    </div>
 
-                    {(facturaUrl || (isAdmin && !mov.annulled && mov.action !== 'Anulación') || mov.annulled) && (
-                      <div className="ftm-card-actions">
-                        {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-link">
-                            <img src={facturaUrl} alt="factura" onError={e => { e.target.style.display = 'none'; }} />
-                          </a>
-                        )}
-                        {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-pdf">
-                            📄 PDF
-                          </a>
-                        )}
-                        
-                        <div style={{ flex: 1 }}></div> {/* Spacer */}
+                      {(facturaUrl || (isAdmin && !mov.annulled && mov.action !== 'Anulación') || mov.annulled) && (
+                        <div className="ftm-card-actions">
+                          {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                            <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-link">
+                              <img src={facturaUrl} alt="factura" onError={e => { e.target.style.display = 'none'; }} />
+                            </a>
+                          )}
+                          {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
+                            <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="ftm-factura-pdf">
+                              📄 PDF
+                            </a>
+                          )}
+                          
+                          <div style={{ flex: 1 }}></div>
 
-                        {isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
-                          <button
-                            className="ftm-btn-annul"
-                            onClick={() => {
-                              if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
-                                annulMovement(mov.id, userData?.name || 'Admin');
-                              }
-                            }}
-                          >
-                            <X size={14} /> Anular
-                          </button>
-                        )}
-                        {mov.annulled && <span className="ftm-badge-annulled">ANULADO</span>}
-                      </div>
-                    )}
+                          {isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
+                            <button
+                              className="ftm-btn-annul"
+                              onClick={() => {
+                                if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
+                                  annulMovement(mov.id, userData?.name || 'Admin');
+                                }
+                              }}
+                            >
+                              <X size={14} /> Anular
+                            </button>
+                          )}
+                          {mov.annulled && <span className="ftm-badge-annulled">ANULADO</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
           ) : (
             <div className="ftm-empty">
               <Activity size={48} className="ftm-empty-icon"/>
@@ -288,7 +294,11 @@ const TransactionsView = () => {
 
       {/* ═══ ACTIONS ═══ */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div className="fly-btn fly-btn-secondary" style={{ position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+        <div 
+          className="fly-btn fly-btn-secondary" 
+          style={{ position: 'relative', overflow: 'hidden', flexShrink: 0, cursor: 'pointer' }}
+          onClick={(e) => { e.currentTarget.querySelector('input').showPicker && e.currentTarget.querySelector('input').showPicker() }}
+        >
           <Calendar size={15} />
           <span>{isToday ? 'Hoy' : selectedDate}</span>
           <input
@@ -297,6 +307,7 @@ const TransactionsView = () => {
             onChange={e => setSelectedDate(e.target.value)}
             max={todayStr}
             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
         {!isToday && (
@@ -325,97 +336,86 @@ const TransactionsView = () => {
               <p>SINCRONIZANDO MOVIMIENTOS...</p>
             </div>
           ) : filteredMovements.length > 0 ? (
-            <AutoSizer>
-              {({ height, width }) => (
-                <List
-                  height={height}
-                  itemCount={filteredMovements.length}
-                  itemSize={85}
-                  width={width}
-                  itemData={{ movements: filteredMovements, handleArticleClick, annulMovement, isAdmin, userData }}
-                >
-                  {({ index, style, data }) => {
-                    const mov = data.movements[index];
-                    const cfg = getActionConfig(mov.action);
-                    const Icon = cfg.icon;
-                    const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
-                    const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
+            <Virtuoso
+              useWindowScroll
+              data={filteredMovements}
+              itemContent={(index, mov) => {
+                const cfg = getActionConfig(mov.action);
+                const Icon = cfg.icon;
+                const movDate = mov.timestamp ? new Date(mov.timestamp) : null;
+                const { text, facturaUrl, supervisorName, isApproval } = parseMovDetails(mov.details);
 
-                    return (
-                      <div style={style}>
-                        <div className="invt-grid-row invt-data-row" style={{ height: '100%', margin: 0 }}>
-                          <div className="invt-cell-art">
-                            <div className="invt-avatar" style={{ backgroundColor: cfg.bg, color: cfg.color }}>
-                              <Icon size={20} />
-                            </div>
-                            <div className="invt-item-info">
-                              <span className="invt-action-label" style={{ color: cfg.color }}>{cfg.label}</span>
-                              <span className="invt-item-name" onClick={() => data.handleArticleClick(mov)} style={{ cursor: 'pointer' }}>
-                                {mov.item}
-                              </span>
-                              <span className="invt-item-cat">{mov.category || 'General'}</span>
-                            </div>
-                          </div>
-
-                          <div className="invt-cell-details">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
-                              <span className="invt-detail-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{text || 'Sin detalles adicionales'}</span>
-                              {supervisorName && (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', background: 'rgba(167,139,250,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.03em' }}>
-                                  👤 {supervisorName}
-                                </span>
-                              )}
-                              {isApproval && (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.6rem', fontWeight: 800, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '2px 8px', borderRadius: 6, flexShrink: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                                  ✓ Aprobado
-                                </span>
-                              )}
-                              {facturaUrl && !facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                                <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
-                                  <img src={facturaUrl} alt="factura" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', display: 'block' }} onError={e => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
-                                </a>
-                              )}
-                              {facturaUrl && facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') && (
-                                <a href={facturaUrl} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#a78bfa', textDecoration: 'none' }}>📄 PDF</a>
-                              )}
-                            </div>
-                            <div className="invt-detail-meta">
-                              <div className="invt-user-tag">
-                                <Users size={12} />
-                                <span>{mov.user || 'Admin'}</span>
-                              </div>
-                              {mov.qty > 0 && <span className="invt-qty-badge">{mov.qty} uds</span>}
-                            </div>
-                          </div>
-
-                          <div className="invt-cell-time">
-                            <span className="invt-time-date">{movDate?.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                            <span className="invt-time-hour">{movDate?.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                          </div>
-
-                          <div className="invt-cell-act">
-                            {data.isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
-                              <button
-                                className="invt-btn-annul"
-                                title="Anular Movimiento"
-                                onClick={() => {
-                                  if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
-                                    data.annulMovement(mov.id, data.userData?.name || 'Admin');
-                                  }
-                                }}
-                              >
-                                <X size={18} />
-                              </button>
-                            )}
-                            {mov.annulled && <span className="invt-badge-annulled">ANULADO</span>}
-                          </div>
+                return (
+                  <div style={{ paddingBottom: '0.25rem' }}>
+                    <div className="invt-grid-row invt-data-row" style={{ height: '85px', margin: 0 }}>
+                      <div className="invt-cell-art">
+                        <div className="invt-avatar" style={{ backgroundColor: cfg.bg, color: cfg.color }}>
+                          <Icon size={20} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--fly-white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {mov.item}
+                          </span>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {cfg.label}
+                          </span>
                         </div>
                       </div>
-                    );
-                  }}
-                </List>
-              )}
-            </AutoSizer>
+
+                      <div className="invt-cell-details">
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {text}
+                        </span>
+                        {supervisorName && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, color: 'var(--fly-yellow)' }}>
+                            <ClipboardCheck size={12} />
+                            <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em' }}>
+                              {supervisorName} {isApproval ? '(Aprobó)' : '(Auditor)'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="invt-cell-time">
+                        {movDate && (
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontVariantNumeric: 'tabular-nums' }}>
+                            {movDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        )}
+                        <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginTop: 2, letterSpacing: '0.05em' }}>
+                          {mov.user_email}
+                        </span>
+                      </div>
+
+                      <div className="invt-cell-act">
+                        {facturaUrl && (
+                          <a href={facturaUrl} target="_blank" rel="noopener noreferrer" className="fly-btn fly-btn-secondary" style={{ padding: '0 0.5rem', height: 32 }} title="Ver Comprobante">
+                            {facturaUrl.toLowerCase().split('?')[0].endsWith('.pdf') ? '📄 PDF' : <FileImage size={15} />}
+                          </a>
+                        )}
+
+                        {isAdmin && !mov.annulled && mov.action !== 'Anulación' && (
+                          <button
+                            className="fly-btn"
+                            style={{ background: 'rgba(255,59,48,0.1)', color: '#ff3b30', borderColor: 'rgba(255,59,48,0.2)', padding: '0 0.75rem', height: 32 }}
+                            onClick={() => {
+                              if (window.confirm(`¿Anular movimiento de "${mov.item}"? Se revertirá el stock.`)) {
+                                annulMovement(mov.id, userData?.name || 'Admin');
+                              }
+                            }}
+                          >
+                            <X size={14} /> ANULAR
+                          </button>
+                        )}
+                        {mov.annulled && (
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', padding: '0 0.5rem' }}>ANULADO</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }}
+            />
           ) : (
             <div className="fly-empty-state">
               <Activity size={56} strokeWidth={1.2} />
