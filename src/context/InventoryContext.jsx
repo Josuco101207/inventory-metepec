@@ -146,8 +146,15 @@ export const InventoryProvider = ({ children }) => {
       setSubcategoriesState([]);
       setGlobalStats({ items: 0, movements: 0, critical: 0, criticalItems: [], activity: [] });
       setLoading(true);
+      setDebugErrors([]);
     }
   }, [user, setMovementsState]);
+
+  const [debugErrors, setDebugErrors] = useState([]);
+  const addDebugError = useCallback((err) => {
+    console.error('DEBUG ERROR:', err);
+    setDebugErrors(prev => [...prev, String(err)]);
+  }, []);
 
   // ─── Cargar items de TODAS las tablas de categorías en Supabase ───
   const loadAllItems = useCallback(async (cachedMovements = null) => {
@@ -228,6 +235,7 @@ export const InventoryProvider = ({ children }) => {
       results.forEach((res, i) => {
         if (res.status === 'rejected') {
            console.error(`[Inventory] Failed to load table ${categories[i].tableName}:`, res.reason);
+           addDebugError(`loadAllItems: Failed to load ${categories[i].tableName}: ${res.reason?.message || res.reason}`);
         } else if (res.status === 'fulfilled') {
            loadedCategoriesRef.current.add(categories[i].title);
         }
@@ -240,8 +248,9 @@ export const InventoryProvider = ({ children }) => {
       categories.forEach(c => loadedCategoriesRef.current.add(c.title));
     } catch (err) {
       console.error('[Inventory] Load items error:', err);
+      addDebugError(`loadAllItems outer error: ${err.message}`);
     }
-  }, [categories]);
+  }, [categories, addDebugError]);
 
   // Cargar artículos de una categoría específica (bajo demanda)
   const loadCategoryItems = useCallback(async (categoryTitle) => {
@@ -253,6 +262,7 @@ export const InventoryProvider = ({ children }) => {
       const rows = await sbFetchItems(cat.tableName);
       if (rows.length === 0) {
         toast.error(`0 rows fetched from ${cat.tableName}`);
+        addDebugError(`loadCategoryItems: 0 rows fetched from ${cat.tableName}`);
         loadedCategoriesRef.current.add(categoryTitle);
         return;
       }
@@ -312,8 +322,10 @@ export const InventoryProvider = ({ children }) => {
       loadedCategoriesRef.current.add(categoryTitle);
     } catch (err) {
       console.error(`[Inventory] Error loading category ${categoryTitle}:`, err);
+      toast.error(`Error al cargar datos de ${categoryTitle}: ${err.message}`);
+      addDebugError(`loadCategoryItems error for ${categoryTitle}: ${err.message}`);
     }
-  }, [categories, movements, setItemsMap]);
+  }, [categories, movements, setItemsMap, addDebugError]);
 
   // ─── Cargar datos ───
   useEffect(() => {
@@ -636,6 +648,8 @@ export const InventoryProvider = ({ children }) => {
 
   const contextValue = useMemo(() => ({
     items,
+    itemsMap,
+    debugErrors,
     movements,
     personnel,
     brands,

@@ -109,7 +109,7 @@ const NeonItemCard = React.memo(({ item, categoryTitle, isAdmin, isStaff, canEdi
 
 /* ── VISTA PRINCIPAL ── */
 const InventoryView = ({ categoryTitle }) => {
-  const { items, updateStock, addItem, deleteItem, editItem, auditStock, loading, loadCategoryItems } = useInventory();
+  const { items, itemsMap, debugErrors, updateStock, addItem, deleteItem, editItem, auditStock, loading, loadCategoryItems } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
   const { isMobile } = useIsMobile();
@@ -401,6 +401,28 @@ const InventoryView = ({ categoryTitle }) => {
           )}
         </div>
       </section>
+      
+      <div style={{
+        padding: isMobile ? '16px' : '24px',
+        maxWidth: '1600px',
+        margin: '0 auto',
+        opacity: pageTransition ? 0 : 1,
+        transform: pageTransition ? 'translateY(10px)' : 'translateY(0)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
+        {debugErrors && debugErrors.length > 0 && (
+          <div style={{
+            background: '#ff000033', border: '1px solid red', color: 'red',
+            padding: '12px', marginBottom: '16px', borderRadius: '8px',
+            fontSize: '12px', fontFamily: 'monospace'
+          }}>
+            <strong>DEBUG ERRORS ({debugErrors.length}):</strong>
+            <ul>
+              {debugErrors.map((err, i) => <li key={i}>{err}</li>)}
+            </ul>
+            <p>itemsMap keys: {Object.keys(itemsMap || {}).length}</p>
+          </div>
+        )}
 
       {subcategories.length > 1 && (
         <section className="neon-subcat-row">
