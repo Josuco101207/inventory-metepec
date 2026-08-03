@@ -61,5 +61,10 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000 // Aumentamos el límite de advertencia a 1MB por exceljs
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './vitest.setup.js',
   }
 })
