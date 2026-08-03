@@ -403,22 +403,6 @@ const InventoryView = ({ categoryTitle }) => {
         </div>
       </section>
       
-        {debugErrors && debugErrors.length > 0 && (
-          <div style={{
-            background: '#ff000033', border: '1px solid red', color: 'red',
-            padding: '12px', marginBottom: '16px', borderRadius: '8px',
-            fontSize: '12px', fontFamily: 'monospace',
-            opacity: pageTransition ? 0 : 1,
-            transform: pageTransition ? 'translateY(10px)' : 'translateY(0)',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <strong>DEBUG ERRORS ({debugErrors.length}):</strong>
-            <ul>
-              {debugErrors.map((err, i) => <li key={i}>{err}</li>)}
-            </ul>
-            <p>itemsMap keys: {Object.keys(itemsMap || {}).length}</p>
-          </div>
-        )}
 
       {subcategories.length > 1 && (
         <section className="neon-subcat-row">
