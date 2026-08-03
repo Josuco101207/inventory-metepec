@@ -134,7 +134,6 @@ const InventoryView = ({ categoryTitle }) => {
 
   // Disparar carga de datos de la categoría si no están cargados
   useEffect(() => {
-    toast(`InventoryView mounted/updated for: ${categoryTitle}`);
     if (categoryTitle && loadCategoryItems) {
       loadCategoryItems(categoryTitle);
     }

@@ -255,22 +255,11 @@ export const InventoryProvider = ({ children }) => {
   // Cargar artículos de una categoría específica (bajo demanda)
   // Cargar artículos de una categoría específica (bajo demanda)
   const loadCategoryItems = useCallback(async (categoryTitle) => {
-    toast(`loadCategoryItems triggered for: ${categoryTitle}`);
-    
     // EXTREMO: IGNORAR CACHE if (loadedCategoriesRef.current.has(categoryTitle)) return;
     const cat = categories.find(c => c.title === categoryTitle);
-    
-    if (!cat) {
-      toast.error(`Categoría no encontrada en contexto: ${categoryTitle}`);
-      return;
-    }
-    if (!cat.tableName) {
-      toast.error(`Categoría sin tableName: ${categoryTitle}`);
-      return;
-    }
+    if (!cat || !cat.tableName) return;
     
     try {
-      toast(`Fetching from table: ${cat.tableName}...`);
       const rows = await sbFetchItems(cat.tableName);
       if (rows.length === 0) {
         toast.error(`0 rows fetched from ${cat.tableName}`);
