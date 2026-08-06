@@ -29,7 +29,14 @@ const ManualEntryView = () => {
   const preselectedCategory = location.state?.category || '';
   
   const isAdmin = isSystemAdmin || userData?.role === 'admin';
-  const canAdd = isAdmin || (userData?.allowedCategories || []).includes('Ingreso Manual');
+  
+  const categoryTitles = useMemo(() => {
+    const allTitles = categories.map(c => c.title);
+    if (isAdmin) return allTitles;
+    return allTitles.filter(cat => (userData?.allowedCategories || []).includes(cat));
+  }, [categories, isAdmin, userData]);
+
+  const canAdd = isAdmin || categoryTitles.length > 0;
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -76,7 +83,7 @@ const ManualEntryView = () => {
   }, []);
 
 
-  const categoryTitles = useMemo(() => categories.map(c => c.title), [categories]);
+
 
 
   // Helper para obtener el schema de una categoría (sin campos del sistema)
