@@ -623,6 +623,85 @@ export const useInventoryItems = ({
     }
   }, [addMovement, getTableName, itemsRef, setItemsMap]);
 
+  const transferItem = useCallback(async (itemId, targetCategory, targetSubcategory, transferQty, userName = 'Sistema') => {
+    const item = itemsRef.current[itemId];
+    if (!item) return;
+    
+    if (transferQty > (item.qty || 0)) {
+       toast.error("Stock insuficiente para transferir");
+       return;
+    }
+
+    const currentTableName = item._tableName || getTableName(item.category);
+    const targetTableName = getTableName(targetCategory);
+    
+    if (!currentTableName || !targetTableName) {
+       toast.error("No se pudo determinar la tabla de origen o destino.");
+       return;
+    }
+
+    try {
+       const validColumns = getValidColumns(targetCategory);
+       const fieldMappings = getFieldMappings(targetCategory);
+       
+       const { category: _cat, _tableName, id: _id, created_at: _created_at, createdAt: _createdAt, ...rawFields } = item;
+       const newFields = {
+         ...rawFields,
+         qty: transferQty,
+       };
+       
+       if (targetSubcategory) {
+         if ('subcategory' in newFields || 'subcategory' in fieldMappings) newFields.subcategory = targetSubcategory;
+         if ('subcategoria' in newFields || 'subcategoria' in fieldMappings) newFields.subcategoria = targetSubcategory;
+       }
+
+       const dbFields = mapToDbFields(newFields, validColumns, fieldMappings);
+       const createdItem = await sbInsertItem(targetTableName, dbFields);
+       
+       if (!createdItem) throw new Error("Insert returned null");
+       
+       const remainingQty = (item.qty || 0) - transferQty;
+       if (remainingQty <= 0) {
+          await sbDeleteItem(currentTableName, itemId);
+          setItemsMap(prev => {
+            const nextMap = { ...prev };
+            delete nextMap[itemId];
+            return nextMap;
+          });
+       } else {
+          const origValidColumns = getValidColumns(item.category);
+          const origMappings = getFieldMappings(item.category);
+          const origUpdates = mapToDbFields({ qty: remainingQty }, origValidColumns, origMappings);
+          await sbUpdateItem(currentTableName, itemId, origUpdates);
+          setItemsMap(prev => ({
+             ...prev,
+             [itemId]: { ...(prev[itemId] || item), qty: remainingQty }
+          }));
+       }
+
+       setItemsMap(prev => ({
+         ...prev,
+         [createdItem.id]: {
+           ...createdItem,
+           name: createdItem.name || createdItem.nombre || createdItem.titulo || createdItem.producto || createdItem.articulo || newFields.name || newFields.nombre || 'Sin nombre',
+           category: targetCategory,
+           _tableName: targetTableName,
+           invoices: item.invoices
+         }
+       }));
+       
+       await addMovement(
+         'Transferencia', item.name || newFields.name || 'Desconocido', transferQty, userName, 
+         `Transferido desde ${item.category} a ${targetCategory}`, targetCategory
+       );
+
+       toast.success(`Transferidos ${transferQty} unidades a ${targetCategory}`);
+    } catch (err) {
+       console.error("Transfer error:", err);
+       toast.error(`Error en transferencia: ${err.message}`);
+    }
+  }, [addMovement, getTableName, getValidColumns, getFieldMappings, mapToDbFields, itemsRef, setItemsMap]);
+
   return {
     updateStock,
     loanItem,
@@ -637,6 +716,7 @@ export const useInventoryItems = ({
     bulkAddItems,
     deleteItemsByCategory,
     clearDatabaseCategories,
-    deleteItemsWithInvalidCategories
+    deleteItemsWithInvalidCategories,
+    transferItem
   };
 };

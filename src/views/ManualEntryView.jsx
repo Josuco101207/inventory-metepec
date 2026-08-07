@@ -414,7 +414,10 @@ const ManualEntryView = () => {
                               value={fieldValue}
                               onChange={e => updateLine(idx, fieldName, e.target.value)}>
                               <option value="">—</option>
-                              {subcategories?.map(sub => <option key={sub.id} value={sub.name}>{sub.name}</option>)}
+                              {subcategories?.filter(sub => !sub.name.includes('::') || sub.name.startsWith(`${line.category}::`)).map(sub => {
+                                const displayName = sub.name.includes('::') ? sub.name.split('::')[1] : sub.name;
+                                return <option key={sub.id} value={displayName}>{displayName}</option>;
+                              })}
                             </select>
                           ) : fieldName === 'foto_url' ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: '100px' }}>

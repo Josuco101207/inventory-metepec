@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Plus, Tag, X, Wrench, Clock, Save } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { useCategories } from '../context/CategoriesContext';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 import './SettingsView.css';
 
 const SettingsView = () => {
   const { locations, subcategories, addLocation, deleteLocation, addSubcategory, deleteSubcategory } = useInventory();
+  const { categories } = useCategories();
   
+  const [selectedCategoryTitle, setSelectedCategoryTitle] = useState('');
+  
+  const filteredSubcategories = subcategories.filter(sub => {
+    if (selectedCategoryTitle) {
+      return sub.name.startsWith(`${selectedCategoryTitle}::`);
+    }
+    return !sub.name.includes('::');
+  });
+
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const [reportTime, setReportTime] = useState(() => {
     return localStorage.getItem('dicrejart_report_time') || '23:00';
@@ -252,61 +265,79 @@ const SettingsView = () => {
             <div className="fly-gc-header">
               <Tag size={24} className="fly-gc-icon" />
               <div>
-                <h2>Subcategorías Globales</h2>
-                <p className="fly-gc-desc">Añade etiquetas secundarias para una mejor trazabilidad.</p>
+                <h2>Subcategorías (Etiquetas)</h2>
+                <p className="fly-gc-desc">Añade etiquetas para clasificar artículos por categoría.</p>
               </div>
             </div>
             
-            <div className="fly-premium-input-group" style={{ marginBottom: '1rem' }}>
-              <input 
-                type="text" 
-                className="fly-premium-input"
-                placeholder="Nombre de la subcategoría..." 
-                value={newSubcategoryName} 
-                onChange={e => setNewSubcategoryName(e.target.value)}
-                onKeyDown={e => {
-                  if(e.key === 'Enter' && newSubcategoryName.trim()) {
-                    addSubcategory(newSubcategoryName.trim());
-                    setNewSubcategoryName('');
-                  }
-                }}
-              />
-              <button 
-                className="fly-btn-neon" 
-                onClick={() => {
-                  if(newSubcategoryName.trim()) {
-                    addSubcategory(newSubcategoryName.trim());
-                    setNewSubcategoryName('');
-                  }
-                }}
-                disabled={!newSubcategoryName.trim()}
+            <div className="fly-premium-input-group" style={{ marginBottom: '1rem', flexDirection: 'column' }}>
+              <select 
+                className="fly-premium-select"
+                value={selectedCategoryTitle} 
+                onChange={e => setSelectedCategoryTitle(e.target.value)}
               >
-                <Plus size={18} />
-              </button>
+                <option value="">Globales (Aplica a todas)</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.title}>{cat.title}</option>
+                ))}
+              </select>
+              <div style={{ display: 'flex', width: '100%', gap: '1rem', marginTop: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  className="fly-premium-input"
+                  style={{ flex: 1 }}
+                  placeholder={selectedCategoryTitle ? `Nueva subcategoría en ${selectedCategoryTitle}...` : "Nueva subcategoría global..."} 
+                  value={newSubcategoryName} 
+                  onChange={e => setNewSubcategoryName(e.target.value)}
+                  onKeyDown={e => {
+                    if(e.key === 'Enter' && newSubcategoryName.trim()) {
+                      const prefix = selectedCategoryTitle ? `${selectedCategoryTitle}::` : '';
+                      addSubcategory(prefix + newSubcategoryName.trim());
+                      setNewSubcategoryName('');
+                    }
+                  }}
+                />
+                <button 
+                  className="fly-btn-neon" 
+                  onClick={() => {
+                    if(newSubcategoryName.trim()) {
+                      const prefix = selectedCategoryTitle ? `${selectedCategoryTitle}::` : '';
+                      addSubcategory(prefix + newSubcategoryName.trim());
+                      setNewSubcategoryName('');
+                    }
+                  }}
+                  disabled={!newSubcategoryName.trim()}
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
             </div>
 
             <div className="fly-glass-list">
-              {subcategories.length === 0 ? (
+              {filteredSubcategories.length === 0 ? (
                 <div className="fly-empty-state">
-                  No hay etiquetas secundarias registradas.
+                  No hay etiquetas registradas para esta selección.
                 </div>
               ) : (
-                subcategories.map(sub => (
-                  <div key={sub.id} className="fly-glass-list-item">
-                    <span className="fly-list-item-name">{sub.name}</span>
-                    <button 
-                      className="fly-btn-icon-danger"
-                      onClick={() => {
-                        if(window.confirm(`¿Seguro que deseas eliminar la etiqueta "${sub.name}"?`)) {
-                          deleteSubcategory(sub.id);
-                        }
-                      }}
-                      title="Eliminar Etiqueta"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))
+                filteredSubcategories.map(sub => {
+                  const displayName = sub.name.includes('::') ? sub.name.split('::')[1] : sub.name;
+                  return (
+                    <div key={sub.id} className="fly-glass-list-item">
+                      <span className="fly-list-item-name">{displayName}</span>
+                      <button 
+                        className="fly-btn-icon-danger"
+                        onClick={() => {
+                          if(window.confirm(`¿Seguro que deseas eliminar la etiqueta "${displayName}"?`)) {
+                            deleteSubcategory(sub.id);
+                          }
+                        }}
+                        title="Eliminar Etiqueta"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

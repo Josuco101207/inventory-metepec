@@ -123,7 +123,8 @@ export const InventoryProvider = ({ children }) => {
     bulkAddItems,
     deleteItemsByCategory,
     clearDatabaseCategories,
-    deleteItemsWithInvalidCategories
+    deleteItemsWithInvalidCategories,
+    transferItem
   } = useInventoryItems({
     itemsRef,
     setItemsMap,
@@ -693,6 +694,7 @@ export const InventoryProvider = ({ children }) => {
     syncInventory,
     loadCategoryItems,
     loadAllItems,
+    transferItem,
     fetchMoreItems: () => {},
     hasMore: false,
   }), [
@@ -734,6 +736,7 @@ export const InventoryProvider = ({ children }) => {
     syncInventory,
     loadCategoryItems,
     loadAllItems,
+    transferItem,
     clearDatabaseCategories,
     deleteItemsByCategory,
     setMovementsState

@@ -461,7 +461,10 @@ const InvoiceReviewForm = ({ extractedData, onBack, onConfirm, previewUrl, factu
                                   ) : (field.name === 'subcategory' || field.name === 'subcategoria') ? (
                                     <select className="iv-input" value={val || ''} onChange={(e) => updateDynamicField(idx, field.name, e.target.value)}>
                                       <option value="">Seleccionar...</option>
-                                      {subcategories?.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                                      {subcategories?.filter(sub => !sub.name.includes('::') || sub.name.startsWith(`${item.category}::`)).map(sub => {
+                                        const displayName = sub.name.includes('::') ? sub.name.split('::')[1] : sub.name;
+                                        return <option key={sub.id} value={displayName}>{displayName}</option>;
+                                      })}
                                     </select>
                                   ) : (
                                     <input 

@@ -39,6 +39,15 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
   const { getCategoryByTitle } = useCategories();
   const { locations, subcategories, brands } = useInventory();
 
+  const filteredSubcategories = useMemo(() => {
+    return subcategories.filter(sub => {
+      if (!sub.name.includes('::')) return true;
+      return sub.name.startsWith(`${category}::`);
+    }).map(sub => {
+      return { ...sub, displayName: sub.name.includes('::') ? sub.name.split('::')[1] : sub.name };
+    });
+  }, [subcategories, category]);
+
   // Get schema from the category
   const catConfig = useMemo(() => getCategoryByTitle(category) || {}, [category, getCategoryByTitle]);
   const schema = useMemo(() => catConfig.schema || [], [catConfig]);
@@ -240,8 +249,8 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                           style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--surface)' }}
                         >
                           <option value="">Seleccionar subcategoría...</option>
-                          {subcategories.map(sub => (
-                            <option key={sub.id} value={sub.name}>{sub.name}</option>
+                          {filteredSubcategories.map(sub => (
+                            <option key={sub.id} value={sub.displayName}>{sub.displayName}</option>
                           ))}
                         </select>
                       ) : (
@@ -379,8 +388,8 @@ const AddItemModal = ({ isOpen, onClose, category, onSave, initialData }) => {
                             className="w-full"
                           >
                             <option value="">Seleccionar subcategoría...</option>
-                            {subcategories.map(sub => (
-                              <option key={sub.id} value={sub.name}>{sub.name}</option>
+                            {filteredSubcategories.map(sub => (
+                              <option key={sub.id} value={sub.displayName}>{sub.displayName}</option>
                             ))}
                           </select>
                         ) : (

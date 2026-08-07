@@ -1,12 +1,19 @@
-import React from 'react';
-import { X, Package, Landmark, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Package, Landmark, Tag, ArrowRightLeft } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import BottomSheet from './BottomSheet';
 import { useCategories } from '../context/CategoriesContext';
+import { useInventory } from '../context/InventoryContext';
 
 const ItemDetailModal = ({ isOpen, onClose, item, categoryTitle }) => {
   const { isMobile } = useIsMobile();
-  const { getCategoryByTitle } = useCategories();
+  const { categories, getCategoryByTitle } = useCategories();
+  const { subcategories, transferItem } = useInventory();
+  
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [targetCategory, setTargetCategory] = useState('');
+  const [targetSubcategory, setTargetSubcategory] = useState('');
+  const [transferQty, setTransferQty] = useState(1);
 
   if (!isOpen || !item) return null;
 
@@ -15,7 +22,84 @@ const ItemDetailModal = ({ isOpen, onClose, item, categoryTitle }) => {
 
   const isCritical = (item.qty || 0) <= (item.threshold || 0);
 
-  const content = (
+  const filteredSubcategories = subcategories?.filter(sub => !sub.name.includes('::') || sub.name.startsWith(`${targetCategory}::`));
+
+  const handleTransfer = async () => {
+    if (!targetCategory || transferQty <= 0) return;
+    await transferItem(item.id, targetCategory, targetSubcategory, transferQty, "Sistema");
+    setIsTransferring(false);
+    onClose();
+  };
+
+  const content = isTransferring ? (
+    <div className="flex flex-col gap-4" style={{ padding: '0 0.5rem' }}>
+      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+        Transfiriendo <strong>{item.name}</strong> a otra categoría.
+      </p>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.25rem' }}>Categoría Destino</label>
+        <select 
+          className="iv-input" 
+          value={targetCategory}
+          onChange={e => {
+            setTargetCategory(e.target.value);
+            setTargetSubcategory('');
+          }}
+          style={{ width: '100%', padding: '0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          <option value="" disabled style={{ color: '#000' }}>Seleccionar...</option>
+          {categories.filter(c => c.title !== item.category).map(c => (
+            <option key={c.id} value={c.title} style={{ color: '#000' }}>{c.title}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.25rem' }}>Subcategoría (Opcional)</label>
+        <select 
+          className="iv-input" 
+          value={targetSubcategory}
+          onChange={e => setTargetSubcategory(e.target.value)}
+          disabled={!targetCategory}
+          style={{ width: '100%', padding: '0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', opacity: targetCategory ? 1 : 0.5 }}
+        >
+          <option value="" style={{ color: '#000' }}>Ninguna / Global</option>
+          {filteredSubcategories?.map(sub => {
+            const displayName = sub.name.includes('::') ? sub.name.split('::')[1] : sub.name;
+            return <option key={sub.id} value={displayName} style={{ color: '#000' }}>{displayName}</option>;
+          })}
+        </select>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.25rem' }}>Cantidad a Transferir (Max: {item.qty || 0})</label>
+        <input 
+          type="number" 
+          className="iv-input" 
+          min="1" 
+          max={item.qty || 0}
+          value={transferQty}
+          onChange={e => setTransferQty(parseInt(e.target.value) || 0)}
+          style={{ width: '100%', padding: '0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+        <button className="btn-apple-secondary" onClick={() => setIsTransferring(false)} style={{ flex: 1 }}>
+          Cancelar
+        </button>
+        <button 
+          className="btn-apple-primary" 
+          onClick={handleTransfer} 
+          disabled={!targetCategory || transferQty <= 0 || transferQty > (item.qty || 0)} 
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+        >
+          <ArrowRightLeft size={16} /> Confirmar
+        </button>
+      </div>
+    </div>
+  ) : (
     <div className="flex flex-col gap-6" style={{ padding: '0 0.5rem' }}>
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
         {item.foto_url ? (
@@ -86,9 +170,14 @@ const ItemDetailModal = ({ isOpen, onClose, item, categoryTitle }) => {
         </div>
       )}
 
-      <button className="btn-apple-secondary" onClick={onClose} style={{ marginTop: '1rem', width: '100%' }}>
-        Cerrar
-      </button>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+        <button className="btn-apple-secondary" onClick={() => setIsTransferring(true)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+          <ArrowRightLeft size={16} /> Transferir Categoría
+        </button>
+        <button className="btn-apple-secondary" onClick={onClose} style={{ flex: 1 }}>
+          Cerrar
+        </button>
+      </div>
     </div>
   );
 
