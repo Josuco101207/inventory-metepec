@@ -110,7 +110,7 @@ const NeonItemCard = React.memo(({ item, categoryTitle, isAdmin, isStaff, canEdi
 
 /* ── VISTA PRINCIPAL ── */
 const InventoryView = ({ categoryTitle }) => {
-  const { items, itemsMap, debugErrors, updateStock, addItem, deleteItem, editItem, auditStock, loading, loadCategoryItems } = useInventory();
+  const { items, itemsMap, debugErrors, updateStock, addItem, deleteItem, editItem, auditStock, loading, loadCategoryItems, subcategories: globalSubcategories } = useInventory();
   const { isAdmin, isStaff, userData, canAddTo, canEditIn } = useAuth();
   const { getCategoryByTitle } = useCategories();
   const { isMobile } = useIsMobile();
@@ -124,10 +124,10 @@ const InventoryView = ({ categoryTitle }) => {
   const [detailModalItem, setDetailModalItem] = useState(null);
   const [activeInvoiceIndex, setActiveInvoiceIndex] = useState(0);
   
-  // Filters
+  // Navigation State
+  const [activeFolder, setActiveFolder] = useState(null); // null = vistas carpetas, string = vista items
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeSubcategory, setActiveSubcategory] = useState('TODAS');
   
   const [filteredItems, setFilteredItems] = useState([]);
   const workerRef = useRef(null);
@@ -138,6 +138,12 @@ const InventoryView = ({ categoryTitle }) => {
       loadCategoryItems(categoryTitle);
     }
   }, [categoryTitle, loadCategoryItems]);
+
+  // Si cambia de categoría desde el sidebar, reiniciamos a la vista de carpetas
+  useEffect(() => {
+    setActiveFolder(null);
+    setSearchTerm('');
+  }, [categoryTitle]);
 
   // Worker Initialization
   useEffect(() => {
@@ -154,19 +160,36 @@ const InventoryView = ({ categoryTitle }) => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Trigger Filter
+  // Trigger Filter (solo aplicamos el filtro de subcategoría cuando estamos dentro de un folder)
   useEffect(() => {
     if (!workerRef.current) return;
     workerRef.current.postMessage({
-      items, searchTerm: debouncedSearch, categoryTitle, activeSubcategory,
+      items, searchTerm: debouncedSearch, categoryTitle, activeSubcategory: activeFolder || 'TODAS',
       selectedBrand: 'Todas', selectedLocation: 'Todas'
     });
-  }, [items, debouncedSearch, categoryTitle, activeSubcategory]);
+  }, [items, debouncedSearch, categoryTitle, activeFolder]);
 
-  const subcategories = useMemo(() => {
-    const subs = Array.from(new Set(items.filter(i => i.category === categoryTitle && (i.subcategory || i.subcategoria)).map(i => i.subcategory || i.subcategoria))).sort();
-    return ['TODAS', ...subs];
-  }, [items, categoryTitle]);
+  // Calculamos las carpetas disponibles (Subcategorías explícitas + Dinámicas de items)
+  const categoryFolders = useMemo(() => {
+    const explicitSubs = (globalSubcategories || [])
+      .filter(sub => sub.name.startsWith(`${categoryTitle}::`))
+      .map(sub => sub.name.split('::')[1]);
+      
+    const implicitSubs = items
+      .filter(i => i.category === categoryTitle && (i.subcategory || i.subcategoria))
+      .map(i => i.subcategory || i.subcategoria);
+      
+    return Array.from(new Set([...explicitSubs, ...implicitSubs])).sort();
+  }, [items, categoryTitle, globalSubcategories]);
+
+  // Helper para generar información de estadísticas por carpeta
+  const getFolderStats = (folderName) => {
+    const catItems = items.filter(i => i.category === categoryTitle);
+    if (folderName === 'GENERAL') {
+      return catItems.filter(i => !i.subcategory && !i.subcategoria).length;
+    }
+    return catItems.filter(i => (i.subcategory || i.subcategoria) === folderName).length;
+  };
 
   const handlers = useMemo(() => ({
     handleDelete: (item) => { if (window.confirm(`¿Eliminar "${item.name}" permanentemente?`)) deleteItem(item.id, userData?.name || 'Admin'); },
@@ -260,45 +283,74 @@ const InventoryView = ({ categoryTitle }) => {
           </div>
         </div>
 
-        {/* LISTA DE ITEMS */}
+        {/* LISTA DE CARPETAS / ITEMS */}
         <div className="fm-list-container">
-          {subcategories.length > 1 && (
-            <div className="fm-subcat-scroll">
-              {subcategories.map(sub => (
-                <button key={sub} onClick={() => setActiveSubcategory(sub)} className={`fm-subcat-pill ${activeSubcategory === sub ? 'active' : ''}`}>
-                  {sub === 'TODAS' ? 'Todos' : sub}
-                </button>
+          {!activeFolder ? (
+            <div className="fm-folder-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+              <div className="neon-folder-card" onClick={() => setActiveFolder('TODAS')}>
+                <div className="folder-icon-wrap"><Package size={24} /></div>
+                <div className="folder-info">
+                  <h4 className="folder-name">Ver Todos</h4>
+                  <span className="folder-stats">{stats.total} Activos</span>
+                </div>
+              </div>
+              
+              <div className="neon-folder-card" onClick={() => setActiveFolder('GENERAL')}>
+                <div className="folder-icon-wrap"><Package size={24} /></div>
+                <div className="folder-info">
+                  <h4 className="folder-name">Sin Etiqueta</h4>
+                  <span className="folder-stats">{getFolderStats('GENERAL')} Activos</span>
+                </div>
+              </div>
+
+              {categoryFolders.map(folder => (
+                <div key={folder} className="neon-folder-card" onClick={() => setActiveFolder(folder)}>
+                  <div className="folder-icon-wrap"><Package size={24} /></div>
+                  <div className="folder-info">
+                    <h4 className="folder-name">{folder}</h4>
+                    <span className="folder-stats">{getFolderStats(folder)} Activos</span>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-          
-          {filteredItems.length > 0 ? (
-            <div className="fm-cards" style={{ height: 'calc(100vh - 200px)' }}>
-              <Virtuoso
-                data={filteredItems}
-                itemContent={(index, item) => (
-                  <div style={{ paddingBottom: '0.75rem' }}>
-                    <MobileInventoryCard
-                      item={item}
-                      categoryTitle={categoryTitle}
-                      isAdmin={isAdmin}
-                      isStaff={isStaff}
-                      canEditIn={canEditIn}
-                      handlers={handlers}
-                      zoneColor={zoneColor}
-                    />
-                  </div>
-                )}
-              />
-            </div>
           ) : (
-            <div className="fm-empty">
-              <Package size={48} className="fm-empty-icon"/>
-              <p>No se encontraron activos</p>
-            </div>
+            <>
+              <div className="fm-back-row" style={{ marginBottom: '1rem' }}>
+                <button className="glass-btn" onClick={() => setActiveFolder(null)}>
+                  <X size={16} /> VOLVER A CARPETAS
+                </button>
+                <div style={{ marginTop: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: 600 }}>
+                  CARPETA ACTUAL: {activeFolder === 'TODAS' ? 'TODOS' : activeFolder === 'GENERAL' ? 'SIN ETIQUETA' : activeFolder}
+                </div>
+              </div>
+
+              {filteredItems.length > 0 ? (
+                <div className="fm-cards" style={{ height: 'calc(100vh - 280px)' }}>
+                  <Virtuoso
+                    data={filteredItems}
+                    itemContent={(index, item) => (
+                      <div style={{ paddingBottom: '0.75rem' }}>
+                        <MobileInventoryCard
+                          item={item}
+                          categoryTitle={categoryTitle}
+                          isAdmin={isAdmin}
+                          isStaff={isStaff}
+                          canEditIn={canEditIn}
+                          handlers={handlers}
+                          zoneColor={zoneColor}
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              ) : (
+                <div className="fm-empty">
+                  <Package size={48} className="fm-empty-icon"/>
+                  <p>No se encontraron activos en esta carpeta</p>
+                </div>
+              )}
+            </>
           )}
-          
-          {/* Paginación removida ya que Virtuoso maneja la virtualización dinámicamente sin necesidad de infinite scroll DOM */}
         </div>
 
         {/* FLOATING ACTION BAR (FAB) */}
@@ -404,51 +456,77 @@ const InventoryView = ({ categoryTitle }) => {
       </section>
       
 
-      {subcategories.length > 1 && (
-        <section className="neon-subcat-row">
-          {subcategories.map(sub => (
-            <button
-              key={sub}
-              onClick={() => setActiveSubcategory(sub)}
-              className={`neon-pill ${activeSubcategory === sub ? 'active' : ''}`}
-            >
-              {sub === 'TODAS' ? 'MOSTRAR TODO' : sub}
-            </button>
+      {/* VISTA DE ESCRITORIO (CARPETAS / ITEMS) */}
+      {!activeFolder ? (
+        <section className="neon-folder-grid">
+          <div className="neon-folder-card" onClick={() => setActiveFolder('TODAS')}>
+            <div className="folder-icon-wrap"><Package size={24} /></div>
+            <div className="folder-info">
+              <h4 className="folder-name">Ver Todos</h4>
+              <span className="folder-stats">{stats.total} Activos</span>
+            </div>
+          </div>
+
+          <div className="neon-folder-card" onClick={() => setActiveFolder('GENERAL')}>
+            <div className="folder-icon-wrap"><Package size={24} /></div>
+            <div className="folder-info">
+              <h4 className="folder-name">Sin Etiqueta</h4>
+              <span className="folder-stats">{getFolderStats('GENERAL')} Activos</span>
+            </div>
+          </div>
+
+          {categoryFolders.map(folder => (
+            <div key={folder} className="neon-folder-card" onClick={() => setActiveFolder(folder)}>
+              <div className="folder-icon-wrap"><Package size={24} /></div>
+              <div className="folder-info">
+                <h4 className="folder-name">{folder}</h4>
+                <span className="folder-stats">{getFolderStats(folder)} Activos</span>
+              </div>
+            </div>
           ))}
         </section>
+      ) : (
+        <>
+          <div className="neon-back-row">
+            <button className="glass-btn" onClick={() => setActiveFolder(null)}>
+              <X size={16} /> VOLVER A CARPETAS
+            </button>
+            <div style={{ marginLeft: '1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: 600 }}>
+              CARPETA ACTUAL: {activeFolder === 'TODAS' ? 'TODOS' : activeFolder === 'GENERAL' ? 'SIN ETIQUETA' : activeFolder}
+            </div>
+          </div>
+
+          <section className="neon-inventory-list">
+            {filteredItems.length > 0 ? (
+              <div className="neon-cards-container">
+                <Virtuoso
+                  useWindowScroll
+                  data={filteredItems}
+                  itemContent={(index, item) => (
+                    <div style={{ paddingBottom: '0.75rem' }}>
+                      <NeonItemCard
+                        item={item}
+                        categoryTitle={categoryTitle}
+                        isAdmin={isAdmin}
+                        isStaff={isStaff}
+                        canEditIn={canEditIn}
+                        handlers={handlers}
+                        zoneColor={zoneColor}
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            ) : (
+              <div className="neon-empty-state">
+                <Package size={64} className="n-empty-icon" />
+                <h3>NO SE DETECTARON ACTIVOS</h3>
+                <p>Modifica los filtros o realiza una nueva búsqueda.</p>
+              </div>
+            )}
+          </section>
+        </>
       )}
-
-      <section className="neon-inventory-list">
-        {filteredItems.length > 0 ? (
-          <div className="neon-cards-container">
-            <Virtuoso
-              useWindowScroll
-              data={filteredItems}
-              itemContent={(index, item) => (
-                <div style={{ paddingBottom: '0.75rem' }}>
-                  <NeonItemCard
-                    item={item}
-                    categoryTitle={categoryTitle}
-                    isAdmin={isAdmin}
-                    isStaff={isStaff}
-                    canEditIn={canEditIn}
-                    handlers={handlers}
-                    zoneColor={zoneColor}
-                  />
-                </div>
-              )}
-            />
-          </div>
-        ) : (
-          <div className="neon-empty-state">
-            <Package size={64} className="n-empty-icon" />
-            <h3>NO SE DETECTARON ACTIVOS</h3>
-            <p>Modifica los filtros o realiza una nueva búsqueda.</p>
-          </div>
-        )}
-
-
-      </section>
 
       <ActionModal isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} item={selectedItem} onConfirm={(id, qty, details) => { updateStock(id, qty, userData?.name || 'Operador', details); setIsStockModalOpen(false); }} />
       <AddItemModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} category={categoryTitle} initialData={selectedItem} onSave={async (data) => { if (selectedItem) await editItem(selectedItem.id, data, userData?.name || 'Operador'); else await addItem({ ...data, category: categoryTitle }, userData?.name || 'Operador'); setIsAddModalOpen(false); }} />
